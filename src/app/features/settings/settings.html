@@ -1,0 +1,86 @@
+<div class="settings-wrapper">
+  <mat-card class="settings-card" appearance="outlined">
+    <mat-card-header>
+      <mat-card-title>User settings</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content class="settings-content">
+      <section class="settings-section">
+        <h3>Profile</h3>
+        <p class="profile-name">{{ fullName() }}</p>
+
+        <div class="avatar-upload">
+          <div class="avatar-circle">
+            <img class="avatar-preview" [src]="avatarPreview()" alt="Avatar preview" />
+          </div>
+
+          <div class="avatar-actions">
+            <label class="avatar-label" for="settings-avatar">Avatar</label>
+            <input id="settings-avatar" type="file" accept="image/*" (change)="onAvatarSelected($event)" />
+            <button mat-button type="button" (click)="removeAvatar()">Remove avatar</button>
+          </div>
+        </div>
+
+        @if (avatarError(); as avatarError) {
+          <p class="error">{{ avatarError }}</p>
+        }
+
+        <div class="fields-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>First name</mat-label>
+            <input matInput [formControl]="firstNameControl" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Last name</mat-label>
+            <input matInput [formControl]="lastNameControl" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Phone number</mat-label>
+            <input matInput [formControl]="phoneControl" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Age</mat-label>
+            <input matInput type="number" [formControl]="ageControl" />
+          </mat-form-field>
+        </div>
+
+        @if (profileError(); as profileError) {
+          <p class="error">{{ profileError }}</p>
+        }
+        @if (profileMessage(); as profileMessage) {
+          <p class="ok">{{ profileMessage }}</p>
+        }
+
+        <button mat-flat-button color="primary" type="button" (click)="saveProfile()">Save profile</button>
+      </section>
+
+      <section class="settings-section">
+        <h3>Password</h3>
+
+        <div class="fields-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Current password</mat-label>
+            <input matInput type="password" [formControl]="currentPasswordControl" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>New password</mat-label>
+            <input matInput type="password" [formControl]="newPasswordControl" />
+          </mat-form-field>
+        </div>
+
+        @if (passwordError(); as passwordError) {
+          <p class="error">{{ passwordError }}</p>
+        }
+        @if (passwordMessage(); as passwordMessage) {
+          <p class="ok">{{ passwordMessage }}</p>
+        }
+
+        <button mat-stroked-button color="primary" type="button" (click)="changePassword()">Change password</button>
+      </section>
+    </mat-card-content>
+  </mat-card>
+</div>

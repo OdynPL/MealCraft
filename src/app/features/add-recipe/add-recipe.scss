@@ -1,0 +1,48 @@
+.add-recipe-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 1.25rem 1rem;
+}
+
+.add-recipe-card {
+  width: min(900px, 100%);
+  border-radius: 16px;
+}
+
+.recipe-form {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.instructions-field {
+  width: 100%;
+}
+
+.image-upload {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.image-upload label {
+  font-weight: 500;
+}
+
+.image-preview {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 14px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  object-fit: cover;
+}
+
+.field-error {
+  margin: 0;
+  color: var(--mat-sys-error);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  padding-top: 0.6rem;
+}

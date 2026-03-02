@@ -1,0 +1,104 @@
+<div class="add-recipe-wrapper">
+  <mat-card class="add-recipe-card" appearance="outlined">
+    <mat-card-header>
+      <mat-card-title>{{ isEditMode() ? 'Edit recipe' : 'Add new recipe' }}</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      @if (!isLoggedIn()) {
+        <p class="field-error">Login is required to add or edit recipes.</p>
+      }
+
+      <form class="recipe-form" novalidate>
+        <mat-form-field appearance="outline">
+          <mat-label>Recipe name</mat-label>
+          <input matInput [formControl]="titleControl" maxlength="80" />
+          @if (titleControl.hasError('required')) {
+            <mat-error>Name is required.</mat-error>
+          }
+          @if (titleControl.hasError('minlength')) {
+            <mat-error>Minimum 2 characters.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Cuisine</mat-label>
+          <input matInput [formControl]="cuisineControl" maxlength="40" />
+          @if (cuisineControl.hasError('required')) {
+            <mat-error>Cuisine is required.</mat-error>
+          }
+          @if (cuisineControl.hasError('minlength')) {
+            <mat-error>Minimum 2 characters.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Category</mat-label>
+          <input matInput [formControl]="categoryControl" maxlength="40" />
+          @if (categoryControl.hasError('required')) {
+            <mat-error>Category is required.</mat-error>
+          }
+          @if (categoryControl.hasError('minlength')) {
+            <mat-error>Minimum 2 characters.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="instructions-field">
+          <mat-label>Instructions</mat-label>
+          <textarea matInput [formControl]="instructionsControl" rows="7" maxlength="5000"></textarea>
+          @if (instructionsControl.hasError('required')) {
+            <mat-error>Instructions are required.</mat-error>
+          }
+          @if (instructionsControl.hasError('minlength')) {
+            <mat-error>Minimum 10 characters.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Source URL (optional)</mat-label>
+          <input matInput [formControl]="sourceUrlControl" maxlength="300" placeholder="https://..." />
+          @if (sourceUrlControl.hasError('pattern')) {
+            <mat-error>Enter a valid URL starting with http:// or https://.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>YouTube URL (optional)</mat-label>
+          <input matInput [formControl]="youtubeUrlControl" maxlength="300" placeholder="https://..." />
+          @if (youtubeUrlControl.hasError('pattern')) {
+            <mat-error>Enter a valid URL starting with http:// or https://.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Tags (optional, comma separated)</mat-label>
+          <input matInput [formControl]="tagsControl" maxlength="200" placeholder="quick, spicy, family" />
+        </mat-form-field>
+
+        <div class="image-upload">
+          <label for="recipe-image">Recipe image (optional)</label>
+          <input
+            id="recipe-image"
+            type="file"
+            accept="image/*"
+            (change)="onImageSelected($event)"
+          />
+
+          @if (imageError(); as imageError) {
+            <p class="field-error">{{ imageError }}</p>
+          }
+
+          <img class="image-preview" [src]="imagePreview()" alt="Recipe preview" />
+        </div>
+
+        @if (submitError(); as submitError) {
+          <p class="field-error">{{ submitError }}</p>
+        }
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions class="actions">
+      <button mat-button type="button" [disabled]="!isLoggedIn()" (click)="submit()">{{ isEditMode() ? 'Update recipe' : 'Save recipe' }}</button>
+    </mat-card-actions>
+  </mat-card>
+</div>

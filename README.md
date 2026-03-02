@@ -1,4 +1,4 @@
-# FoodBeveragesAPP
+# MealCraft
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.3.
 
@@ -11,6 +11,12 @@ ng serve
 ```
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+
+## API source
+
+The app uses TheMealDB API: `https://www.themealdb.com/api.php`.
+
+No API key configuration is required for current endpoints used by this project.
 
 ## Code scaffolding
 
@@ -57,3 +63,36 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+
+## GitHub Actions: CI, Deploy and Release
+
+The repository includes three CI/CD workflows:
+
+- `.github/workflows/ci.yml`
+	- Triggers on pull requests to `main`
+	- Runs quality gate: lint, test, build
+
+- `.github/workflows/deploy-pages.yml`
+	- Triggers on push to `main`
+	- Builds Angular app and deploys to **GitHub Pages**
+- `.github/workflows/release.yml`
+	- Triggers on tags matching `v*.*.*` (for example `v1.0.0`)
+	- Runs tests, builds production bundle, and creates a GitHub Release with `release.zip`
+
+### GitHub Pages setup
+
+1. Push repository to GitHub.
+2. In repository settings, open **Pages**.
+3. Set **Source** to **GitHub Actions**.
+4. Push to `main` to trigger deployment.
+
+### Creating a release
+
+Create and push a semantic version tag:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+This triggers the release workflow and publishes a release artifact.

@@ -1,0 +1,29 @@
+<mat-toolbar color="primary" class="header-toolbar">
+  <span class="logo">Food Explorer</span>
+
+  <span class="spacer"></span>
+
+  <button mat-button routerLink="/home" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }" (click)="resetState()">
+    Home
+  </button>
+  <button mat-button routerLink="/meals" routerLinkActive="active-link" (click)="resetState()">Meals</button>
+
+  @if (isLoggedIn()) {
+    <button mat-button routerLink="/meals/new" routerLinkActive="active-link">Add recipe</button>
+    <button mat-button routerLink="/settings" routerLinkActive="active-link">Settings</button>
+    <span class="user-profile" aria-label="Logged user profile">
+      <span class="avatar" aria-hidden="true">
+        @if (userAvatar()) {
+          <img [src]="userAvatar()" alt="User avatar" />
+        } @else {
+          <span class="avatar-fallback">{{ userInitials() }}</span>
+        }
+      </span>
+      <span class="user-name">{{ userFullName() }}</span>
+    </span>
+    <button mat-button type="button" (click)="logout()">Logout</button>
+  } @else {
+    <button mat-button routerLink="/login" routerLinkActive="active-link">Login</button>
+    <button mat-button routerLink="/register" routerLinkActive="active-link">Register</button>
+  }
+</mat-toolbar>

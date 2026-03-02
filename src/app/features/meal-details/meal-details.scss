@@ -1,0 +1,105 @@
+.details-wrapper {
+  max-width: 920px;
+  margin: 1.25rem auto;
+  padding: 0 1rem;
+}
+
+.state-box {
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+}
+
+.details-card {
+  margin-top: 0.75rem;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.hero {
+  width: 100%;
+  max-height: 410px;
+  object-fit: cover;
+}
+
+h2 {
+  margin: 0.9rem 0 0.5rem;
+}
+
+.meta {
+  margin: 0 0 0.45rem;
+  opacity: 0.8;
+}
+
+.vote-row {
+  display: inline-grid;
+  grid-auto-flow: column;
+  align-items: center;
+  gap: 0.2rem;
+  margin-bottom: 0.65rem;
+  min-height: 32px;
+}
+
+.vote-row button {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+}
+
+.vote-row mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.65rem;
+}
+
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  background: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+}
+
+.tag-remove {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  line-height: 1;
+  color: inherit;
+}
+
+.tag-form {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.instructions {
+  margin: 0.75rem 0 0;
+  padding-left: 1.2rem;
+  line-height: 1.55;
+}
+
+.instructions li {
+  margin-bottom: 0.45rem;
+}
+
+.instructions-single {
+  margin: 0.75rem 0 0;
+  line-height: 1.55;
+}
+
+mat-card-actions {
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  padding-top: 0.55rem;
+}

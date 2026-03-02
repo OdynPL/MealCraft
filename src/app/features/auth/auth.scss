@@ -1,0 +1,44 @@
+.auth-wrapper {
+  display: grid;
+  place-items: center;
+  padding: 1.5rem 1rem;
+}
+
+.auth-card {
+  width: min(460px, 100%);
+  border-radius: 16px;
+}
+
+.auth-form {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.error {
+  margin: 0;
+  color: var(--mat-sys-error);
+}
+
+.avatar-upload {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.55rem;
+  border-radius: 12px;
+  border: 1px dashed var(--mat-sys-outline-variant);
+}
+
+.avatar-preview {
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+  border: 2px solid var(--mat-sys-outline-variant);
+  object-fit: cover;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  padding-top: 0.6rem;
+}

@@ -1,0 +1,135 @@
+<div class="body-wrapper">
+  <div class="body-container mat-elevation-z2">
+    <section class="filters" aria-label="Recipe filtering and sorting">
+      <mat-form-field appearance="outline" class="field search-field">
+        <mat-label>Search meal</mat-label>
+        <input
+          matInput
+          [formControl]="searchControl"
+          placeholder="e.g. Arrabiata, Chicken, Soup"
+          aria-label="Search meal"
+        />
+        @if (searchControl.hasError('minlength')) {
+          <mat-error>Enter at least 2 characters.</mat-error>
+        }
+        @if (searchControl.hasError('maxlength')) {
+          <mat-error>Maximum 60 characters.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="field">
+        <mat-label>Cuisine</mat-label>
+        <mat-select [formControl]="cuisineControl" aria-label="Cuisine filter">
+          <mat-option value="">All</mat-option>
+          @for (cuisine of cuisines(); track cuisine) {
+            <mat-option [value]="cuisine">{{ cuisine }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="field">
+        <mat-label>Category</mat-label>
+        <mat-select [formControl]="categoryControl" aria-label="Category filter">
+          <mat-option value="">All</mat-option>
+          @for (category of categories(); track category) {
+            <mat-option [value]="category">{{ category }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="field">
+        <mat-label>Sort by</mat-label>
+        <mat-select [formControl]="sortControl" aria-label="Sort results">
+          <mat-option value="name:asc">Name A-Z</mat-option>
+          <mat-option value="name:desc">Name Z-A</mat-option>
+          <mat-option value="id:desc">Newest first (ID desc)</mat-option>
+          <mat-option value="id:asc">Oldest first (ID asc)</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-flat-button color="primary" class="action-button" type="button" (click)="refresh()">Reset</button>
+      <button mat-stroked-button color="warn" class="action-button" type="button" (click)="deleteAllAndReload()">
+        Delete all & reload
+      </button>
+    </section>
+
+    <section class="results-summary" aria-live="polite">
+      <span>Results: {{ currentRangeLabel() }}</span>
+      @if (store.loading()) {
+        <span class="loading-label">Loading data...</span>
+      }
+    </section>
+
+    @if (categoryCounts().length > 0) {
+      <section class="category-counts" aria-label="Product count by category">
+        @for (entry of categoryCounts(); track entry.category) {
+          <span class="category-count-pill">{{ entry.category }} · {{ entry.count }}</span>
+        }
+      </section>
+    }
+
+    @if (store.error(); as errorMessage) {
+      <section class="error-box" role="alert">{{ errorMessage }}</section>
+    }
+
+    @if (store.loading()) {
+      <section class="spinner-wrapper" aria-label="Loading results">
+        <mat-spinner diameter="42"></mat-spinner>
+      </section>
+    } @else {
+      @if (store.items().length === 0) {
+        <section class="empty-state">No meals found for selected filters.</section>
+      } @else {
+        <section class="food-grid" aria-label="Meals list">
+          @for (food of store.items(); track trackByFoodId($index, food)) {
+            <mat-card class="food-card" appearance="outlined">
+              <img
+                class="food-image"
+                [src]="food.image"
+                [alt]="food.title"
+                loading="lazy"
+                decoding="async"
+              />
+              <mat-card-content>
+                <h3>{{ food.title }}</h3>
+                <p class="meta">{{ food.cuisine }} · {{ food.category }}</p>
+                <p class="meta">Author: {{ food.author }} · Created: {{ formatDate(food.createdAt) }}</p>
+                <div class="tags" aria-label="Meal tags">
+                  @for (tag of tags(food); track tag) {
+                    <span class="tag-pill">{{ tag }}</span>
+                  }
+                </div>
+              </mat-card-content>
+              <mat-card-actions>
+                <a mat-button color="primary" [routerLink]="['/meals', food.id]">Read</a>
+                @if (isLoggedIn()) {
+                  <a mat-button color="primary" [routerLink]="['/meals', food.id, 'edit']">Edit</a>
+                  <button mat-button color="warn" type="button" (click)="deleteRecipe(food.id)">Delete</button>
+                }
+                <span class="vote-controls" aria-label="Voting controls">
+                  <button mat-icon-button type="button" aria-label="Downvote" (click)="downvote(food.id)">
+                    <mat-icon>thumb_down</mat-icon>
+                  </button>
+                  <strong>{{ score(food.id) }}</strong>
+                  <button mat-icon-button type="button" aria-label="Upvote" (click)="upvote(food.id)">
+                    <mat-icon>thumb_up</mat-icon>
+                  </button>
+                </span>
+              </mat-card-actions>
+            </mat-card>
+          }
+        </section>
+      }
+    }
+
+    <mat-paginator
+      [length]="store.totalResults()"
+      [pageIndex]="store.pageIndex()"
+      [pageSize]="store.pageSize()"
+      [pageSizeOptions]="pageSizeOptions"
+      [showFirstLastButtons]="true"
+      aria-label="Meals pagination"
+      (page)="onPageChange($event)"
+    />
+  </div>
+</div>

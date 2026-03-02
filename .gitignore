@@ -34,10 +34,18 @@ yarn-error.log
 .sass-cache/
 /connect.lock
 /coverage
+/release
+/*.tgz
+/*.zip
 /libpeerconnection.log
 testem.log
 /typings
 __screenshots__/
+
+# Env files
+.env
+.env.*
+!.env.example
 
 # System files
 .DS_Store

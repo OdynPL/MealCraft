@@ -1,0 +1,98 @@
+<div class="auth-wrapper">
+  <mat-card class="auth-card" appearance="outlined">
+    <mat-card-header>
+      <mat-card-title>{{ pageTitle() }}</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form class="auth-form" novalidate>
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <input matInput type="email" [formControl]="emailControl" />
+          @if (emailControl.hasError('required')) {
+            <mat-error>Email is required.</mat-error>
+          }
+          @if (emailControl.hasError('email')) {
+            <mat-error>Enter a valid email.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Password</mat-label>
+          <input matInput type="password" [formControl]="passwordControl" />
+          @if (passwordControl.hasError('required')) {
+            <mat-error>Password is required.</mat-error>
+          }
+          @if (passwordControl.hasError('minlength')) {
+            <mat-error>Minimum 6 characters.</mat-error>
+          }
+        </mat-form-field>
+
+        @if (mode() === 'register') {
+          <mat-form-field appearance="outline">
+            <mat-label>First name</mat-label>
+            <input matInput [formControl]="firstNameControl" />
+            @if (firstNameControl.hasError('required')) {
+              <mat-error>First name is required.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Last name</mat-label>
+            <input matInput [formControl]="lastNameControl" />
+            @if (lastNameControl.hasError('required')) {
+              <mat-error>Last name is required.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Phone number</mat-label>
+            <input matInput [formControl]="phoneControl" />
+            @if (phoneControl.hasError('required')) {
+              <mat-error>Phone number is required.</mat-error>
+            }
+            @if (phoneControl.hasError('pattern')) {
+              <mat-error>Enter a valid phone number.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Age</mat-label>
+            <input matInput type="number" [formControl]="ageControl" />
+            @if (ageControl.hasError('required')) {
+              <mat-error>Age is required.</mat-error>
+            }
+            @if (ageControl.hasError('min') || ageControl.hasError('max')) {
+              <mat-error>Age must be between 13 and 120.</mat-error>
+            }
+          </mat-form-field>
+
+          <div class="avatar-upload">
+            <label for="register-avatar">Avatar (optional)</label>
+            <input id="register-avatar" type="file" accept="image/*" (change)="onAvatarSelected($event)" />
+            @if (avatarError(); as avatarError) {
+              <p class="error">{{ avatarError }}</p>
+            }
+            <img class="avatar-preview" [src]="avatarPreview()" alt="Avatar preview" />
+          </div>
+        }
+
+        @if (error(); as error) {
+          <p class="error">{{ error }}</p>
+        }
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions class="actions">
+      <button mat-flat-button color="primary" type="button" [disabled]="loading()" (click)="submit()">
+        {{ submitLabel() }}
+      </button>
+
+      @if (mode() === 'login') {
+        <a mat-button routerLink="/register">Need account?</a>
+      } @else {
+        <a mat-button routerLink="/login">Already registered?</a>
+      }
+    </mat-card-actions>
+  </mat-card>
+</div>

@@ -1,0 +1,182 @@
+.body-wrapper {
+  padding: 1.25rem;
+  display: flex;
+  justify-content: center;
+}
+
+.body-container {
+  width: 100%;
+  max-width: 1200px;
+  background: var(--mat-sys-surface-container-low);
+  padding: 1.25rem;
+  border-radius: 16px;
+  border: 1px solid var(--mat-sys-outline-variant);
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.action-button {
+  height: 42px;
+  min-width: 132px;
+  border-radius: 10px;
+}
+
+.field {
+  width: 100%;
+}
+
+.search-field {
+  grid-column: span 2;
+}
+
+.results-summary {
+  margin: 0.35rem 0 0.95rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.95rem;
+}
+
+.loading-label {
+  opacity: 0.7;
+}
+
+.category-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0 0 0.85rem;
+}
+
+.category-count-pill {
+  padding: 0.18rem 0.62rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.error-box {
+  margin-bottom: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+}
+
+.spinner-wrapper {
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-state {
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  opacity: 0.75;
+}
+
+.food-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.95rem;
+  margin-bottom: 0.75rem;
+}
+
+.food-card {
+  overflow: hidden;
+  border-radius: 14px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.food-card mat-card-content {
+  flex: 1 1 auto;
+}
+
+.food-card mat-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.food-image {
+  width: 100%;
+  height: 170px;
+  object-fit: cover;
+}
+
+h3 {
+  margin: 0.65rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.meta {
+  margin: 0 0 0.5rem;
+  opacity: 0.8;
+  font-size: 0.85rem;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.45rem;
+}
+
+.tag-pill {
+  padding: 0.12rem 0.48rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+}
+
+.vote-controls {
+  display: inline-grid;
+  grid-auto-flow: column;
+  align-items: center;
+  margin-left: auto;
+  gap: 0.2rem;
+  min-height: 32px;
+}
+
+.vote-controls button {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+}
+
+.vote-controls mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+@media (max-width: 740px) {
+  .search-field {
+    grid-column: span 1;
+  }
+
+  .food-card mat-card-actions {
+    justify-content: flex-start;
+  }
+
+  .vote-controls {
+    width: 100%;
+    justify-content: end;
+    margin-left: 0;
+  }
+}
