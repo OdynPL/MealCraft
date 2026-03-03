@@ -3,7 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
 import { FoodStore } from '../../core/stores/food.store';
@@ -25,6 +25,7 @@ import { FoodStore } from '../../core/stores/food.store';
 export class HeaderComponent {
   private readonly auth = inject(AuthService);
   private readonly store = inject(FoodStore);
+  private readonly router = inject(Router);
 
   protected readonly isLoggedIn = computed(() => this.auth.isLoggedIn());
   protected readonly userFullName = computed(() => this.auth.fullName());
@@ -38,6 +39,7 @@ export class HeaderComponent {
   protected async logout(): Promise<void> {
     await this.auth.logout();
     this.store.reset();
+    await this.router.navigate(['/home']);
   }
 
 }

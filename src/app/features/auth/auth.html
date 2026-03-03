@@ -94,14 +94,14 @@
             <label for="register-avatar">Avatar (optional)</label>
             <input id="register-avatar" type="file" accept="image/*" (change)="onAvatarSelected($event)" />
             @if (avatarError(); as avatarError) {
-              <p class="app-status-error">{{ avatarError }}</p>
+              <p class="validation-banner" role="alert">{{ avatarError }}</p>
             }
             <img class="avatar-preview" [src]="avatarPreview()" alt="Avatar preview" />
           </div>
         }
 
         @if (error(); as error) {
-          <p class="app-status-error">{{ error }}</p>
+          <p class="validation-banner" role="alert">{{ error }}</p>
         }
 
         <div class="actions app-form-actions">
