@@ -10,6 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { AuthService } from '../../core/services/auth.service';
 import { ConfigurationService } from '../../core/services/configuration.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { FoodStore } from '../../core/stores/food.store';
 
 @Component({
   selector: 'app-auth',
@@ -30,6 +31,7 @@ export class AuthComponent {
   private readonly auth = inject(AuthService);
   private readonly config = inject(ConfigurationService);
   private readonly notifications = inject(NotificationService);
+  private readonly store = inject(FoodStore);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -175,6 +177,7 @@ export class AuthComponent {
       }
 
       this.notifications.success(this.mode() === 'login' ? 'Logged in successfully.' : 'User created successfully.');
+      this.store.reset();
 
       const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/home';
       await this.router.navigateByUrl(returnUrl);

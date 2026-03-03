@@ -490,9 +490,9 @@ function normalizeExampleRecipeSource(source: unknown): ExampleRecipeSeed[] {
     const candidate = (item && typeof item === 'object') ? item as Record<string, unknown> : {};
 
     const title = normalizeString(candidate['title']) || `Example recipe ${index + 1}`;
-    const image = normalizeString(candidate['image']) || `https://loremflickr.com/640/420/food?lock=${index + 1}`;
     const cuisine = normalizeString(candidate['cuisine']) || 'International';
     const category = normalizeString(candidate['category']) || 'Miscellaneous';
+    const image = normalizeString(candidate['image']) || buildThematicImageUrl(title, cuisine, category, index + 1);
     const instructions = normalizeString(candidate['instructions'])
       || `Servings: 4 · Prep: 15 min · Cook: 25 min\nIngredients: 600 g main ingredient, aromatics, seasoning, and base sauce.\n1) Prep ingredients.\n2) Cook with your preferred technique.\n3) Simmer until tender.\n4) Serve hot.`;
     const tags = Array.isArray(candidate['tags'])
@@ -517,6 +517,11 @@ function normalizeString(value: unknown): string | null {
 
   const normalized = value.trim();
   return normalized.length > 0 ? normalized : null;
+}
+
+function buildThematicImageUrl(title: string, cuisine: string, category: string, seed: number): string {
+  const search = encodeURIComponent(`${category} ${cuisine} ${title} food`);
+  return `https://source.unsplash.com/640x420/?${search}&sig=${seed}`;
 }
 
 function buildDummyFoods(recipes: readonly ExampleRecipeSeed[]): Food[] {

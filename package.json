@@ -10,8 +10,8 @@
     "test": "ng test",
     "test:ci": "ng test --watch=false",
     "test:ci:coverage": "ng test --watch=false --coverage",
-    "sync:photos": "node scripts/sync-real-photos.mjs --concurrency=6",
-    "sync:photos:force": "node scripts/sync-real-photos.mjs --force --concurrency=6"
+    "sync:photos": "powershell -ExecutionPolicy Bypass -File scripts/sync-real-photos-mealdb.ps1",
+    "sync:photos:force": "powershell -ExecutionPolicy Bypass -File scripts/sync-real-photos-mealdb.ps1 -Force"
   },
   "prettier": {
     "printWidth": 100,

@@ -153,12 +153,8 @@ export class FoodStore {
   }
 
   deleteAllAndReloadForCurrentUser(): void {
-    const visibleApiRecipeIds = this.state()
-      .items
-      .filter((item) => item.author === 'TheMealDB')
-      .map((item) => item.id);
-
-    this.localRecipes.clearForCurrentUser(visibleApiRecipeIds);
+    this.localRecipes.clearDeletedForCurrentUser();
+    this.localRecipes.clearForCurrentUser([]);
     this.cache.clearByPrefix(this.config.searchEndpoint);
     this.cache.clearByPrefix(this.config.lookupEndpoint);
 
@@ -194,6 +190,7 @@ export class FoodStore {
   }
 
   reset(): void {
+    this.localRecipes.clearDeletedForCurrentUser();
     this.cache.clearByPrefix(this.config.searchEndpoint);
     this.cache.clearByPrefix(this.config.lookupEndpoint);
 

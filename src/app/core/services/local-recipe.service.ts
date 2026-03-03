@@ -207,6 +207,26 @@ export class LocalRecipeService {
     this.writeState({ custom: [], overrides: [], deletedIds: [], deletedByUser: {} });
   }
 
+  clearDeletedForCurrentUser(): void {
+    const userId = this.auth.currentUser()?.id;
+    if (!userId) {
+      return;
+    }
+
+    const state = this.readState();
+    const key = String(userId);
+
+    if (!state.deletedByUser || !(key in state.deletedByUser)) {
+      return;
+    }
+
+    const nextDeletedByUser = { ...state.deletedByUser };
+    delete nextDeletedByUser[key];
+
+    state.deletedByUser = nextDeletedByUser;
+    this.writeState(state);
+  }
+
   getFacetValues(): LocalRecipeFacets {
     const state = this.readState();
     const sources = [...state.custom, ...state.overrides];
