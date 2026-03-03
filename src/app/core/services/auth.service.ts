@@ -69,7 +69,7 @@ export class AuthService {
     return { success: true };
   }
 
-  async login(email: string, password: string): Promise<AuthResult> {
+  async login(email: string, password: string, rememberMe = false): Promise<AuthResult> {
     const normalizedEmail = email.trim().toLowerCase();
 
     if (!isValidEmail(normalizedEmail)) {
@@ -97,7 +97,7 @@ export class AuthService {
       await this.putUser(verification.upgradedUser);
     }
 
-    await this.saveSession(toAuthUser(verification.upgradedUser ?? user));
+    await this.saveSession(toAuthUser(verification.upgradedUser ?? user), rememberMe);
     return { success: true };
   }
 
@@ -293,8 +293,15 @@ export class AuthService {
     }
   }
 
-  private async saveSession(user: AuthUser): Promise<void> {
+  private async saveSession(user: AuthUser, persist = true): Promise<void> {
     this.userState.set(user);
+
+    if (!persist) {
+      this.writeSessionCache(null);
+      await this.deleteSessionFromIndexedDb();
+      return;
+    }
+
     this.writeSessionCache(user);
 
     if (typeof indexedDB === 'undefined') {
@@ -305,6 +312,23 @@ export class AuthService {
       const db = await this.openDb();
       await this.runTransaction<void>(db, this.config.authSessionStore, 'readwrite', (store, done, fail) => {
         const request = store.put(user, this.config.authSessionKey);
+        request.onsuccess = () => done(undefined);
+        request.onerror = () => fail(request.error);
+      });
+    } catch {
+      return;
+    }
+  }
+
+  private async deleteSessionFromIndexedDb(): Promise<void> {
+    if (typeof indexedDB === 'undefined') {
+      return;
+    }
+
+    try {
+      const db = await this.openDb();
+      await this.runTransaction<void>(db, this.config.authSessionStore, 'readwrite', (store, done, fail) => {
+        const request = store.delete(this.config.authSessionKey);
         request.onsuccess = () => done(undefined);
         request.onerror = () => fail(request.error);
       });

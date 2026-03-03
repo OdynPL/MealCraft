@@ -24,6 +24,7 @@ export class ConfigurationService {
   readonly authSessionStore = 'session';
   readonly authSessionKey = 'current';
   readonly authSessionCacheKey = 'food-explorer.current-user';
+  readonly authRememberedEmailKey = 'food-explorer.remembered-email';
   readonly authUsersCacheKey = 'food-explorer.users';
   readonly authMaxEmailLength = 120;
   readonly authMinPasswordLength = 6;

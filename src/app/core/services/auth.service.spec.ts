@@ -124,6 +124,28 @@ describe('AuthService', () => {
     expect(login.success).toBe(true);
     expect(service.isLoggedIn()).toBe(true);
     expect(service.currentUser()?.email).toBe('fallback.login@example.com');
+    expect(localStorage.getItem(sessionCacheKey)).toBeNull();
+  });
+
+  it('should persist session on login when remember me is enabled', async () => {
+    const service = TestBed.inject(AuthService);
+
+    const register = await service.register({
+      email: 'remember.me@example.com',
+      password: 'password123',
+      firstName: 'Remember',
+      lastName: 'Me',
+      phone: '+48111222444',
+      age: 31
+    });
+    expect(register.success).toBe(true);
+
+    await service.logout();
+    const login = await service.login('remember.me@example.com', 'password123', true);
+
+    expect(login.success).toBe(true);
+    expect(service.isLoggedIn()).toBe(true);
+    expect(localStorage.getItem(sessionCacheKey)).toContain('remember.me@example.com');
   });
 
   it('should register successfully when IndexedDB open throws', async () => {

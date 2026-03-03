@@ -4,6 +4,7 @@ import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
@@ -20,6 +21,7 @@ import { FoodStore } from '../../core/stores/food.store';
     ReactiveFormsModule,
     RouterLink,
     MatCardModule,
+    MatCheckboxModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule
@@ -64,6 +66,7 @@ export class AuthComponent {
     nonNullable: true,
     validators: [Validators.required, Validators.min(this.config.authMinAge), Validators.max(this.config.authMaxAge)]
   });
+  protected readonly rememberMeControl = new FormControl(true, { nonNullable: true });
 
   protected readonly avatarPreview = signal(this.config.authDefaultAvatar);
   protected readonly avatarError = signal<string | null>(null);
@@ -79,6 +82,10 @@ export class AuthComponent {
         const mode = data['mode'];
         this.mode.set(mode === 'register' ? 'register' : 'login');
         this.error.set(null);
+
+        if (this.mode() === 'login') {
+          this.restoreRememberedEmail();
+        }
       });
   }
 
@@ -157,7 +164,7 @@ export class AuthComponent {
 
     try {
       const result = this.mode() === 'login'
-        ? await this.auth.login(email, password)
+        ? await this.auth.login(email, password, this.rememberMeControl.value)
         : await this.auth.register({
           email,
           password,
@@ -174,6 +181,10 @@ export class AuthComponent {
         this.error.set(result.error ?? 'Authentication failed.');
         this.notifications.error(this.error() ?? 'Authentication failed.');
         return;
+      }
+
+      if (this.mode() === 'login') {
+        this.persistRememberedEmail(email);
       }
 
       this.notifications.success(this.mode() === 'login' ? 'Logged in successfully.' : 'User created successfully.');
@@ -277,6 +288,33 @@ export class AuthComponent {
     }
 
     return 'Please fix validation errors and try again.';
+  }
+
+  private restoreRememberedEmail(): void {
+    if (typeof localStorage === 'undefined') {
+      return;
+    }
+
+    const remembered = localStorage.getItem(this.config.authRememberedEmailKey)?.trim();
+    if (!remembered) {
+      return;
+    }
+
+    this.emailControl.setValue(remembered);
+    this.rememberMeControl.setValue(true);
+  }
+
+  private persistRememberedEmail(email: string): void {
+    if (typeof localStorage === 'undefined') {
+      return;
+    }
+
+    if (!this.rememberMeControl.value) {
+      localStorage.removeItem(this.config.authRememberedEmailKey);
+      return;
+    }
+
+    localStorage.setItem(this.config.authRememberedEmailKey, email.trim());
   }
 }
 

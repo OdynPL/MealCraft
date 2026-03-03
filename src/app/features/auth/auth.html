@@ -8,7 +8,7 @@
       <form class="auth-form" novalidate (submit)="onFormSubmit($event)">
         <mat-form-field appearance="outline">
           <mat-label>Email</mat-label>
-          <input matInput type="email" [formControl]="emailControl" />
+          <input matInput type="email" name="email" autocomplete="username" [formControl]="emailControl" />
           @if (emailControl.hasError('required')) {
             <mat-error>Email is required.</mat-error>
           }
@@ -22,7 +22,13 @@
 
         <mat-form-field appearance="outline">
           <mat-label>Password</mat-label>
-          <input matInput type="password" [formControl]="passwordControl" />
+          <input
+            matInput
+            type="password"
+            name="password"
+            [attr.autocomplete]="mode() === 'login' ? 'current-password' : 'new-password'"
+            [formControl]="passwordControl"
+          />
           @if (passwordControl.hasError('required')) {
             <mat-error>Password is required.</mat-error>
           }
@@ -33,6 +39,10 @@
             <mat-error>Maximum 120 characters.</mat-error>
           }
         </mat-form-field>
+
+        @if (mode() === 'login') {
+          <mat-checkbox class="remember-me" [formControl]="rememberMeControl">Remember me</mat-checkbox>
+        }
 
         @if (mode() === 'register') {
           <div class="auth-grid app-form-grid">
