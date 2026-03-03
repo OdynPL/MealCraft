@@ -1,16 +1,47 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { ApplicationConfig } from '@angular/core';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { provideRouter, withHashLocation } from '@angular/router';
+import { provideRouter, withHashLocation, withNavigationErrorHandler } from '@angular/router';
 
 import { routes } from './app.routes';
 import { httpCacheInterceptor } from './core/http/http-cache.interceptor';
 import { loadingInterceptor } from './core/http/loading.interceptor';
 
+function isLazyChunkLoadError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const message = error.message.toLowerCase();
+  return (
+    message.includes('failed to fetch dynamically imported module') ||
+    message.includes('importing a module script failed') ||
+    message.includes('loading chunk') ||
+    message.includes('chunkloaderror')
+  );
+}
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideAnimationsAsync(),
-    provideRouter(routes, withHashLocation()),
+    provideRouter(
+      routes,
+      withHashLocation(),
+      withNavigationErrorHandler((error) => {
+        if (!isLazyChunkLoadError(error)) {
+          return;
+        }
+
+        const reloadKey = 'mealcraft-lazy-chunk-reload';
+        if (sessionStorage.getItem(reloadKey) === '1') {
+          sessionStorage.removeItem(reloadKey);
+          return;
+        }
+
+        sessionStorage.setItem(reloadKey, '1');
+        location.reload();
+      })
+    ),
     provideHttpClient(withInterceptors([loadingInterceptor, httpCacheInterceptor]))
   ]
 };
