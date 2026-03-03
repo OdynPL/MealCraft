@@ -5,21 +5,33 @@
     <mat-form-field appearance="outline">
       <mat-label>First name</mat-label>
       <input matInput type="text" [formControl]="firstNameControl" />
+      @if (firstNameError; as message) {
+        <mat-error>{{ message }}</mat-error>
+      }
     </mat-form-field>
 
     <mat-form-field appearance="outline">
       <mat-label>Last name</mat-label>
       <input matInput type="text" [formControl]="lastNameControl" />
+      @if (lastNameError; as message) {
+        <mat-error>{{ message }}</mat-error>
+      }
     </mat-form-field>
 
     <mat-form-field appearance="outline">
       <mat-label>Phone</mat-label>
       <input matInput type="text" [formControl]="phoneControl" />
+      @if (phoneError; as message) {
+        <mat-error>{{ message }}</mat-error>
+      }
     </mat-form-field>
 
     <mat-form-field appearance="outline">
       <mat-label>Age</mat-label>
       <input matInput type="number" [formControl]="ageControl" />
+      @if (ageError; as message) {
+        <mat-error>{{ message }}</mat-error>
+      }
     </mat-form-field>
 
     <mat-form-field appearance="outline">
@@ -35,6 +47,6 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
   <button mat-flat-button type="button" color="primary" (click)="submit()">Save</button>
+  <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
 </mat-dialog-actions>

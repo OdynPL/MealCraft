@@ -79,54 +79,85 @@
   border-radius: 10px !important;
 }
 
+.row-actions .action-btn {
+  min-width: 42px !important;
+  width: 42px;
+  height: 42px;
+  padding: 0 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.row-actions .action-btn .mat-icon {
+  color: #fff !important;
+  margin: 0;
+}
+
 .action-btn {
-  --mat-filled-button-container-color: color-mix(in srgb, var(--mat-sys-secondary-container) 72%, var(--mat-sys-surface));
-  --mat-filled-button-label-text-color: var(--mat-sys-on-surface);
-  --mdc-filled-button-container-color: color-mix(in srgb, var(--mat-sys-secondary-container) 72%, var(--mat-sys-surface));
-  --mdc-filled-button-label-text-color: var(--mat-sys-on-surface);
+  --mat-filled-button-container-color: var(--mat-sys-secondary);
+  --mat-filled-button-label-text-color: var(--mat-sys-on-secondary);
+  --mdc-filled-button-container-color: var(--mat-sys-secondary);
+  --mdc-filled-button-label-text-color: var(--mat-sys-on-secondary);
 }
 
 .action-btn-edit {
-  --mat-filled-button-container-color: color-mix(in srgb, var(--mat-sys-primary-container) 68%, var(--mat-sys-surface));
-  --mat-filled-button-label-text-color: var(--mat-sys-on-surface);
-  --mdc-filled-button-container-color: color-mix(in srgb, var(--mat-sys-primary-container) 68%, var(--mat-sys-surface));
-  --mdc-filled-button-label-text-color: var(--mat-sys-on-surface);
+  --mat-filled-button-container-color: var(--mat-sys-primary);
+  --mat-filled-button-label-text-color: var(--mat-sys-on-primary);
+  --mdc-filled-button-container-color: var(--mat-sys-primary);
+  --mdc-filled-button-label-text-color: var(--mat-sys-on-primary);
 }
 
-.action-btn-ban,
+.action-btn-ban {
+  --mat-filled-button-container-color: var(--mat-sys-secondary);
+  --mat-filled-button-label-text-color: var(--mat-sys-on-secondary);
+  --mdc-filled-button-container-color: var(--mat-sys-secondary);
+  --mdc-filled-button-label-text-color: var(--mat-sys-on-secondary);
+}
+
 .action-btn-remove {
-  --mat-filled-button-container-color: color-mix(in srgb, var(--mat-sys-error-container) 56%, var(--mat-sys-surface));
-  --mat-filled-button-label-text-color: var(--mat-sys-on-surface);
-  --mdc-filled-button-container-color: color-mix(in srgb, var(--mat-sys-error-container) 56%, var(--mat-sys-surface));
-  --mdc-filled-button-label-text-color: var(--mat-sys-on-surface);
+  --mat-filled-button-container-color: var(--mat-sys-error);
+  --mat-filled-button-label-text-color: var(--mat-sys-on-error);
+  --mdc-filled-button-container-color: var(--mat-sys-error);
+  --mdc-filled-button-label-text-color: var(--mat-sys-on-error);
 }
 
 .action-btn-unban {
-  --mat-filled-button-container-color: color-mix(in srgb, var(--mat-sys-tertiary-container) 66%, var(--mat-sys-surface));
-  --mat-filled-button-label-text-color: var(--mat-sys-on-surface);
-  --mdc-filled-button-container-color: color-mix(in srgb, var(--mat-sys-tertiary-container) 66%, var(--mat-sys-surface));
-  --mdc-filled-button-label-text-color: var(--mat-sys-on-surface);
+  --mat-filled-button-container-color: var(--mat-sys-tertiary);
+  --mat-filled-button-label-text-color: var(--mat-sys-on-tertiary);
+  --mdc-filled-button-container-color: var(--mat-sys-tertiary);
+  --mdc-filled-button-label-text-color: var(--mat-sys-on-tertiary);
 }
 
 .row-actions .action-btn.mat-mdc-unelevated-button:not(:disabled) {
-  background-color: color-mix(in srgb, var(--mat-sys-secondary-container) 72%, var(--mat-sys-surface)) !important;
-  color: var(--mat-sys-on-surface) !important;
+  background-color: var(--mat-sys-secondary) !important;
+  color: var(--mat-sys-on-secondary) !important;
 }
 
 .row-actions .action-btn-edit.mat-mdc-unelevated-button:not(:disabled) {
-  background-color: color-mix(in srgb, var(--mat-sys-primary-container) 68%, var(--mat-sys-surface)) !important;
-  color: var(--mat-sys-on-surface) !important;
+  background-color: var(--mat-sys-primary) !important;
+  color: var(--mat-sys-on-primary) !important;
 }
 
 .row-actions .action-btn-ban.mat-mdc-unelevated-button:not(:disabled),
 .row-actions .action-btn-remove.mat-mdc-unelevated-button:not(:disabled) {
-  background-color: color-mix(in srgb, var(--mat-sys-error-container) 56%, var(--mat-sys-surface)) !important;
-  color: var(--mat-sys-on-surface) !important;
+  background-color: var(--mat-sys-error) !important;
+  color: var(--mat-sys-on-error) !important;
+}
+
+.row-actions .action-btn-ban.mat-mdc-unelevated-button:not(:disabled) {
+  background-color: var(--mat-sys-tertiary) !important;
+  color: var(--mat-sys-on-tertiary) !important;
+}
+
+.row-actions .action-btn-ban.mat-mdc-unelevated-button:not(:disabled) {
+  background-color: var(--mat-sys-secondary) !important;
+  color: var(--mat-sys-on-secondary) !important;
 }
 
 .row-actions .action-btn-unban.mat-mdc-unelevated-button:not(:disabled) {
-  background-color: color-mix(in srgb, var(--mat-sys-tertiary-container) 66%, var(--mat-sys-surface)) !important;
-  color: var(--mat-sys-on-surface) !important;
+  background-color: color-mix(in srgb, var(--mat-sys-tertiary) 58%, var(--mat-sys-surface)) !important;
+  color: var(--mat-sys-on-tertiary-container) !important;
 }
 
 .checkbox-inline {

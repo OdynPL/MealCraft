@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { firstValueFrom } from 'rxjs';
 
 import { AuthUser } from '../../../core/models/auth';
@@ -20,6 +21,7 @@ import { YesNoColorPipe } from './yes-no-color.pipe';
     MatDialogModule,
     MatButtonModule,
     MatIconModule,
+    MatTooltipModule,
     RoleLabelPipe,
     YesNoColorPipe
   ],
@@ -59,7 +61,8 @@ export class UserManagementComponent {
     const payload = await firstValueFrom(this.dialog.open(EditUserDialogComponent, {
       data: { user },
       panelClass: 'app-confirm-dialog',
-      width: 'min(560px, calc(100vw - 2rem))'
+      width: 'min(560px, calc(100vw - 2rem))',
+      disableClose: true
     }).afterClosed());
 
     if (!payload) {

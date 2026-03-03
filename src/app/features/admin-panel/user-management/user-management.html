@@ -38,17 +38,40 @@
               <td>{{ formatDate(user.lastLoginAt) }}</td>
               <td>
                 <div class="row-actions">
-                  <button mat-flat-button type="button" class="action-btn action-btn-edit" [disabled]="isBusy(user.id) || !canEditUser(user)" (click)="startEdit(user)">
+                  <button
+                    mat-flat-button
+                    type="button"
+                    class="action-btn action-btn-edit"
+                    [disabled]="isBusy(user.id) || !canEditUser(user)"
+                    [matTooltip]="'Edit user'"
+                    aria-label="Edit user"
+                    (click)="startEdit(user)"
+                  >
                     <mat-icon aria-hidden="true">edit</mat-icon>
-                    Edit
                   </button>
-                  <button mat-flat-button type="button" class="action-btn" [class.action-btn-ban]="!user.isAccountLocked" [class.action-btn-unban]="user.isAccountLocked" [disabled]="isBusy(user.id) || !canBanUser(user)" (click)="banUser(user)">
+                  <button
+                    mat-flat-button
+                    type="button"
+                    class="action-btn"
+                    [class.action-btn-ban]="!user.isAccountLocked"
+                    [class.action-btn-unban]="user.isAccountLocked"
+                    [disabled]="isBusy(user.id) || !canBanUser(user)"
+                    [matTooltip]="user.isAccountLocked ? 'Unban user' : 'Ban user'"
+                    [attr.aria-label]="user.isAccountLocked ? 'Unban user' : 'Ban user'"
+                    (click)="banUser(user)"
+                  >
                     <mat-icon aria-hidden="true">block</mat-icon>
-                    {{ user.isAccountLocked ? 'Unban' : 'Ban' }}
                   </button>
-                  <button mat-flat-button type="button" class="action-btn action-btn-remove" [disabled]="isBusy(user.id) || !canRemoveUser(user)" (click)="removeUser(user)">
+                  <button
+                    mat-flat-button
+                    type="button"
+                    class="action-btn action-btn-remove"
+                    [disabled]="isBusy(user.id) || !canRemoveUser(user)"
+                    [matTooltip]="'Remove user'"
+                    aria-label="Remove user"
+                    (click)="removeUser(user)"
+                  >
                     <mat-icon aria-hidden="true">person_remove</mat-icon>
-                    Remove
                   </button>
                 </div>
               </td>
