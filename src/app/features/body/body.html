@@ -76,8 +76,27 @@
 
     @if (categoryCounts().length > 0) {
       <section class="category-counts" aria-label="Product count by category">
+        <button
+          type="button"
+          class="category-count-pill"
+          [class.category-count-pill-active]="store.category() === ''"
+          (click)="clearCategoryFromPills()"
+          [attr.aria-pressed]="store.category() === ''"
+          aria-label="Show all categories"
+        >
+          All
+        </button>
         @for (entry of categoryCounts(); track entry.category) {
-          <span class="category-count-pill">{{ entry.category }} · {{ entry.count }}</span>
+          <button
+            type="button"
+            class="category-count-pill"
+            [class.category-count-pill-active]="store.category() === entry.category"
+            (click)="selectCategoryFromPill(entry.category)"
+            [attr.aria-pressed]="store.category() === entry.category"
+            [attr.aria-label]="'Filter by category ' + entry.category"
+          >
+            {{ entry.category }} · {{ entry.count }}
+          </button>
         }
       </section>
     }

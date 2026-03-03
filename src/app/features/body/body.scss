@@ -90,8 +90,22 @@
   padding: 0.18rem 0.62rem;
   border-radius: 999px;
   font-size: 0.78rem;
+  border: 1px solid transparent;
+  cursor: pointer;
   background: var(--mat-sys-secondary-container);
   color: var(--mat-sys-on-secondary-container);
+  transition: transform 120ms ease, border-color 120ms ease;
+}
+
+.category-count-pill:hover {
+  border-color: var(--mat-sys-outline);
+  transform: translateY(-1px);
+}
+
+.category-count-pill-active {
+  border-color: var(--mat-sys-primary);
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
 }
 
 .error-box {

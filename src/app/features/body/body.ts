@@ -177,6 +177,14 @@ export class BodyComponent {
     return this.feedback.getTags(food);
   }
 
+  protected selectCategoryFromPill(category: string): void {
+    this.categoryControl.setValue(category);
+  }
+
+  protected clearCategoryFromPills(): void {
+    this.categoryControl.setValue('');
+  }
+
   protected refresh(): void {
     this.store.reset();
     this.lastSyncedUrlState = JSON.stringify({});
