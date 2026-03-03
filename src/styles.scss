@@ -164,6 +164,39 @@ a {
   opacity: 0.82;
 }
 
+.mat-mdc-snack-bar-container.app-snackbar {
+  margin-top: 132px;
+  border-radius: 14px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  pointer-events: none;
+}
+
+.mat-mdc-snack-bar-container.app-snackbar .mdc-snackbar__label {
+  font-weight: 500;
+}
+
+.mat-mdc-snack-bar-container.app-snackbar .mat-mdc-snack-bar-action {
+  font-weight: 600;
+}
+
+.mat-mdc-snack-bar-container.snackbar-success {
+  --mdc-snackbar-container-color: var(--mat-sys-primary-container);
+  --mdc-snackbar-supporting-text-color: var(--mat-sys-on-primary-container);
+  --mat-snack-bar-button-color: var(--mat-sys-on-primary-container);
+}
+
+.mat-mdc-snack-bar-container.snackbar-info {
+  --mdc-snackbar-container-color: var(--mat-sys-secondary-container);
+  --mdc-snackbar-supporting-text-color: var(--mat-sys-on-secondary-container);
+  --mat-snack-bar-button-color: var(--mat-sys-on-secondary-container);
+}
+
+.mat-mdc-snack-bar-container.snackbar-error {
+  --mdc-snackbar-container-color: var(--mat-sys-error-container);
+  --mdc-snackbar-supporting-text-color: var(--mat-sys-on-error-container);
+  --mat-snack-bar-button-color: var(--mat-sys-on-error-container);
+}
+
 @media (max-width: 480px) {
   .app-page-shell {
     padding: 0.7rem;
@@ -189,6 +222,10 @@ a {
 
   .mat-mdc-card-actions {
     padding-inline: 0.65rem !important;
+  }
+
+  .mat-mdc-snack-bar-container.app-snackbar {
+    margin-top: 112px;
   }
 }
 

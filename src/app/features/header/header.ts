@@ -6,6 +6,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { FoodStore } from '../../core/stores/food.store';
 
 @Component({
@@ -26,6 +27,7 @@ export class HeaderComponent {
   private readonly auth = inject(AuthService);
   private readonly store = inject(FoodStore);
   private readonly router = inject(Router);
+  private readonly notifications = inject(NotificationService);
 
   protected readonly isLoggedIn = computed(() => this.auth.isLoggedIn());
   protected readonly userFullName = computed(() => this.auth.fullName());
@@ -39,6 +41,7 @@ export class HeaderComponent {
   protected async logout(): Promise<void> {
     await this.auth.logout();
     this.store.reset();
+    this.notifications.info('Logged out.');
     await this.router.navigate(['/home']);
   }
 

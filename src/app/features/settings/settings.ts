@@ -10,6 +10,7 @@ import { firstValueFrom } from 'rxjs';
 
 import { AuthService } from '../../core/services/auth.service';
 import { ConfigurationService } from '../../core/services/configuration.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog';
 
 @Component({
@@ -30,6 +31,7 @@ import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dial
 export class SettingsComponent {
   private readonly auth = inject(AuthService);
   private readonly config = inject(ConfigurationService);
+  private readonly notifications = inject(NotificationService);
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
 
@@ -183,10 +185,12 @@ export class SettingsComponent {
 
     if (!result.success) {
       this.profileError.set(result.error ?? 'Unable to update profile.');
+      this.notifications.error(this.profileError() ?? 'Unable to update profile.');
       return;
     }
 
     this.profileMessage.set('Profile updated successfully.');
+    this.notifications.success('Profile updated.');
   }
 
   protected async changePassword(): Promise<void> {
@@ -205,10 +209,12 @@ export class SettingsComponent {
 
     if (!result.success) {
       this.passwordError.set(result.error ?? 'Unable to change password.');
+      this.notifications.error(this.passwordError() ?? 'Unable to change password.');
       return;
     }
 
     this.passwordMessage.set('Password changed successfully.');
+    this.notifications.success('Password changed.');
     this.currentPasswordControl.setValue('');
     this.newPasswordControl.setValue('');
   }

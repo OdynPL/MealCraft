@@ -16,6 +16,7 @@ import { distinctUntilChanged, firstValueFrom, fromEvent, map, startWith } from 
 import { Food, FoodSortBy, SortDirection } from '../../core/models';
 import { AuthService } from '../../core/services/auth.service';
 import { ConfigurationService } from '../../core/services/configuration.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { RecipeFeedbackService } from '../../core/services/recipe-feedback.service';
 import { FoodStore } from '../../core/stores/food.store';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog';
@@ -47,6 +48,7 @@ export class BodyComponent {
 
   private readonly auth = inject(AuthService);
   private readonly config = inject(ConfigurationService);
+  private readonly notifications = inject(NotificationService);
   protected readonly store = inject(FoodStore);
   protected readonly feedback = inject(RecipeFeedbackService);
 
@@ -197,18 +199,21 @@ export class BodyComponent {
 
   protected refresh(): void {
     this.store.reset();
+    this.notifications.info('Recipes refreshed.');
     this.lastSyncedUrlState = JSON.stringify({});
     void this.router.navigate(['/home'], { queryParams: {} });
   }
 
   protected deleteAllAndReload(): void {
     if (!this.auth.currentUser()) {
+      this.notifications.error('Login is required to delete recipes.');
       void this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
       return;
     }
 
     this.feedback.clearAll();
     this.store.deleteAllAndReloadForCurrentUser();
+    this.notifications.success('Your recipes were deleted and list was reloaded.');
     this.lastSyncedUrlState = JSON.stringify({});
     void this.router.navigate(['/home'], { queryParams: {} });
   }
@@ -223,11 +228,13 @@ export class BodyComponent {
 
   protected async deleteRecipe(mealId: number): Promise<void> {
     if (!this.auth.currentUser()) {
+      this.notifications.error('Login is required to delete recipes.');
       void this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
       return;
     }
 
     if (!this.store.canDeleteRecipe(mealId)) {
+      this.notifications.error('You can delete only your own recipes.');
       return;
     }
 
@@ -246,6 +253,7 @@ export class BodyComponent {
     }
 
     this.store.deleteRecipe(mealId);
+    this.notifications.success('Recipe deleted.');
   }
 
   protected formatDate(value: string): string {

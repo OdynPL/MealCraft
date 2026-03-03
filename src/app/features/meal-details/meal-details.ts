@@ -15,6 +15,7 @@ import { FoodDetail } from '../../core/models';
 import { AuthService } from '../../core/services/auth.service';
 import { ConfigurationService } from '../../core/services/configuration.service';
 import { FoodApiService } from '../../core/services/food-api.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { RecipeFeedbackService } from '../../core/services/recipe-feedback.service';
 import { FoodStore } from '../../core/stores/food.store';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog';
@@ -44,6 +45,7 @@ export class MealDetailsComponent {
   private readonly auth = inject(AuthService);
   private readonly config = inject(ConfigurationService);
   private readonly api = inject(FoodApiService);
+  private readonly notifications = inject(NotificationService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly store = inject(FoodStore);
   private readonly feedback = inject(RecipeFeedbackService);
@@ -113,11 +115,15 @@ export class MealDetailsComponent {
   protected addTag(): void {
     const mealId = this.item()?.id;
     if (!mealId || this.tagInput.invalid || !this.canManageTags()) {
+      if (this.tagInput.invalid) {
+        this.notifications.error('Tag must have valid length.');
+      }
       return;
     }
 
     this.feedback.addTag(mealId, this.tagInput.value);
     this.tagInput.setValue('');
+    this.notifications.success('Tag added.');
   }
 
   protected removeTag(tag: string): void {
@@ -127,6 +133,7 @@ export class MealDetailsComponent {
     }
 
     this.feedback.removeTag(mealId, tag);
+    this.notifications.info('Tag removed.');
   }
 
   protected upvote(): void {
@@ -135,7 +142,13 @@ export class MealDetailsComponent {
       return;
     }
 
+    if (!this.feedback.canVote(mealId)) {
+      this.notifications.info('You have already voted for this recipe.');
+      return;
+    }
+
     this.feedback.upvote(mealId);
+    this.notifications.success('Vote added.');
   }
 
   protected downvote(): void {
@@ -144,7 +157,13 @@ export class MealDetailsComponent {
       return;
     }
 
+    if (!this.feedback.canVote(mealId)) {
+      this.notifications.info('You have already voted for this recipe.');
+      return;
+    }
+
     this.feedback.downvote(mealId);
+    this.notifications.success('Vote added.');
   }
 
   protected canVote(): boolean {
@@ -190,6 +209,7 @@ export class MealDetailsComponent {
     }
 
     if (!this.auth.currentUser()) {
+      this.notifications.error('Login is required to delete recipes.');
       await this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
       return;
     }
@@ -209,6 +229,7 @@ export class MealDetailsComponent {
     }
 
     this.store.deleteRecipe(mealId);
+    this.notifications.success('Recipe deleted.');
     await this.router.navigate(['/home']);
   }
 

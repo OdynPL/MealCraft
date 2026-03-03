@@ -13,6 +13,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { ConfigurationService } from '../../core/services/configuration.service';
 import { FoodApiService } from '../../core/services/food-api.service';
 import { LocalRecipeService } from '../../core/services/local-recipe.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { FoodStore } from '../../core/stores/food.store';
 
 @Component({
@@ -37,6 +38,7 @@ export class AddRecipeComponent {
   private readonly config = inject(ConfigurationService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly notifications = inject(NotificationService);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly titleControl = new FormControl('', {
@@ -192,6 +194,7 @@ export class AddRecipeComponent {
 
     if (!this.auth.currentUser()) {
       this.submitError.set('Login is required to add or edit recipes.');
+      this.notifications.error('Login is required to add or edit recipes.');
       await this.router.navigate(['/login'], {
         queryParams: { returnUrl: this.router.url }
       });
@@ -206,6 +209,7 @@ export class AddRecipeComponent {
 
     if (this.isEditMode() && !this.canEditRecipe()) {
       this.submitError.set('You can edit only your own recipes.');
+      this.notifications.error('You can edit only your own recipes.');
       await this.router.navigate(['/home']);
       return;
     }
@@ -230,11 +234,14 @@ export class AddRecipeComponent {
       const editId = this.recipeId();
       const recipe = editId ? this.recipes.save(editId, draft, this.loadedRecipe() ?? undefined) : this.recipes.add(draft);
 
+      this.notifications.success(editId ? 'Recipe updated.' : 'Recipe created.');
+
       this.store.reset();
       await this.router.navigate(['/meals', recipe.id]);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to save recipe.';
       this.submitError.set(message);
+      this.notifications.error(message);
     }
   }
 
