@@ -11,6 +11,7 @@ import { firstValueFrom } from 'rxjs';
 import { AuthUser } from '../../../core/models/auth';
 import { AuthService } from '../../../core/services/auth.service';
 import { ConfigurationService } from '../../../core/services/configuration.service';
+import { LocalRecipeService } from '../../../core/services/local-recipe.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog';
 import { EditUserDialogComponent } from './edit-user-dialog/edit-user-dialog';
@@ -37,17 +38,19 @@ import { YesNoColorPipe } from './yes-no-color.pipe';
 export class UserManagementComponent {
   private readonly auth = inject(AuthService);
   private readonly config = inject(ConfigurationService);
+  private readonly localRecipes = inject(LocalRecipeService);
   private readonly notifications = inject(NotificationService);
   private readonly dialog = inject(MatDialog);
 
   protected readonly users = signal<AuthUser[]>([]);
+  protected readonly recipeCountByUser = signal<Record<number, number>>({});
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly actionUserId = signal<number | null>(null);
   protected readonly searchTerm = signal('');
   protected readonly roleFilter = signal<'all' | 'admin' | 'user'>('all');
   protected readonly lockFilter = signal<'all' | 'locked' | 'unlocked'>('all');
-  protected readonly sortBy = signal<'name' | 'email' | 'role' | 'registered' | 'lastLogin'>('registered');
+  protected readonly sortBy = signal<'name' | 'email' | 'role' | 'registered' | 'lastLogin' | 'recipes'>('registered');
   protected readonly sortDirection = signal<'asc' | 'desc'>('desc');
   protected readonly pageSize = signal(10);
   protected readonly pageIndex = signal(0);
@@ -107,6 +110,9 @@ export class UserManagementComponent {
           break;
         case 'role':
           comparison = left.role.localeCompare(right.role);
+          break;
+        case 'recipes':
+          comparison = this.ownedRecipesCount(left.id) - this.ownedRecipesCount(right.id);
           break;
         case 'lastLogin':
           comparison = this.timestamp(left.lastLoginAt) - this.timestamp(right.lastLoginAt);
@@ -169,7 +175,7 @@ export class UserManagementComponent {
   }
 
   protected updateSortBy(value: string): void {
-    this.sortBy.set((value as 'name' | 'email' | 'role' | 'registered' | 'lastLogin') || 'registered');
+    this.sortBy.set((value as 'name' | 'email' | 'role' | 'registered' | 'lastLogin' | 'recipes') || 'registered');
     this.pageIndex.set(0);
   }
 
@@ -343,6 +349,10 @@ export class UserManagementComponent {
     }).format(date);
   }
 
+  protected ownedRecipesCount(userId: number): number {
+    return this.recipeCountByUser()[userId] ?? 0;
+  }
+
   private timestamp(value: string | undefined): number {
     if (!value) {
       return 0;
@@ -359,11 +369,35 @@ export class UserManagementComponent {
     try {
       const users = await this.auth.listUsersForAdmin();
       this.users.set(users);
+      this.recipeCountByUser.set(this.buildRecipeCountByUser());
     } catch {
       this.error.set('Unable to load users.');
       this.users.set([]);
+      this.recipeCountByUser.set({});
     } finally {
       this.loading.set(false);
     }
+  }
+
+  private buildRecipeCountByUser(): Record<number, number> {
+    const snapshot = this.localRecipes.getSnapshot();
+    const byUser = new Map<number, Set<number>>();
+
+    for (const recipe of [...snapshot.custom, ...snapshot.overrides]) {
+      if (!recipe.ownerId) {
+        continue;
+      }
+
+      const ownedIds = byUser.get(recipe.ownerId) ?? new Set<number>();
+      ownedIds.add(recipe.id);
+      byUser.set(recipe.ownerId, ownedIds);
+    }
+
+    const counts: Record<number, number> = {};
+    for (const [userId, recipeIds] of byUser.entries()) {
+      counts[userId] = recipeIds.size;
+    }
+
+    return counts;
   }
 }

@@ -37,6 +37,7 @@
         <mat-select [value]="sortBy()" (valueChange)="updateSortBy($event)">
           <mat-option value="registered">Registered</mat-option>
           <mat-option value="lastLogin">Last login</mat-option>
+          <mat-option value="recipes">Recipes</mat-option>
           <mat-option value="name">Name</mat-option>
           <mat-option value="email">Email</mat-option>
           <mat-option value="role">Role</mat-option>
@@ -73,6 +74,7 @@
             <th>Email</th>
             <th>Phone</th>
             <th>Age</th>
+            <th>Recipes</th>
             <th>Role</th>
             <th>Verified</th>
             <th>Locked</th>
@@ -88,6 +90,7 @@
               <td>{{ user.email }}</td>
               <td>{{ user.phone }}</td>
               <td>{{ user.age }}</td>
+              <td>{{ ownedRecipesCount(user.id) }}</td>
               <td><span class="role-label">{{ user.role | roleLabel }}</span></td>
               <td><span [class]="(user.emailVerified ? 'Yes' : 'No') | yesNoColor">{{ user.emailVerified ? 'Yes' : 'No' }}</span></td>
               <td><span [class]="(user.isAccountLocked ? 'Yes' : 'No') | yesNoColor">{{ user.isAccountLocked ? 'Yes' : 'No' }}</span></td>
