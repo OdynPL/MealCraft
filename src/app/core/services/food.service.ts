@@ -1,70 +1,42 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { catchError, forkJoin, map, Observable, of, shareReplay, switchMap, throwError } from 'rxjs';
+import { forkJoin, map, Observable, of, switchMap } from 'rxjs';
 
-import {
-  MealDbAreaResponseDto,
-  MealDbCategoryResponseDto,
-  MealDbDetailDto,
-  MealDbDetailResponseDto,
-  MealDbMealDto,
-  MealDbSearchResponseDto
-} from '../dto';
 import { AuthUser, Food, FoodCategoryCount, FoodDetail, FoodFacets, FoodPage, FoodQuery, FoodSortBy, FoodTagCount, SortDirection } from '../models';
-import { ConfigurationService } from './configuration.service';
+import { AppPreferencesService } from './app-preferences.service';
 import { AuthService } from './auth.service';
+import { ConfigurationService } from './configuration.service';
+import { FoodDummyDataService } from './food-dummy-data.service';
+import { FoodRemoteApiService } from './food-remote-api.service';
 import { LocalRecipeService } from './local-recipe.service';
 import { RecipeFeedbackService } from './recipe-feedback.service';
-import { AppPreferencesService } from './app-preferences.service';
 
 const ALLOWED_SORTS: readonly FoodSortBy[] = ['name', 'id', 'tags', 'votes'];
 const ALLOWED_DIRECTIONS: readonly SortDirection[] = ['asc', 'desc'];
 const API_AUTHOR = 'TheMealDB';
-const DUMMY_AUTHOR = 'MealCraft Examples';
-const DUMMY_BASE_ID = 900_000;
 
 @Injectable({ providedIn: 'root' })
-export class FoodApiService {
-  private readonly http = inject(HttpClient);
+export class FoodService {
   private readonly config = inject(ConfigurationService);
   private readonly auth = inject(AuthService);
   private readonly localRecipes = inject(LocalRecipeService);
   private readonly feedback = inject(RecipeFeedbackService);
   private readonly preferences = inject(AppPreferencesService);
-  private exampleRecipes$: Observable<readonly ExampleRecipeSeed[]> | null = null;
-  private dummyFoods$: Observable<readonly Food[]> | null = null;
-  private dummyDetails$: Observable<Map<number, FoodDetail>> | null = null;
+  private readonly remoteApi = inject(FoodRemoteApiService);
+  private readonly dummyData = inject(FoodDummyDataService);
 
   getFacets(): Observable<FoodFacets> {
-    const cuisines$ = this.mealDbGet<MealDbAreaResponseDto>(
-      this.config.listEndpoint,
-      new HttpParams().set('a', 'list')
-    ).pipe(
-      map((res) => (res.meals ?? []).map((item) => item.strArea).filter(Boolean)),
-      map((items) => items.sort((a, b) => a.localeCompare(b))),
-      catchError(() => of([]))
-    );
-
-    const categories$ = this.mealDbGet<MealDbCategoryResponseDto>(
-      this.config.listEndpoint,
-      new HttpParams().set('c', 'list')
-    ).pipe(
-      map((res) => (res.meals ?? []).map((item) => item.strCategory).filter(Boolean)),
-      map((items) => items.sort((a, b) => a.localeCompare(b))),
-      catchError(() => of([]))
-    );
-
+    const remoteFacets$ = this.remoteApi.getFacets();
     const dummyFacets$ = this.preferences.includeDummyProducts()
-      ? this.getDummyFacets()
+      ? this.dummyData.getFacets()
       : of({ cuisines: [], categories: [] });
 
-    return forkJoin({ cuisines: cuisines$, categories: categories$, dummyFacets: dummyFacets$ }).pipe(
-      map(({ cuisines, categories, dummyFacets }) => {
+    return forkJoin({ remoteFacets: remoteFacets$, dummyFacets: dummyFacets$ }).pipe(
+      map(({ remoteFacets, dummyFacets }) => {
         const localFacets = this.localRecipes.getFacetValues();
 
         return {
-          cuisines: uniqueSortedValues([...cuisines, ...localFacets.cuisines, ...dummyFacets.cuisines]),
-          categories: uniqueSortedValues([...categories, ...localFacets.categories, ...dummyFacets.categories])
+          cuisines: uniqueSortedValues([...remoteFacets.cuisines, ...localFacets.cuisines, ...dummyFacets.cuisines]),
+          categories: uniqueSortedValues([...remoteFacets.categories, ...localFacets.categories, ...dummyFacets.categories])
         };
       })
     );
@@ -85,22 +57,18 @@ export class FoodApiService {
     const localOverride = snapshot.overrides.find((item) => item.id === id);
 
     if (!this.preferences.includeDummyProducts()) {
-      return this.mealDbGet<MealDbDetailResponseDto>(
-        this.config.lookupEndpoint,
-        new HttpParams().set('i', String(id))
-      )
-        .pipe(map((res) => {
-          const meal = res.meals?.[0];
-          if (!meal) {
+      return this.remoteApi.getMealDetails(id).pipe(
+        map((apiDetail) => {
+          if (!apiDetail) {
             return localOverride ?? null;
           }
 
-          const apiDetail = this.toFoodDetail(meal);
           return localOverride ? this.mergeDetail(apiDetail, localOverride) : apiDetail;
-        }));
+        })
+      );
     }
 
-    return this.getDummyDetails().pipe(
+    return this.dummyData.getDetails().pipe(
       switchMap((dummyDetails) => {
         const dummyDetail = dummyDetails.get(id);
 
@@ -108,19 +76,15 @@ export class FoodApiService {
           return of(localOverride ? this.mergeDetail(dummyDetail, localOverride) : dummyDetail);
         }
 
-        return this.mealDbGet<MealDbDetailResponseDto>(
-          this.config.lookupEndpoint,
-          new HttpParams().set('i', String(id))
-        )
-          .pipe(map((res) => {
-            const meal = res.meals?.[0];
-            if (!meal) {
+        return this.remoteApi.getMealDetails(id).pipe(
+          map((apiDetail) => {
+            if (!apiDetail) {
               return localOverride ?? null;
             }
 
-            const apiDetail = this.toFoodDetail(meal);
             return localOverride ? this.mergeDetail(apiDetail, localOverride) : apiDetail;
-          }));
+          })
+        );
       })
     );
   }
@@ -139,20 +103,14 @@ export class FoodApiService {
     const mineOnly = query.mineOnly;
     const currentUser = this.auth.currentUser();
 
-    return this.mealDbGet<MealDbSearchResponseDto>(
-      this.config.searchEndpoint,
-      new HttpParams().set('s', searchText)
-    )
+    return this.remoteApi.searchMeals(searchText)
       .pipe(
-        catchError(() => of({ meals: [] } as MealDbSearchResponseDto)),
-        map((res) => res.meals ?? []),
-        map((meals) => meals.map((item) => this.toFood(item))),
         switchMap((apiItems) => {
           if (!this.preferences.includeDummyProducts()) {
             return of(this.applyLocalMutations(apiItems));
           }
 
-          return this.getDummyFoods().pipe(
+          return this.dummyData.getFoods().pipe(
             map((dummyFoods) => this.applyLocalMutations([...apiItems, ...dummyFoods]))
           );
         }),
@@ -195,59 +153,6 @@ export class FoodApiService {
       );
   }
 
-  private toFood(item: MealDbMealDto): Food {
-    const baseTags = buildTags(item.strArea ?? '', item.strCategory ?? '');
-
-    return {
-      id: Number(item.idMeal),
-      title: item.strMeal,
-      image: item.strMealThumb,
-      imageType: getImageType(item.strMealThumb),
-      sourceUrl: item.strSource ?? undefined,
-      cuisine: item.strArea ?? '',
-      category: item.strCategory ?? '',
-      tags: baseTags,
-      author: API_AUTHOR,
-      createdAt: new Date(0).toISOString()
-    };
-  }
-
-  private toFoodDetail(item: MealDbDetailDto): FoodDetail {
-    const tags = [
-      ...(item.strTags ? item.strTags.split(',').map((value) => value.trim()).filter(Boolean) : []),
-      ...buildTags(item.strArea ?? '', item.strCategory ?? '')
-    ];
-
-    return {
-      id: Number(item.idMeal),
-      title: item.strMeal,
-      image: item.strMealThumb,
-      category: item.strCategory ?? '',
-      cuisine: item.strArea ?? '',
-      instructions: item.strInstructions ?? '',
-      sourceUrl: item.strSource ?? undefined,
-      youtubeUrl: item.strYoutube ?? undefined,
-      tags: [...new Set(tags)],
-      author: API_AUTHOR,
-      createdAt: new Date(0).toISOString()
-    };
-  }
-
-  private toFoodFromDetail(item: FoodDetail): Food {
-    return {
-      id: item.id,
-      title: item.title,
-      image: item.image,
-      imageType: getImageType(item.image),
-      sourceUrl: item.sourceUrl,
-      cuisine: item.cuisine,
-      category: item.category,
-      tags: item.tags,
-      author: item.author,
-      createdAt: item.createdAt
-    };
-  }
-
   private applyLocalMutations(apiItems: Food[]): Food[] {
     const snapshot = this.localRecipes.getSnapshot();
     const deletedIds = new Set(snapshot.deletedIds);
@@ -276,6 +181,21 @@ export class FoodApiService {
     }
 
     return [...byId.values()];
+  }
+
+  private toFoodFromDetail(item: FoodDetail): Food {
+    return {
+      id: item.id,
+      title: item.title,
+      image: item.image,
+      imageType: getImageType(item.image),
+      sourceUrl: item.sourceUrl,
+      cuisine: item.cuisine,
+      category: item.category,
+      tags: item.tags,
+      author: item.author,
+      createdAt: item.createdAt
+    };
   }
 
   private mergeFood(base: Food, override: Food): Food {
@@ -313,77 +233,6 @@ export class FoodApiService {
     const normalized = value.trim().slice(0, this.config.queryLimit);
     return normalized.length > 0 ? normalized : undefined;
   }
-
-  private mealDbGet<T>(endpoint: string, params?: HttpParams): Observable<T> {
-    const baseUrl = `${this.config.mealDbBaseUrl}${endpoint}`;
-
-    if (!this.config.useMealDbCorsProxy) {
-      return this.http.get<T>(baseUrl, params ? { params } : undefined);
-    }
-
-    const urlWithQuery = buildUrlWithQuery(baseUrl, params);
-    const proxiedUrls = this.config.mealDbCorsProxyCandidates
-      .map((proxyBaseUrl) => `${proxyBaseUrl}${encodeURIComponent(urlWithQuery)}`);
-
-    return this.requestWithProxyFallback<T>(proxiedUrls, 0);
-  }
-
-  private requestWithProxyFallback<T>(proxyUrls: readonly string[], index: number): Observable<T> {
-    if (index >= proxyUrls.length) {
-      return throwError(() => new Error('MealDB proxy unavailable.'));
-    }
-
-    return this.http.get<T>(proxyUrls[index]).pipe(
-      catchError(() => this.requestWithProxyFallback<T>(proxyUrls, index + 1))
-    );
-  }
-
-  private getExampleRecipes(): Observable<readonly ExampleRecipeSeed[]> {
-    if (!this.exampleRecipes$) {
-      this.exampleRecipes$ = this.http.get<unknown>('data/example-recipes.json').pipe(
-        map((source) => normalizeExampleRecipeSource(source)),
-        catchError(() => of([] as ExampleRecipeSeed[])),
-        shareReplay(1)
-      );
-    }
-
-    return this.exampleRecipes$;
-  }
-
-  private getDummyFoods(): Observable<readonly Food[]> {
-    if (!this.dummyFoods$) {
-      this.dummyFoods$ = this.getExampleRecipes().pipe(
-        map((recipes) => buildDummyFoods(recipes)),
-        shareReplay(1)
-      );
-    }
-
-    return this.dummyFoods$;
-  }
-
-  private getDummyDetails(): Observable<Map<number, FoodDetail>> {
-    if (!this.dummyDetails$) {
-      this.dummyDetails$ = this.getExampleRecipes().pipe(
-        map((recipes) => buildDummyDetails(recipes)),
-        shareReplay(1)
-      );
-    }
-
-    return this.dummyDetails$;
-  }
-
-  private getDummyFacets(): Observable<{ cuisines: string[]; categories: string[] }> {
-    return this.getDummyFoods().pipe(map((foods) => getDummyFacets(foods)));
-  }
-}
-
-function buildUrlWithQuery(url: string, params?: HttpParams): string {
-  if (!params) {
-    return url;
-  }
-
-  const query = params.toString();
-  return query ? `${url}?${query}` : url;
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -492,10 +341,6 @@ function getImageType(imageUrl: string): string {
   return extension ? extension.toLowerCase() : 'jpg';
 }
 
-function buildTags(cuisine: string, category: string): string[] {
-  return [cuisine, category].filter((value) => value.trim().length > 0);
-}
-
 function buildCategoryCounts(items: Food[]): FoodCategoryCount[] {
   const counter = new Map<string, number>();
 
@@ -532,109 +377,3 @@ function uniqueSortedValues(items: string[]): string[] {
 
   return [...new Set(values)].sort((a, b) => a.localeCompare(b));
 }
-
-interface ExampleRecipeSeed {
-  title: string;
-  image: string;
-  cuisine: string;
-  category: string;
-  tags: string[];
-  instructions: string;
-}
-
-function normalizeExampleRecipeSource(source: unknown): ExampleRecipeSeed[] {
-  if (!Array.isArray(source)) {
-    return [];
-  }
-
-  return source.map((item, index) => {
-    const candidate = (item && typeof item === 'object') ? item as Record<string, unknown> : {};
-
-    const title = normalizeString(candidate['title']) || `Example recipe ${index + 1}`;
-    const cuisine = normalizeString(candidate['cuisine']) || 'International';
-    const category = normalizeString(candidate['category']) || 'Miscellaneous';
-    const image = normalizeString(candidate['image']) || buildThematicImageUrl(title, cuisine, category, index + 1);
-    const instructions = normalizeString(candidate['instructions'])
-      || `Servings: 4 · Prep: 15 min · Cook: 25 min\nIngredients: 600 g main ingredient, aromatics, seasoning, and base sauce.\n1) Prep ingredients.\n2) Cook with your preferred technique.\n3) Simmer until tender.\n4) Serve hot.`;
-    const tags = Array.isArray(candidate['tags'])
-      ? candidate['tags'].map((value) => normalizeString(value)).filter((value): value is string => !!value)
-      : [];
-
-    return {
-      title,
-      image,
-      cuisine,
-      category,
-      tags,
-      instructions
-    };
-  });
-}
-
-function normalizeString(value: unknown): string | null {
-  if (typeof value !== 'string') {
-    return null;
-  }
-
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : null;
-}
-
-function buildThematicImageUrl(title: string, cuisine: string, category: string, seed: number): string {
-  const search = encodeURIComponent(`${category} ${cuisine} ${title} food`);
-  return `https://source.unsplash.com/640x420/?${search}&sig=${seed}`;
-}
-
-function buildDummyFoods(recipes: readonly ExampleRecipeSeed[]): Food[] {
-  return recipes.map((recipe, index) => {
-    const id = DUMMY_BASE_ID + index + 1;
-
-    return {
-      id,
-      title: recipe.title,
-      image: recipe.image,
-      imageType: 'jpg',
-      sourceUrl: undefined,
-      cuisine: recipe.cuisine,
-      category: recipe.category,
-      tags: [...new Set(['example', ...recipe.tags, recipe.cuisine, recipe.category])],
-      author: DUMMY_AUTHOR,
-      createdAt: new Date(0).toISOString()
-    };
-  });
-}
-
-function buildDummyDetails(recipes: readonly ExampleRecipeSeed[]): Map<number, FoodDetail> {
-  return new Map<number, FoodDetail>(
-    recipes.map((recipe, index) => {
-      const id = DUMMY_BASE_ID + index + 1;
-
-      return [
-        id,
-        {
-          id,
-          title: recipe.title,
-          image: recipe.image,
-          category: recipe.category,
-          cuisine: recipe.cuisine,
-          instructions: recipe.instructions,
-          sourceUrl: undefined,
-          youtubeUrl: undefined,
-          tags: [...new Set(['example', ...recipe.tags, recipe.cuisine, recipe.category])],
-          author: DUMMY_AUTHOR,
-          createdAt: new Date(0).toISOString()
-        }
-      ];
-    })
-  );
-}
-
-function getDummyFacets(foods: readonly Food[]): { cuisines: string[]; categories: string[] } {
-  return {
-    cuisines: uniqueSortedValues(foods.map((item) => item.cuisine)),
-    categories: uniqueSortedValues(foods.map((item) => item.category))
-  };
-}
-
-
-

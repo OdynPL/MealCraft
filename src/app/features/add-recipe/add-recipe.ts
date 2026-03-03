@@ -11,7 +11,7 @@ import { of, switchMap } from 'rxjs';
 import { FoodDetail } from '../../core/models';
 import { AuthService } from '../../core/services/auth.service';
 import { ConfigurationService } from '../../core/services/configuration.service';
-import { FoodApiService } from '../../core/services/food-api.service';
+import { FoodService } from '../../core/services/food.service';
 import { LocalRecipeService } from '../../core/services/local-recipe.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { FoodStore } from '../../core/stores/food.store';
@@ -32,7 +32,7 @@ import { FoodStore } from '../../core/stores/food.store';
 })
 export class AddRecipeComponent {
   private readonly recipes = inject(LocalRecipeService);
-  private readonly api = inject(FoodApiService);
+  private readonly api = inject(FoodService);
   private readonly auth = inject(AuthService);
   private readonly store = inject(FoodStore);
   private readonly config = inject(ConfigurationService);

@@ -6,7 +6,7 @@ import { vi } from 'vitest';
 
 import { AddRecipeComponent } from './add-recipe';
 import { AuthService } from '../../core/services/auth.service';
-import { FoodApiService } from '../../core/services/food-api.service';
+import { FoodService } from '../../core/services/food.service';
 import { LocalRecipeService } from '../../core/services/local-recipe.service';
 import { FoodStore } from '../../core/stores/food.store';
 
@@ -72,7 +72,7 @@ describe('AddRecipeComponent', () => {
         { provide: FoodStore, useValue: storeMock },
         { provide: Router, useValue: routerMock },
         {
-          provide: FoodApiService,
+          provide: FoodService,
           useValue: {
             getMealDetails: () => of(editRecipe)
           }

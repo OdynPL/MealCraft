@@ -4,7 +4,7 @@ import { provideHttpClientTesting, HttpTestingController } from '@angular/common
 
 import { AuthService } from './auth.service';
 import { ConfigurationService } from './configuration.service';
-import { FoodApiService } from './food-api.service';
+import { FoodService } from './food.service';
 import { LocalRecipeService } from './local-recipe.service';
 import { RecipeFeedbackService } from './recipe-feedback.service';
 
@@ -82,8 +82,8 @@ class MockRecipeFeedbackService {
   }
 }
 
-describe('FoodApiService', () => {
-  let service: FoodApiService;
+describe('FoodService', () => {
+  let service: FoodService;
   let httpMock: HttpTestingController;
 
   const dummyRecipes = [
@@ -102,7 +102,7 @@ describe('FoodApiService', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
-        FoodApiService,
+        FoodService,
         ConfigurationService,
         { provide: AuthService, useClass: MockAuthService },
         { provide: LocalRecipeService, useClass: MockLocalRecipeService },
@@ -110,7 +110,7 @@ describe('FoodApiService', () => {
       ]
     });
 
-    service = TestBed.inject(FoodApiService);
+    service = TestBed.inject(FoodService);
     httpMock = TestBed.inject(HttpTestingController);
   });
 

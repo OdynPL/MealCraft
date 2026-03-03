@@ -5,14 +5,14 @@ import { catchError, debounceTime, distinctUntilChanged, of, switchMap, tap } fr
 
 import { HttpCacheService } from '../http/http-cache.service';
 import { FoodPage, FoodQuery, FoodSortBy, SortDirection } from '../models';
-import { FoodApiService } from '../services/food-api.service';
+import { FoodService } from '../services/food.service';
 import { ConfigurationService } from '../services/configuration.service';
 import { LocalRecipeService } from '../services/local-recipe.service';
 import { FoodState } from './models/food-state';
 
 @Injectable({ providedIn: 'root' })
 export class FoodStore {
-  private readonly api = inject(FoodApiService);
+  private readonly api = inject(FoodService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly cache = inject(HttpCacheService);
   private readonly config = inject(ConfigurationService);

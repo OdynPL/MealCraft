@@ -14,7 +14,7 @@ import { catchError, firstValueFrom, map, of, switchMap, tap } from 'rxjs';
 import { FoodDetail } from '../../core/models';
 import { AuthService } from '../../core/services/auth.service';
 import { ConfigurationService } from '../../core/services/configuration.service';
-import { FoodApiService } from '../../core/services/food-api.service';
+import { FoodService } from '../../core/services/food.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { RecipeFeedbackService } from '../../core/services/recipe-feedback.service';
 import { FoodStore } from '../../core/stores/food.store';
@@ -44,7 +44,7 @@ export class MealDetailsComponent {
   private readonly dialog = inject(MatDialog);
   private readonly auth = inject(AuthService);
   private readonly config = inject(ConfigurationService);
-  private readonly api = inject(FoodApiService);
+  private readonly api = inject(FoodService);
   private readonly notifications = inject(NotificationService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly store = inject(FoodStore);
