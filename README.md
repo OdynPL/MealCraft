@@ -62,6 +62,6 @@ _Coverage summary not found in workspace. Run `npm run test:ci:coverage` first._
 | Test | Status |
 |---|---:|
 | Unit tests (`npm run test:ci`) | ❓ UNKNOWN |
-| Coverage tests (`npm run test:ci:coverage`) | ❌ FAIL |
+| Coverage tests (`npm run test:ci:coverage`) | ❓ UNKNOWN |
 | Coverage threshold gate (Lines >= 70%) | ❓ UNKNOWN |
 <!-- AUTO-DOCS:END -->
