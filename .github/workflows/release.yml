@@ -27,7 +27,7 @@ jobs:
         run: npm ci
 
       - name: Run tests
-        run: npm run test -- --watch=false
+        run: npm run test:ci
 
       - name: Build production bundle
         run: npm run build -- --configuration production
