@@ -186,6 +186,10 @@ export class BodyComponent {
   }
 
   protected selectCategoryFromPill(category: string): void {
+    if (this.mineOnly()) {
+      this.store.setMineOnly(false);
+    }
+
     this.categoryControl.setValue(category);
   }
 
@@ -195,6 +199,10 @@ export class BodyComponent {
   }
 
   protected setMineOnly(mineOnly: boolean): void {
+    if (mineOnly && this.categoryControl.value) {
+      this.categoryControl.setValue('');
+    }
+
     this.store.setMineOnly(mineOnly);
   }
 
