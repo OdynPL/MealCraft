@@ -137,29 +137,29 @@
 }
 
 .category-count-pill-mine {
-  background: var(--mat-sys-tertiary-container);
-  color: var(--mat-sys-on-tertiary-container);
-  border-color: color-mix(in srgb, var(--mat-sys-tertiary) 28%, transparent);
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+  border-color: color-mix(in srgb, var(--mat-sys-secondary) 28%, transparent);
 }
 
 .category-count-pill-mine.category-count-pill-active {
-  border-color: var(--mat-sys-tertiary);
-  background: var(--mat-sys-tertiary-container);
-  color: var(--mat-sys-on-tertiary-container);
+  border-color: var(--mat-sys-secondary);
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
 }
 
 .category-count-pill-all,
 .category-count-pill-more {
-  background: var(--mat-sys-tertiary-container);
-  color: var(--mat-sys-on-tertiary-container);
-  border-color: color-mix(in srgb, var(--mat-sys-tertiary) 28%, transparent);
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+  border-color: color-mix(in srgb, var(--mat-sys-secondary) 28%, transparent);
 }
 
 .category-count-pill-all.category-count-pill-active,
 .category-count-pill-more.category-count-pill-active {
-  border-color: var(--mat-sys-tertiary);
-  background: var(--mat-sys-tertiary-container);
-  color: var(--mat-sys-on-tertiary-container);
+  border-color: var(--mat-sys-secondary);
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
 }
 
 .category-count-pill-more {
@@ -287,8 +287,8 @@ h3 {
   padding: 0.12rem 0.48rem;
   border-radius: 999px;
   font-size: 0.75rem;
-  background: var(--mat-sys-tertiary-container);
-  color: var(--mat-sys-on-tertiary-container);
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
 }
 
 .vote-controls {

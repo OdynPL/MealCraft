@@ -14,6 +14,8 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ConfigurationService } from '../../../core/services/configuration.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog';
+import { RoleLabelPipe } from './role-label.pipe';
+import { YesNoColorPipe } from './yes-no-color.pipe';
 
 @Component({
   selector: 'app-user-management',
@@ -26,7 +28,9 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    RoleLabelPipe,
+    YesNoColorPipe
   ],
   templateUrl: './user-management.html',
   styleUrl: './user-management.scss'
@@ -134,7 +138,7 @@ export class UserManagementComponent {
   }
 
   protected async banUser(user: AuthUser): Promise<void> {
-    if (this.isBusy(user.id)) {
+    if (this.isBusy(user.id) || !this.canBanUser(user)) {
       return;
     }
 
@@ -172,7 +176,7 @@ export class UserManagementComponent {
   }
 
   protected async removeUser(user: AuthUser): Promise<void> {
-    if (this.isBusy(user.id)) {
+    if (this.isBusy(user.id) || !this.canRemoveUser(user)) {
       return;
     }
 
@@ -214,11 +218,19 @@ export class UserManagementComponent {
   }
 
   protected canBanUser(user: AuthUser): boolean {
-    return Boolean(user.id);
+    const currentUserId = this.currentUserId();
+    const seedAdminEmail = this.config.authSeedAdminEmail.trim().toLowerCase();
+    return Boolean(user.id)
+      && user.id !== currentUserId
+      && user.email.trim().toLowerCase() !== seedAdminEmail;
   }
 
   protected canRemoveUser(user: AuthUser): boolean {
-    return Boolean(user.id);
+    const currentUserId = this.currentUserId();
+    const seedAdminEmail = this.config.authSeedAdminEmail.trim().toLowerCase();
+    return Boolean(user.id)
+      && user.id !== currentUserId
+      && user.email.trim().toLowerCase() !== seedAdminEmail;
   }
 
   protected formatDate(value: string | undefined): string {

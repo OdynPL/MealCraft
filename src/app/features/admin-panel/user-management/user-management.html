@@ -14,17 +14,19 @@
           <tr>
             <th>Name</th>
             <th>Email</th>
+            <th>Phone</th>
+            <th>Age</th>
             <th>Role</th>
             <th>Verified</th>
             <th>Locked</th>
             <th>Registered</th>
             <th>Last login</th>
-            <th>Options</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           @for (user of users(); track user.id) {
-            <tr>
+            <tr [class.user-row-banned]="user.isAccountLocked">
               <td>
                 @if (isEditing(user.id)) {
                   <div class="inline-edit-grid">
@@ -44,39 +46,51 @@
               <td>{{ user.email }}</td>
               <td>
                 @if (isEditing(user.id)) {
+                  <mat-form-field appearance="outline" class="table-edit-field">
+                    <mat-label>Phone</mat-label>
+                    <input matInput type="text" [formControl]="phoneControl" aria-label="Edit phone" />
+                  </mat-form-field>
+                } @else {
+                  {{ user.phone }}
+                }
+              </td>
+              <td>
+                @if (isEditing(user.id)) {
+                  <mat-form-field appearance="outline" class="table-edit-field table-edit-field-small">
+                    <mat-label>Age</mat-label>
+                    <input matInput type="number" [formControl]="ageControl" aria-label="Edit age" />
+                  </mat-form-field>
+                } @else {
+                  {{ user.age }}
+                }
+              </td>
+              <td>
+                @if (isEditing(user.id)) {
                   <mat-form-field appearance="outline" class="role-field">
                     <mat-label>Role</mat-label>
                     <mat-select [formControl]="roleControl" aria-label="Edit user role">
-                      <mat-option value="user">user</mat-option>
-                      <mat-option value="admin">admin</mat-option>
+                        <mat-option value="user">User</mat-option>
+                        <mat-option value="admin">Admin</mat-option>
                     </mat-select>
                   </mat-form-field>
                 } @else {
-                  {{ user.role }}
+                  <span class="role-label">{{ user.role | roleLabel }}</span>
                 }
               </td>
               <td>
                 @if (isEditing(user.id)) {
                   <mat-checkbox [formControl]="emailVerifiedControl" aria-label="Edit email verified">Verified</mat-checkbox>
                 } @else {
-                  {{ user.emailVerified ? 'Yes' : 'No' }}
+                  <span [class]="(user.emailVerified ? 'Yes' : 'No') | yesNoColor">{{ user.emailVerified ? 'Yes' : 'No' }}</span>
                 }
               </td>
-              <td>{{ user.isAccountLocked ? 'Yes' : 'No' }}</td>
+              <td><span [class]="(user.isAccountLocked ? 'Yes' : 'No') | yesNoColor">{{ user.isAccountLocked ? 'Yes' : 'No' }}</span></td>
               <td>{{ formatDate(user.registrationDate) }}</td>
               <td>{{ formatDate(user.lastLoginAt) }}</td>
               <td>
                 <div class="row-actions">
                   @if (isEditing(user.id)) {
-                    <mat-form-field appearance="outline" class="edit-inline-field">
-                      <mat-label>Phone</mat-label>
-                      <input matInput type="text" [formControl]="phoneControl" aria-label="Edit phone" />
-                    </mat-form-field>
-                    <mat-form-field appearance="outline" class="edit-inline-field edit-inline-field-small">
-                      <mat-label>Age</mat-label>
-                      <input matInput type="number" [formControl]="ageControl" aria-label="Edit age" />
-                    </mat-form-field>
-                    <button mat-flat-button type="button" color="primary" [disabled]="isBusy(user.id)" (click)="saveEdit(user)">
+                    <button mat-flat-button type="button" class="action-btn action-btn-edit" [disabled]="isBusy(user.id)" (click)="saveEdit(user)">
                       <mat-icon aria-hidden="true">save</mat-icon>
                       Save
                     </button>
@@ -85,17 +99,17 @@
                       Cancel
                     </button>
                   } @else {
-                    <button mat-stroked-button type="button" color="primary" [disabled]="isBusy(user.id) || !canEditUser(user)" (click)="startEdit(user)">
+                    <button mat-flat-button type="button" class="action-btn action-btn-edit" [disabled]="isBusy(user.id) || !canEditUser(user)" (click)="startEdit(user)">
                       <mat-icon aria-hidden="true">edit</mat-icon>
                       Edit
                     </button>
-                    <button mat-stroked-button type="button" color="accent" [disabled]="isBusy(user.id) || !canBanUser(user)" (click)="banUser(user)">
+                    <button mat-flat-button type="button" class="action-btn" [class.action-btn-ban]="!user.isAccountLocked" [class.action-btn-unban]="user.isAccountLocked" [disabled]="isBusy(user.id) || !canBanUser(user)" (click)="banUser(user)">
                       <mat-icon aria-hidden="true">block</mat-icon>
-                      {{ user.isAccountLocked ? 'Unban User' : 'Ban User' }}
+                      {{ user.isAccountLocked ? 'Unban' : 'Ban' }}
                     </button>
-                    <button mat-stroked-button type="button" color="warn" [disabled]="isBusy(user.id) || !canRemoveUser(user)" (click)="removeUser(user)">
+                    <button mat-flat-button type="button" class="action-btn action-btn-remove" [disabled]="isBusy(user.id) || !canRemoveUser(user)" (click)="removeUser(user)">
                       <mat-icon aria-hidden="true">person_remove</mat-icon>
-                      Remove User
+                      Remove
                     </button>
                   }
                 </div>

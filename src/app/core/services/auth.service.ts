@@ -25,7 +25,7 @@ export class AuthService {
   }
 
   private async bootstrapAuthState(): Promise<void> {
-    await this.ensureSeedAdminUser();
+    await this.ensureSeedUsers();
     await this.hydrateSessionFromIndexedDb();
   }
 
@@ -324,12 +324,12 @@ export class AuthService {
     const targetUser = users[index];
     const seedAdminEmail = this.config.authSeedAdminEmail.trim().toLowerCase();
 
-    if (targetUser.email === seedAdminEmail && shouldLock) {
-      return { success: false, error: 'Seed admin account cannot be banned.' };
-    }
-
     if (targetUser.id === currentUser.id && shouldLock) {
       return { success: false, error: 'You cannot ban your own account.' };
+    }
+
+    if (targetUser.email === seedAdminEmail && shouldLock) {
+      return { success: false, error: 'Seed admin account cannot be banned.' };
     }
 
     const updatedUser: StoredUser = {
@@ -426,72 +426,80 @@ export class AuthService {
     }
   }
 
-  private async ensureSeedAdminUser(): Promise<void> {
-    const seedEmail = this.config.authSeedAdminEmail.trim().toLowerCase();
-    const seedPassword = this.config.authSeedAdminPassword;
+  private async ensureSeedUsers(): Promise<void> {
+    const seeds = this.config.authSeedUsers
+      .map((seed) => ({
+        ...seed,
+        email: seed.email.trim().toLowerCase(),
+        password: seed.password.trim()
+      }))
+      .filter((seed) => seed.email.length > 0 && seed.password.length > 0);
 
-    if (!seedEmail || !seedPassword) {
+    if (seeds.length === 0) {
       return;
     }
 
     const users = await this.getAllUsers();
-    const existing = users.find((user) => user.email === seedEmail);
     const now = new Date().toISOString();
 
-    let passwordPatch: Pick<StoredUser, 'passwordHash' | 'passwordSalt' | 'passwordIterations' | 'passwordVersion'>;
+    for (const seed of seeds) {
+      const existing = users.find((user) => user.email === seed.email);
 
-    if (existing) {
-      const verification = await verifyPassword(
-        existing,
-        seedPassword,
-        this.config.authPasswordAlgorithm,
-        this.config.authPasswordIterations
-      );
+      let passwordPatch: Pick<StoredUser, 'passwordHash' | 'passwordSalt' | 'passwordIterations' | 'passwordVersion'>;
 
-      if (verification.valid) {
-        const source = verification.upgradedUser ?? existing;
-        passwordPatch = {
-          passwordHash: source.passwordHash,
-          passwordSalt: source.passwordSalt,
-          passwordIterations: source.passwordIterations,
-          passwordVersion: source.passwordVersion
-        };
+      if (existing) {
+        const verification = await verifyPassword(
+          existing,
+          seed.password,
+          this.config.authPasswordAlgorithm,
+          this.config.authPasswordIterations
+        );
+
+        if (verification.valid) {
+          const source = verification.upgradedUser ?? existing;
+          passwordPatch = {
+            passwordHash: source.passwordHash,
+            passwordSalt: source.passwordSalt,
+            passwordIterations: source.passwordIterations,
+            passwordVersion: source.passwordVersion
+          };
+        } else {
+          passwordPatch = await createPasswordRecord(
+            seed.password,
+            this.config.authPasswordAlgorithm,
+            this.config.authPasswordIterations
+          );
+        }
       } else {
         passwordPatch = await createPasswordRecord(
-          seedPassword,
+          seed.password,
           this.config.authPasswordAlgorithm,
           this.config.authPasswordIterations
         );
       }
-    } else {
-      passwordPatch = await createPasswordRecord(
-        seedPassword,
-        this.config.authPasswordAlgorithm,
-        this.config.authPasswordIterations
-      );
+
+      const seededUser: StoredUser = {
+        id: existing?.id ?? seed.id,
+        email: seed.email,
+        ...passwordPatch,
+        firstName: seed.firstName,
+        lastName: seed.lastName,
+        phone: seed.phone,
+        age: seed.age,
+        role: seed.role,
+        registrationDate: existing?.registrationDate ?? now,
+        isAccountLocked: false,
+        failedLoginAttempts: 0,
+        emailVerified: true,
+        lastLoginAt: existing?.lastLoginAt,
+        accountLockedAt: undefined,
+        updatedAt: now,
+        avatar: existing?.avatar,
+        createdAt: existing?.createdAt ?? now
+      };
+
+      await this.putUser(seededUser);
     }
-
-    const seededUser: StoredUser = {
-      id: existing?.id ?? 1,
-      email: seedEmail,
-      ...passwordPatch,
-      firstName: this.config.authSeedAdminFirstName,
-      lastName: this.config.authSeedAdminLastName,
-      phone: this.config.authSeedAdminPhone,
-      age: this.config.authSeedAdminAge,
-      role: 'admin',
-      registrationDate: existing?.registrationDate ?? now,
-      isAccountLocked: false,
-      failedLoginAttempts: 0,
-      emailVerified: true,
-      lastLoginAt: existing?.lastLoginAt,
-      accountLockedAt: undefined,
-      updatedAt: now,
-      avatar: existing?.avatar,
-      createdAt: existing?.createdAt ?? now
-    };
-
-    await this.putUser(seededUser);
   }
 
   private async getAllUsers(): Promise<StoredUser[]> {

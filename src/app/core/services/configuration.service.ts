@@ -140,6 +140,57 @@ export class ConfigurationService {
   readonly authSeedAdminLastName = 'Admin';
   readonly authSeedAdminPhone = '+48000000000';
   readonly authSeedAdminAge = 30;
+  readonly authSeedUsers: ReadonlyArray<{
+    id: number;
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
+    age: number;
+    role: UserRole;
+  }> = [
+      {
+        id: 1,
+        email: 'admin@admin.pl',
+        password: 'admin@admin.pl',
+        firstName: 'System',
+        lastName: 'Admin',
+        phone: '+48000000000',
+        age: 30,
+        role: 'admin'
+      },
+      {
+        id: 2,
+        email: 'user1@test.pl',
+        password: 'user1@test.pl',
+        firstName: 'Test',
+        lastName: 'User One',
+        phone: '+48111111111',
+        age: 24,
+        role: 'user'
+      },
+      {
+        id: 3,
+        email: 'user2@test.pl',
+        password: 'user2@test.pl',
+        firstName: 'Test',
+        lastName: 'User Two',
+        phone: '+48222222222',
+        age: 27,
+        role: 'user'
+      },
+      {
+        id: 4,
+        email: 'user3@test.pl',
+        password: 'user3@test.pl',
+        firstName: 'Test',
+        lastName: 'User Three',
+        phone: '+48333333333',
+        age: 29,
+        role: 'user'
+      }
+    ];
 
   readonly feedbackVotesStorageKey = 'foodExplorerVotes';
   readonly feedbackTagsStorageKey = 'foodExplorerTags';

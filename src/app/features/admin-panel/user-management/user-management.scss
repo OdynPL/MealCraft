@@ -22,7 +22,7 @@
 .users-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 1180px;
+  min-width: 1420px;
 }
 
 .users-table th,
@@ -41,13 +41,26 @@
   z-index: 1;
 }
 
-.users-table tbody tr:nth-child(even) {
+.users-table tbody tr:nth-child(odd) {
   background: var(--mat-sys-surface);
+}
+
+.users-table tbody tr:nth-child(even) {
+  background: var(--mat-sys-surface-container-low);
 }
 
 .users-table tbody tr:hover {
   background: var(--mat-sys-secondary-container);
   color: var(--mat-sys-on-secondary-container);
+}
+
+.users-table tbody tr.user-row-banned {
+  background: color-mix(in srgb, var(--mat-sys-error) 14%, var(--mat-sys-surface));
+}
+
+.users-table tbody tr.user-row-banned:hover {
+  background: color-mix(in srgb, var(--mat-sys-error) 22%, var(--mat-sys-surface));
+  color: inherit;
 }
 
 .users-table tbody tr:last-child td {
@@ -71,18 +84,69 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 0.35rem;
+  justify-content: flex-end;
 }
 
-.edit-inline-field {
+.table-edit-field {
   width: 170px;
 }
 
-.edit-inline-field-small {
+.table-edit-field-small {
   width: 95px;
 }
 
 .row-actions button {
   border-radius: 10px !important;
+}
+
+.action-btn {
+  --mat-filled-button-container-color: color-mix(in srgb, var(--mat-sys-secondary-container) 72%, var(--mat-sys-surface));
+  --mat-filled-button-label-text-color: var(--mat-sys-on-surface);
+  --mdc-filled-button-container-color: color-mix(in srgb, var(--mat-sys-secondary-container) 72%, var(--mat-sys-surface));
+  --mdc-filled-button-label-text-color: var(--mat-sys-on-surface);
+}
+
+.action-btn-edit {
+  --mat-filled-button-container-color: color-mix(in srgb, var(--mat-sys-primary-container) 68%, var(--mat-sys-surface));
+  --mat-filled-button-label-text-color: var(--mat-sys-on-surface);
+  --mdc-filled-button-container-color: color-mix(in srgb, var(--mat-sys-primary-container) 68%, var(--mat-sys-surface));
+  --mdc-filled-button-label-text-color: var(--mat-sys-on-surface);
+}
+
+.action-btn-ban,
+.action-btn-remove {
+  --mat-filled-button-container-color: color-mix(in srgb, var(--mat-sys-error-container) 56%, var(--mat-sys-surface));
+  --mat-filled-button-label-text-color: var(--mat-sys-on-surface);
+  --mdc-filled-button-container-color: color-mix(in srgb, var(--mat-sys-error-container) 56%, var(--mat-sys-surface));
+  --mdc-filled-button-label-text-color: var(--mat-sys-on-surface);
+}
+
+.action-btn-unban {
+  --mat-filled-button-container-color: color-mix(in srgb, var(--mat-sys-tertiary-container) 66%, var(--mat-sys-surface));
+  --mat-filled-button-label-text-color: var(--mat-sys-on-surface);
+  --mdc-filled-button-container-color: color-mix(in srgb, var(--mat-sys-tertiary-container) 66%, var(--mat-sys-surface));
+  --mdc-filled-button-label-text-color: var(--mat-sys-on-surface);
+}
+
+.row-actions .action-btn.mat-mdc-unelevated-button:not(:disabled) {
+  background-color: color-mix(in srgb, var(--mat-sys-secondary-container) 72%, var(--mat-sys-surface)) !important;
+  color: var(--mat-sys-on-surface) !important;
+}
+
+.row-actions .action-btn-edit.mat-mdc-unelevated-button:not(:disabled) {
+  background-color: color-mix(in srgb, var(--mat-sys-primary-container) 68%, var(--mat-sys-surface)) !important;
+  color: var(--mat-sys-on-surface) !important;
+}
+
+.row-actions .action-btn-ban.mat-mdc-unelevated-button:not(:disabled),
+.row-actions .action-btn-remove.mat-mdc-unelevated-button:not(:disabled) {
+  background-color: color-mix(in srgb, var(--mat-sys-error-container) 56%, var(--mat-sys-surface)) !important;
+  color: var(--mat-sys-on-surface) !important;
+}
+
+.row-actions .action-btn-unban.mat-mdc-unelevated-button:not(:disabled) {
+  background-color: color-mix(in srgb, var(--mat-sys-tertiary-container) 66%, var(--mat-sys-surface)) !important;
+  color: var(--mat-sys-on-surface) !important;
 }
 
 .checkbox-inline {
@@ -93,4 +157,25 @@
 
 .users-table .mat-mdc-form-field-subscript-wrapper {
   display: none;
+}
+
+.role-label {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+  font-weight: 600;
+  font-size: 0.78rem;
+}
+
+.yes-no-yes {
+  color: var(--mat-sys-tertiary);
+  font-weight: 600;
+}
+
+.yes-no-no {
+  color: var(--mat-sys-error);
+  font-weight: 600;
 }

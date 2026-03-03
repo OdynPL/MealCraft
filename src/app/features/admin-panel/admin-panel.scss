@@ -4,11 +4,11 @@
 }
 
 .admin-panel-wrapper.app-page-shell {
-  width: min(1640px, 100%);
+  width: min(1860px, 100%);
 }
 
 .admin-panel {
-  width: min(1580px, 100%);
+  width: min(1800px, 100%);
   max-width: none;
   display: grid;
   gap: 1rem;
@@ -29,7 +29,7 @@
 
 .admin-layout {
   display: grid;
-  grid-template-columns: minmax(220px, 280px) 1fr;
+  grid-template-columns: minmax(190px, 240px) minmax(0, 1fr);
   gap: 1rem;
   align-items: start;
 }
@@ -86,7 +86,7 @@
 
 @media (max-width: 900px) {
   .admin-panel-wrapper.app-page-shell {
-    width: min(1400px, 100%);
+    width: min(1600px, 100%);
   }
 
   .admin-layout {

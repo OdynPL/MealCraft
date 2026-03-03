@@ -284,4 +284,40 @@ describe('AuthService', () => {
     expect(service.currentUser()?.email).toBe('admin@admin.pl');
     expect(service.currentUser()?.role).toBe('admin');
   });
+
+  it('should seed admin and three default user accounts', async () => {
+    const service = TestBed.inject(AuthService);
+    await Promise.resolve();
+
+    const login = await service.login('admin@admin.pl', 'admin@admin.pl', true);
+    expect(login.success).toBe(true);
+
+    const users = await service.listUsersForAdmin();
+    expect(users).toHaveLength(4);
+
+    const rolesByEmail = new Map(users.map((user) => [user.email, user.role]));
+    expect(rolesByEmail.get('admin@admin.pl')).toBe('admin');
+    expect(rolesByEmail.get('user1@test.pl')).toBe('user');
+    expect(rolesByEmail.get('user2@test.pl')).toBe('user');
+    expect(rolesByEmail.get('user3@test.pl')).toBe('user');
+  });
+
+  it('should prevent admin from banning or removing own account', async () => {
+    const service = TestBed.inject(AuthService);
+    await Promise.resolve();
+
+    const login = await service.login('admin@admin.pl', 'admin@admin.pl', true);
+    expect(login.success).toBe(true);
+
+    const selfId = service.currentUser()?.id;
+    expect(selfId).toBeTruthy();
+
+    const banSelf = await service.setUserLockForAdmin(selfId as number, true);
+    expect(banSelf.success).toBe(false);
+    expect(banSelf.error).toContain('cannot ban your own account');
+
+    const removeSelf = await service.removeUserForAdmin(selfId as number);
+    expect(removeSelf.success).toBe(false);
+    expect(removeSelf.error).toContain('cannot remove your own account');
+  });
 });
