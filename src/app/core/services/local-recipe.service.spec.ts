@@ -30,6 +30,10 @@ describe('LocalRecipeService', () => {
     lastName: 'Master',
     phone: '+48123456789',
     age: 31,
+    role: 'user',
+    registrationDate: new Date('2025-03-01').toISOString(),
+    isAccountLocked: false,
+    emailVerified: false,
     createdAt: new Date('2025-03-01').toISOString()
   };
 
@@ -40,6 +44,10 @@ describe('LocalRecipeService', () => {
     lastName: 'Chef',
     phone: '+48987654321',
     age: 29,
+    role: 'user',
+    registrationDate: new Date('2025-03-02').toISOString(),
+    isAccountLocked: false,
+    emailVerified: false,
     createdAt: new Date('2025-03-02').toISOString()
   };
 

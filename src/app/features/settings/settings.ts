@@ -53,6 +53,7 @@ export class SettingsComponent {
   private avatarValue = this.auth.currentUser()?.avatar;
 
   protected readonly fullName = computed(() => this.auth.fullName());
+  protected readonly isAdmin = computed(() => this.auth.currentUser()?.role === 'admin');
   protected readonly includeDummyProducts = computed(() => this.preferences.includeDummyProducts());
 
   protected readonly firstNameControl = new FormControl(this.auth.currentUser()?.firstName ?? '', {
@@ -164,6 +165,10 @@ export class SettingsComponent {
   }
 
   protected onIncludeDummyProductsChange(enabled: boolean): void {
+    if (!this.isAdmin()) {
+      return;
+    }
+
     this.preferences.setIncludeDummyProducts(enabled);
     this.store.reset();
 

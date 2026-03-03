@@ -7,6 +7,7 @@ import { ConfigurationService } from './configuration.service';
 export class AuthService {
   private readonly config = inject(ConfigurationService);
   private readonly userState = signal<AuthUser | null>(this.readSessionCache());
+  private readonly bootstrapReady: Promise<void>;
 
   readonly currentUser = computed(() => this.userState());
   readonly isLoggedIn = computed(() => this.userState() !== null);
@@ -20,10 +21,17 @@ export class AuthService {
   });
 
   constructor() {
-    void this.hydrateSessionFromIndexedDb();
+    this.bootstrapReady = this.bootstrapAuthState();
+  }
+
+  private async bootstrapAuthState(): Promise<void> {
+    await this.ensureSeedAdminUser();
+    await this.hydrateSessionFromIndexedDb();
   }
 
   async register(payload: RegisterPayload): Promise<AuthResult> {
+    await this.bootstrapReady;
+
     const normalizedEmail = payload.email.trim().toLowerCase();
     const validationError = this.validateProfileData(payload.firstName, payload.lastName, payload.phone, payload.age);
 
@@ -59,6 +67,12 @@ export class AuthService {
       lastName: payload.lastName.trim(),
       phone: payload.phone.trim(),
       age: payload.age,
+      role: payload.role,
+      registrationDate: new Date().toISOString(),
+      isAccountLocked: false,
+      failedLoginAttempts: 0,
+      emailVerified: false,
+      updatedAt: new Date().toISOString(),
       avatar: normalizeOptional(payload.avatar),
       createdAt: new Date().toISOString()
     };
@@ -70,6 +84,8 @@ export class AuthService {
   }
 
   async login(email: string, password: string, rememberMe = false): Promise<AuthResult> {
+    await this.bootstrapReady;
+
     const normalizedEmail = email.trim().toLowerCase();
 
     if (!isValidEmail(normalizedEmail)) {
@@ -83,6 +99,10 @@ export class AuthService {
       return { success: false, error: 'Invalid email or password.' };
     }
 
+    if (user.isAccountLocked) {
+      return { success: false, error: 'Account is locked. Contact administrator.' };
+    }
+
     const verification = await verifyPassword(
       user,
       password,
@@ -90,14 +110,37 @@ export class AuthService {
       this.config.authPasswordIterations
     );
     if (!verification.valid) {
+      const failedAttempts = (user.failedLoginAttempts ?? 0) + 1;
+      const shouldLock = failedAttempts >= this.config.authMaxFailedLoginAttempts;
+
+      await this.putUser({
+        ...user,
+        failedLoginAttempts: failedAttempts,
+        isAccountLocked: shouldLock,
+        accountLockedAt: shouldLock ? new Date().toISOString() : user.accountLockedAt,
+        updatedAt: new Date().toISOString()
+      });
+
+      if (shouldLock) {
+        return { success: false, error: 'Account is locked due to too many failed login attempts.' };
+      }
+
       return { success: false, error: 'Invalid email or password.' };
     }
 
-    if (verification.upgradedUser) {
-      await this.putUser(verification.upgradedUser);
-    }
+    const authenticatedUser = verification.upgradedUser ?? user;
+    const refreshedUser: StoredUser = {
+      ...authenticatedUser,
+      failedLoginAttempts: 0,
+      isAccountLocked: false,
+      accountLockedAt: undefined,
+      lastLoginAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
 
-    await this.saveSession(toAuthUser(verification.upgradedUser ?? user), rememberMe);
+    await this.putUser(refreshedUser);
+
+    await this.saveSession(toAuthUser(refreshedUser), rememberMe);
     return { success: true };
   }
 
@@ -125,6 +168,7 @@ export class AuthService {
       lastName: payload.lastName.trim(),
       phone: payload.phone.trim(),
       age: payload.age,
+      updatedAt: new Date().toISOString(),
       avatar: normalizeOptional(payload.avatar)
     };
 
@@ -244,6 +288,74 @@ export class AuthService {
     } catch {
       // keep cache fallback
     }
+  }
+
+  private async ensureSeedAdminUser(): Promise<void> {
+    const seedEmail = this.config.authSeedAdminEmail.trim().toLowerCase();
+    const seedPassword = this.config.authSeedAdminPassword;
+
+    if (!seedEmail || !seedPassword) {
+      return;
+    }
+
+    const users = await this.getAllUsers();
+    const existing = users.find((user) => user.email === seedEmail);
+    const now = new Date().toISOString();
+
+    let passwordPatch: Pick<StoredUser, 'passwordHash' | 'passwordSalt' | 'passwordIterations' | 'passwordVersion'>;
+
+    if (existing) {
+      const verification = await verifyPassword(
+        existing,
+        seedPassword,
+        this.config.authPasswordAlgorithm,
+        this.config.authPasswordIterations
+      );
+
+      if (verification.valid) {
+        const source = verification.upgradedUser ?? existing;
+        passwordPatch = {
+          passwordHash: source.passwordHash,
+          passwordSalt: source.passwordSalt,
+          passwordIterations: source.passwordIterations,
+          passwordVersion: source.passwordVersion
+        };
+      } else {
+        passwordPatch = await createPasswordRecord(
+          seedPassword,
+          this.config.authPasswordAlgorithm,
+          this.config.authPasswordIterations
+        );
+      }
+    } else {
+      passwordPatch = await createPasswordRecord(
+        seedPassword,
+        this.config.authPasswordAlgorithm,
+        this.config.authPasswordIterations
+      );
+    }
+
+    const seededUser: StoredUser = {
+      id: existing?.id ?? 1,
+      email: seedEmail,
+      ...passwordPatch,
+      firstName: this.config.authSeedAdminFirstName,
+      lastName: this.config.authSeedAdminLastName,
+      phone: this.config.authSeedAdminPhone,
+      age: this.config.authSeedAdminAge,
+      role: 'admin',
+      registrationDate: existing?.registrationDate ?? now,
+      isAccountLocked: false,
+      failedLoginAttempts: 0,
+      emailVerified: true,
+      lastLoginAt: existing?.lastLoginAt,
+      accountLockedAt: undefined,
+      updatedAt: now,
+      avatar: existing?.avatar,
+      createdAt: existing?.createdAt ?? now
+    };
+
+    await this.putUser(seededUser);
   }
 
   private async getAllUsers(): Promise<StoredUser[]> {
@@ -469,6 +581,17 @@ function normalizeStoredUser(
   const lastName = String(value['lastName'] ?? '').trim() || config.authDefaultLastName;
   const phone = String(value['phone'] ?? '').trim() || config.authDefaultPhone;
   const age = Number(value['age']);
+  const role = normalizeUserRole(value['role'], config.authDefaultRole, config.authAllowedRoles);
+  const registrationDate = normalizeDate(value['registrationDate']);
+  const isAccountLocked = Boolean(value['isAccountLocked']);
+  const failedLoginAttemptsRaw = Number(value['failedLoginAttempts']);
+  const failedLoginAttempts = Number.isFinite(failedLoginAttemptsRaw) && failedLoginAttemptsRaw >= 0
+    ? failedLoginAttemptsRaw
+    : 0;
+  const emailVerified = Boolean(value['emailVerified']);
+  const lastLoginAt = normalizeOptionalDate(value['lastLoginAt']);
+  const accountLockedAt = normalizeOptionalDate(value['accountLockedAt']);
+  const updatedAt = normalizeOptionalDate(value['updatedAt']);
   const avatar = normalizeOptional(value['avatar']);
   const createdAt = normalizeDate(value['createdAt']);
 
@@ -487,6 +610,14 @@ function normalizeStoredUser(
     lastName,
     phone,
     age: Number.isFinite(age) && age > 0 ? age : config.authDefaultAge,
+    role,
+    registrationDate,
+    isAccountLocked,
+    failedLoginAttempts,
+    emailVerified,
+    lastLoginAt,
+    accountLockedAt,
+    updatedAt,
     avatar,
     createdAt
   };
@@ -503,6 +634,11 @@ function normalizeAuthUser(value: unknown, config: ConfigurationService): AuthUs
   const lastName = String(value['lastName'] ?? '').trim() || config.authDefaultLastName;
   const phone = String(value['phone'] ?? '').trim() || config.authDefaultPhone;
   const age = Number(value['age']);
+  const role = normalizeUserRole(value['role'], config.authDefaultRole, config.authAllowedRoles);
+  const registrationDate = normalizeDate(value['registrationDate']);
+  const isAccountLocked = Boolean(value['isAccountLocked']);
+  const emailVerified = Boolean(value['emailVerified']);
+  const lastLoginAt = normalizeOptionalDate(value['lastLoginAt']);
   const avatar = normalizeOptional(value['avatar']);
   const createdAt = normalizeDate(value['createdAt']);
 
@@ -517,6 +653,11 @@ function normalizeAuthUser(value: unknown, config: ConfigurationService): AuthUs
     lastName,
     phone,
     age: Number.isFinite(age) && age > 0 ? age : config.authDefaultAge,
+    role,
+    registrationDate,
+    isAccountLocked,
+    emailVerified,
+    lastLoginAt,
     avatar,
     createdAt
   };
@@ -680,6 +821,11 @@ function toAuthUser(user: StoredUser): AuthUser {
     lastName: user.lastName,
     phone: user.phone,
     age: user.age,
+    role: user.role,
+    registrationDate: user.registrationDate,
+    isAccountLocked: user.isAccountLocked,
+    emailVerified: user.emailVerified,
+    lastLoginAt: user.lastLoginAt,
     avatar: user.avatar,
     createdAt: user.createdAt
   };
@@ -698,4 +844,21 @@ function normalizeDate(value: unknown): string {
 function normalizeOptional(value: unknown): string | undefined {
   const normalized = String(value ?? '').trim();
   return normalized.length > 0 ? normalized : undefined;
+}
+
+function normalizeOptionalDate(value: unknown): string | undefined {
+  const raw = String(value ?? '').trim();
+  if (!raw) {
+    return undefined;
+  }
+
+  const date = new Date(raw);
+  return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
+}
+
+function normalizeUserRole(value: unknown, fallback: StoredUser['role'], allowed: readonly StoredUser['role'][]): StoredUser['role'] {
+  const role = String(value ?? '').trim().toLowerCase();
+  return allowed.includes(role as StoredUser['role'])
+    ? role as StoredUser['role']
+    : fallback;
 }

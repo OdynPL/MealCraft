@@ -91,7 +91,8 @@ describe('AuthService', () => {
       firstName: 'New',
       lastName: 'User',
       phone: '+48123123123',
-      age: 27
+      age: 27,
+      role: 'user'
     });
 
     expect(result.success).toBe(true);
@@ -113,7 +114,8 @@ describe('AuthService', () => {
       firstName: 'Fallback',
       lastName: 'Login',
       phone: '+48111222333',
-      age: 30
+      age: 30,
+      role: 'user'
     });
     expect(register.success).toBe(true);
 
@@ -136,7 +138,8 @@ describe('AuthService', () => {
       firstName: 'Remember',
       lastName: 'Me',
       phone: '+48111222444',
-      age: 31
+      age: 31,
+      role: 'user'
     });
     expect(register.success).toBe(true);
 
@@ -146,6 +149,37 @@ describe('AuthService', () => {
     expect(login.success).toBe(true);
     expect(service.isLoggedIn()).toBe(true);
     expect(localStorage.getItem(sessionCacheKey)).toContain('remember.me@example.com');
+  });
+
+  it('should lock account after too many failed login attempts', async () => {
+    const service = TestBed.inject(AuthService);
+
+    const register = await service.register({
+      email: 'locked.user@example.com',
+      password: 'password123',
+      firstName: 'Locked',
+      lastName: 'User',
+      phone: '+48111222999',
+      age: 29,
+      role: 'user'
+    });
+    expect(register.success).toBe(true);
+
+    await service.logout();
+
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      const failed = await service.login('locked.user@example.com', 'wrong-password');
+      expect(failed.success).toBe(false);
+      expect(failed.error).toContain('Invalid email or password');
+    }
+
+    const lockedAttempt = await service.login('locked.user@example.com', 'wrong-password');
+    expect(lockedAttempt.success).toBe(false);
+    expect(lockedAttempt.error).toContain('locked');
+
+    const validAfterLock = await service.login('locked.user@example.com', 'password123');
+    expect(validAfterLock.success).toBe(false);
+    expect(validAfterLock.error).toContain('locked');
   });
 
   it('should register successfully when IndexedDB open throws', async () => {
@@ -165,7 +199,8 @@ describe('AuthService', () => {
       firstName: 'Blocked',
       lastName: 'Db',
       phone: '+48111111999',
-      age: 26
+      age: 26,
+      role: 'user'
     });
 
     expect(result.success).toBe(true);
@@ -238,5 +273,15 @@ describe('AuthService', () => {
 
     expect(service.isLoggedIn()).toBe(true);
     expect(service.currentUser()?.email).toBe('cache.only@example.com');
+  });
+
+  it('should always provide seeded admin account', async () => {
+    const service = TestBed.inject(AuthService);
+    await Promise.resolve();
+
+    const login = await service.login('admin@admin.pl', 'admin@admin.pl', true);
+    expect(login.success).toBe(true);
+    expect(service.currentUser()?.email).toBe('admin@admin.pl');
+    expect(service.currentUser()?.role).toBe('admin');
   });
 });

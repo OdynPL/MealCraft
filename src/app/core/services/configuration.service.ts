@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 import { FoodSortBy, SortDirection } from '../models';
-import { StoredUser } from '../models/auth';
+import { StoredUser, UserRole } from '../models/auth';
 
 @Injectable({ providedIn: 'root' })
 export class ConfigurationService {
@@ -124,13 +124,22 @@ export class ConfigurationService {
   readonly authMinAge = 13;
   readonly authMaxAge = 120;
   readonly authDefaultAge = 18;
+  readonly authDefaultRole: UserRole = 'user';
+  readonly authAllowedRoles: readonly UserRole[] = ['user', 'admin'] as const;
   readonly authDefaultFirstName = 'User';
   readonly authDefaultLastName = '';
   readonly authDefaultPhone = '000000000';
+  readonly authMaxFailedLoginAttempts = 5;
   readonly authPhonePattern = /^[+]?[-0-9\s()]{6,}$/;
   readonly authMaxPhoneLength = 20;
   readonly authMaxAvatarSizeBytes = 2 * 1024 * 1024;
   readonly authDefaultAvatar = 'https://placehold.co/120x120?text=User';
+  readonly authSeedAdminEmail = 'admin@admin.pl';
+  readonly authSeedAdminPassword = 'admin@admin.pl';
+  readonly authSeedAdminFirstName = 'System';
+  readonly authSeedAdminLastName = 'Admin';
+  readonly authSeedAdminPhone = '+48000000000';
+  readonly authSeedAdminAge = 30;
 
   readonly feedbackVotesStorageKey = 'foodExplorerVotes';
   readonly feedbackTagsStorageKey = 'foodExplorerTags';

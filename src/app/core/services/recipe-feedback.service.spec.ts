@@ -36,6 +36,10 @@ describe('RecipeFeedbackService', () => {
     lastName: 'One',
     phone: '+48111111111',
     age: 25,
+    role: 'user',
+    registrationDate: new Date('2025-01-01').toISOString(),
+    isAccountLocked: false,
+    emailVerified: false,
     createdAt: new Date('2025-01-01').toISOString()
   };
 
@@ -46,6 +50,10 @@ describe('RecipeFeedbackService', () => {
     lastName: 'Two',
     phone: '+48222222222',
     age: 29,
+    role: 'user',
+    registrationDate: new Date('2025-01-02').toISOString(),
+    isAccountLocked: false,
+    emailVerified: false,
     createdAt: new Date('2025-01-02').toISOString()
   };
 

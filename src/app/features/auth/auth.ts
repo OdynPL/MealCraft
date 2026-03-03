@@ -7,11 +7,13 @@ import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 
 import { AuthService } from '../../core/services/auth.service';
 import { ConfigurationService } from '../../core/services/configuration.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { FoodStore } from '../../core/stores/food.store';
+import { UserRole } from '../../core/models/auth';
 
 @Component({
   selector: 'app-auth',
@@ -24,6 +26,7 @@ import { FoodStore } from '../../core/stores/food.store';
     MatCheckboxModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     MatButtonModule
   ],
   templateUrl: './auth.html',
@@ -66,7 +69,12 @@ export class AuthComponent {
     nonNullable: true,
     validators: [Validators.required, Validators.min(this.config.authMinAge), Validators.max(this.config.authMaxAge)]
   });
+  protected readonly roleControl = new FormControl<UserRole>(this.config.authDefaultRole, {
+    nonNullable: true,
+    validators: [Validators.required]
+  });
   protected readonly rememberMeControl = new FormControl(true, { nonNullable: true });
+  protected readonly roleOptions = this.config.authAllowedRoles;
 
   protected readonly avatarPreview = signal(this.config.authDefaultAvatar);
   protected readonly avatarError = signal<string | null>(null);
@@ -172,6 +180,7 @@ export class AuthComponent {
           lastName: this.lastNameControl.value,
           phone: this.phoneControl.value,
           age: this.ageControl.value,
+          role: this.roleControl.value,
           avatar: this.avatarValue
         });
 
@@ -210,6 +219,7 @@ export class AuthComponent {
       || (registerMode && this.lastNameControl.invalid)
       || (registerMode && this.phoneControl.invalid)
       || (registerMode && this.ageControl.invalid)
+      || (registerMode && this.roleControl.invalid)
       || (registerMode && !!this.avatarError());
   }
 
@@ -225,6 +235,7 @@ export class AuthComponent {
     this.lastNameControl.markAsTouched();
     this.phoneControl.markAsTouched();
     this.ageControl.markAsTouched();
+    this.roleControl.markAsTouched();
   }
 
   private firstValidationError(registerMode: boolean): string {
@@ -281,6 +292,10 @@ export class AuthComponent {
 
     if (this.ageControl.hasError('required') || this.ageControl.hasError('min') || this.ageControl.hasError('max')) {
       return `Age must be between ${this.config.authMinAge} and ${this.config.authMaxAge}.`;
+    }
+
+    if (this.roleControl.hasError('required')) {
+      return 'Role is required.';
     }
 
     if (this.avatarError()) {

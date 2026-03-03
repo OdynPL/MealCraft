@@ -1,7 +1,7 @@
 <div class="settings-wrapper app-page-shell">
   <mat-card class="settings-card app-form-shell" appearance="outlined">
     <mat-card-header>
-      <mat-card-title>User settings</mat-card-title>
+      <mat-card-title>User Settings</mat-card-title>
     </mat-card-header>
 
     <mat-card-content class="settings-content">
@@ -63,19 +63,6 @@
         </div>
       </form>
 
-      <section class="settings-section" aria-label="Product source settings">
-        <h3>Products</h3>
-        <p class="settings-hint">Choose whether to include local dummy products in the main recipes grid.</p>
-
-        <mat-slide-toggle
-          [checked]="includeDummyProducts()"
-          (change)="onIncludeDummyProductsChange($event.checked)"
-          aria-label="Toggle dummy products"
-        >
-          Dummy products
-        </mat-slide-toggle>
-      </section>
-
       <form class="settings-section" novalidate (submit)="onPasswordFormSubmit($event)">
         <h3>Password</h3>
 
@@ -108,4 +95,27 @@
       </form>
     </mat-card-content>
   </mat-card>
+
+  @if (isAdmin()) {
+    <mat-card class="settings-card app-form-shell" appearance="outlined">
+      <mat-card-header>
+        <mat-card-title>Admin Settings</mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content class="settings-content">
+        <section class="settings-section" aria-label="Product source settings">
+          <h3>Products</h3>
+          <p class="settings-hint">Choose whether to include local dummy products in the main recipes grid.</p>
+
+          <mat-slide-toggle
+            [checked]="includeDummyProducts()"
+            (change)="onIncludeDummyProductsChange($event.checked)"
+            aria-label="Toggle dummy products"
+          >
+            Dummy products
+          </mat-slide-toggle>
+        </section>
+      </mat-card-content>
+    </mat-card>
+  }
 </div>

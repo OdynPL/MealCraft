@@ -1,3 +1,5 @@
+export type UserRole = 'user' | 'admin';
+
 export interface StoredUser {
   id: number;
   email: string;
@@ -9,6 +11,14 @@ export interface StoredUser {
   lastName: string;
   phone: string;
   age: number;
+  role: UserRole;
+  registrationDate: string;
+  isAccountLocked: boolean;
+  failedLoginAttempts: number;
+  emailVerified: boolean;
+  lastLoginAt?: string;
+  accountLockedAt?: string;
+  updatedAt?: string;
   avatar?: string;
   createdAt: string;
 }
@@ -20,6 +30,11 @@ export interface AuthUser {
   lastName: string;
   phone: string;
   age: number;
+  role: UserRole;
+  registrationDate: string;
+  isAccountLocked: boolean;
+  emailVerified: boolean;
+  lastLoginAt?: string;
   avatar?: string;
   createdAt: string;
 }
@@ -31,6 +46,7 @@ export interface RegisterPayload {
   lastName: string;
   phone: string;
   age: number;
+  role: UserRole;
   avatar?: string;
 }
 
