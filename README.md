@@ -55,21 +55,13 @@ PNG fallback: [component-tree.png](reports/dependency-graph/component-tree.png)
 
 ### Coverage Report
 
-| Metric | Value |
-|---|---:|
-| Statements | 68.80% |
-| Branches | 56.14% |
-| Functions | 61.72% |
-| Lines | 68.91% |
-| Threshold (Lines >= 70%) | ❌ FAIL |
-
-_Source: coverage/mealcraft/coverage-final.json._
+_Coverage summary not found in workspace. Run `npm run test:ci:coverage` first._
 
 ### Test Status
 
 | Test | Status |
 |---|---:|
-| Unit tests (`npm run test:ci`) | ✅ PASS |
-| Coverage tests (`npm run test:ci:coverage`) | ✅ PASS |
-| Coverage threshold gate (Lines >= 70%) | ❌ FAIL |
+| Unit tests (`npm run test:ci`) | ❓ UNKNOWN |
+| Coverage tests (`npm run test:ci:coverage`) | ❌ FAIL |
+| Coverage threshold gate (Lines >= 70%) | ❓ UNKNOWN |
 <!-- AUTO-DOCS:END -->
