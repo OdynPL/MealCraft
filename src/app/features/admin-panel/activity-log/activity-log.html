@@ -30,15 +30,6 @@
       </mat-select>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" floatLabel="always" class="activity-control activity-size">
-      <mat-label>Rows</mat-label>
-      <mat-select [value]="pageSize()" (valueChange)="setPageSize($event)">
-        @for (size of pageSizeOptions; track size) {
-          <mat-option [value]="size">{{ size }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-
     <div class="activity-actions">
       <button mat-flat-button type="button" class="export-log-button" (click)="exportCsv()" [disabled]="filteredEntries().length === 0">
         Export CSV
@@ -70,7 +61,7 @@
             <tr>
               <td>{{ formatDate(entry.timestamp) }}</td>
               <td><span class="log-chip">{{ entry.area }}</span></td>
-              <td><span class="log-chip" [class]="'log-status-' + entry.status">{{ entry.status }}</span></td>
+              <td><span [class]="'log-chip ' + (entry.status | activityStatusColor)">{{ entry.status }}</span></td>
               <td>{{ actorLabel(entry) }}</td>
               <td>{{ entry.action }}</td>
               <td>{{ entry.target ?? '—' }}</td>
@@ -81,13 +72,14 @@
       </table>
     </div>
 
-    <div class="activity-pagination" aria-label="Activity log pagination">
-      <span class="pagination-info">{{ pageFrom() }}-{{ pageTo() }} of {{ totalItems() }}</span>
-      <div class="pagination-actions">
-        <button mat-stroked-button type="button" [disabled]="pageIndex() <= 0" (click)="prevPage()">Prev</button>
-        <span class="pagination-page">Page {{ pageIndex() + 1 }} / {{ totalPages() }}</span>
-        <button mat-stroked-button type="button" [disabled]="pageIndex() >= totalPages() - 1" (click)="nextPage()">Next</button>
-      </div>
-    </div>
+    <mat-paginator
+      [length]="totalItems()"
+      [pageIndex]="pageIndex()"
+      [pageSize]="pageSize()"
+      [pageSizeOptions]="pageSizeOptions"
+      [showFirstLastButtons]="true"
+      aria-label="Activity log pagination"
+      (page)="onPageChange($event)"
+    />
   }
 </section>

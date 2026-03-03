@@ -10,7 +10,7 @@
 
 .activity-controls {
   display: grid;
-  grid-template-columns: minmax(240px, 2fr) repeat(3, minmax(130px, 1fr));
+  grid-template-columns: minmax(240px, 2fr) repeat(2, minmax(130px, 1fr));
   gap: 0.55rem;
   align-items: start;
 }
@@ -73,30 +73,6 @@
   border-bottom: none;
 }
 
-.activity-pagination {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-}
-
-.pagination-info {
-  color: var(--mat-sys-on-surface-variant);
-  font-size: 0.84rem;
-}
-
-.pagination-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.42rem;
-}
-
-.pagination-page {
-  font-size: 0.84rem;
-  color: var(--mat-sys-on-surface-variant);
-}
-
 .log-chip {
   display: inline-flex;
   align-items: center;
@@ -112,8 +88,8 @@
 }
 
 .log-status-success {
-  border-color: color-mix(in srgb, var(--mat-sys-primary) 45%, var(--mat-sys-outline-variant) 55%);
-  color: var(--mat-sys-primary);
+  border-color: color-mix(in srgb, var(--mat-sys-tertiary) 45%, var(--mat-sys-outline-variant) 55%);
+  color: var(--mat-sys-tertiary);
 }
 
 .log-status-info {

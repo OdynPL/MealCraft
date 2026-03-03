@@ -103,15 +103,16 @@ describe('ActivityLogComponent', () => {
   });
 
   it('should paginate entries', () => {
-    (component as any).setPageSize('2');
+    expect((component as any).pageSize()).toBe(7);
+    expect((component as any).pagedEntries().length).toBe(3);
+
+    (component as any).onPageChange({ pageIndex: 0, pageSize: 2, length: 3 } as any);
+    expect((component as any).pageSize()).toBe(2);
     expect((component as any).pagedEntries().length).toBe(2);
 
-    (component as any).nextPage();
+    (component as any).onPageChange({ pageIndex: 1, pageSize: 2, length: 3 } as any);
     expect((component as any).pageIndex()).toBe(1);
     expect((component as any).pagedEntries().length).toBe(1);
-
-    (component as any).prevPage();
-    expect((component as any).pageIndex()).toBe(0);
   });
 
   it('should clear log when confirmed', async () => {

@@ -3,12 +3,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { firstValueFrom } from 'rxjs';
 
 import { ActivityArea, ActivityLogEntry, ActivityStatus } from '../../../core/models/activity-log';
 import { ActivityLogService } from '../../../core/services/activity-log.service';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog';
+import { ActivityStatusColorPipe } from './activity-status-color.pipe';
 
 @Component({
   selector: 'app-activity-log',
@@ -17,8 +19,10 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatPaginatorModule,
     MatButtonModule,
-    MatDialogModule
+    MatDialogModule,
+    ActivityStatusColorPipe
   ],
   templateUrl: './activity-log.html',
   styleUrl: './activity-log.scss'
@@ -30,9 +34,9 @@ export class ActivityLogComponent {
   protected readonly searchTerm = signal('');
   protected readonly areaFilter = signal<'all' | ActivityArea>('all');
   protected readonly statusFilter = signal<'all' | ActivityStatus>('all');
-  protected readonly pageSize = signal(20);
+  protected readonly pageSize = signal(7);
   protected readonly pageIndex = signal(0);
-  protected readonly pageSizeOptions = [10, 20, 50, 100] as const;
+  protected readonly pageSizeOptions = [7, 10, 20, 50, 100] as const;
 
   protected readonly entries = this.activityLog.entries;
   protected readonly filteredEntries = computed(() => {
@@ -76,21 +80,6 @@ export class ActivityLogComponent {
     const start = currentPage * size;
     return this.filteredEntries().slice(start, start + size);
   });
-  protected readonly pageFrom = computed(() => {
-    if (this.totalItems() === 0) {
-      return 0;
-    }
-
-    const currentPage = Math.min(this.pageIndex(), this.totalPages() - 1);
-    return currentPage * this.pageSize() + 1;
-  });
-  protected readonly pageTo = computed(() => {
-    if (this.totalItems() === 0) {
-      return 0;
-    }
-
-    return Math.min(this.pageFrom() + this.pageSize() - 1, this.totalItems());
-  });
 
   protected onSearch(event: Event): void {
     const value = (event.target as HTMLInputElement | null)?.value ?? '';
@@ -108,18 +97,9 @@ export class ActivityLogComponent {
     this.pageIndex.set(0);
   }
 
-  protected setPageSize(value: string): void {
-    const parsed = Number(value);
-    this.pageSize.set(Number.isFinite(parsed) && parsed > 0 ? parsed : 20);
-    this.pageIndex.set(0);
-  }
-
-  protected prevPage(): void {
-    this.pageIndex.update((current) => Math.max(0, current - 1));
-  }
-
-  protected nextPage(): void {
-    this.pageIndex.update((current) => Math.min(this.totalPages() - 1, current + 1));
+  protected onPageChange(event: PageEvent): void {
+    this.pageIndex.set(event.pageIndex);
+    this.pageSize.set(event.pageSize);
   }
 
   protected async clearLog(): Promise<void> {
