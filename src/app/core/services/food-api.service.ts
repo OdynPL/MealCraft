@@ -13,8 +13,9 @@ import {
 import { Food, FoodCategoryCount, FoodDetail, FoodFacets, FoodPage, FoodQuery, FoodSortBy, SortDirection } from '../models';
 import { ConfigurationService } from './configuration.service';
 import { LocalRecipeService } from './local-recipe.service';
+import { RecipeFeedbackService } from './recipe-feedback.service';
 
-const ALLOWED_SORTS: readonly FoodSortBy[] = ['name', 'id', 'tags'];
+const ALLOWED_SORTS: readonly FoodSortBy[] = ['name', 'id', 'tags', 'votes'];
 const ALLOWED_DIRECTIONS: readonly SortDirection[] = ['asc', 'desc'];
 const API_AUTHOR = 'TheMealDB';
 
@@ -23,6 +24,7 @@ export class FoodApiService {
   private readonly http = inject(HttpClient);
   private readonly config = inject(ConfigurationService);
   private readonly localRecipes = inject(LocalRecipeService);
+  private readonly feedback = inject(RecipeFeedbackService);
 
   getFacets(): Observable<FoodFacets> {
     const cuisines$ = this.mealDbGet<MealDbAreaResponseDto>(
@@ -109,7 +111,7 @@ export class FoodApiService {
           categoryCounts: buildCategoryCounts(items)
         })),
         map(({ allItems, categoryCounts }) => ({
-          sortedItems: sortFoods(allItems, sortBy, sortDirection),
+          sortedItems: sortFoods(allItems, sortBy, sortDirection, (mealId) => this.feedback.getScore(mealId)),
           categoryCounts
         })),
         map(({ sortedItems, categoryCounts }) => {
@@ -281,13 +283,27 @@ function filterFoods(items: Food[], query?: string, cuisine?: string, category?:
   });
 }
 
-function sortFoods(items: Food[], sortBy: FoodSortBy, direction: SortDirection): Food[] {
+function sortFoods(
+  items: Food[],
+  sortBy: FoodSortBy,
+  direction: SortDirection,
+  getVoteScore: (mealId: number) => number
+): Food[] {
   const factor = direction === 'asc' ? 1 : -1;
   const sorted = [...items];
 
   sorted.sort((a, b) => {
     if (sortBy === 'id') {
       return (a.id - b.id) * factor;
+    }
+
+    if (sortBy === 'votes') {
+      const scoreDelta = getVoteScore(a.id) - getVoteScore(b.id);
+      if (scoreDelta !== 0) {
+        return scoreDelta * factor;
+      }
+
+      return a.title.localeCompare(b.title);
     }
 
     if (sortBy === 'tags') {

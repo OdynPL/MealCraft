@@ -306,7 +306,7 @@ function syncControl(control: FormControl<string>, value: string): void {
 }
 
 function parseSortBy(value: string | null): FoodSortBy {
-  if (value === 'name' || value === 'tags') {
+  if (value === 'name' || value === 'tags' || value === 'votes') {
     return value;
   }
 
