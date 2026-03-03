@@ -1,0 +1,116 @@
+{
+  "totalBytes": 969707,
+  "totalKb": 946.98,
+  "limitKb": 1400,
+  "status": "PASS",
+  "files": [
+    {
+      "file": "chunk-DL74K4V3.js",
+      "bytes": 164618
+    },
+    {
+      "file": "chunk-ROCVZ4M4.js",
+      "bytes": 108668
+    },
+    {
+      "file": "chunk-WTPFXVF4.js",
+      "bytes": 75878
+    },
+    {
+      "file": "chunk-BIZDI67R.js",
+      "bytes": 67747
+    },
+    {
+      "file": "chunk-PH2AFFIH.js",
+      "bytes": 63249
+    },
+    {
+      "file": "chunk-V7BH2BKS.js",
+      "bytes": 56881
+    },
+    {
+      "file": "chunk-PCSNUS5V.js",
+      "bytes": 42000
+    },
+    {
+      "file": "chunk-4Y2X645T.js",
+      "bytes": 36585
+    },
+    {
+      "file": "chunk-W5HU3MDX.js",
+      "bytes": 35733
+    },
+    {
+      "file": "chunk-RP35RDLV.js",
+      "bytes": 33433
+    },
+    {
+      "file": "chunk-6GKACTX4.js",
+      "bytes": 30015
+    },
+    {
+      "file": "chunk-PQCVUYQH.js",
+      "bytes": 29292
+    },
+    {
+      "file": "chunk-IYXOSMKZ.js",
+      "bytes": 29135
+    },
+    {
+      "file": "chunk-NV7BAFRX.js",
+      "bytes": 27083
+    },
+    {
+      "file": "main-OXGIIST4.js",
+      "bytes": 21482
+    },
+    {
+      "file": "chunk-UEQO2DG5.js",
+      "bytes": 20601
+    },
+    {
+      "file": "chunk-SHHOKV3X.js",
+      "bytes": 19381
+    },
+    {
+      "file": "chunk-WZTMUWDJ.js",
+      "bytes": 19314
+    },
+    {
+      "file": "chunk-MFSCRMM7.js",
+      "bytes": 16445
+    },
+    {
+      "file": "styles-C3ZA6SLW.css",
+      "bytes": 14930
+    },
+    {
+      "file": "chunk-QKW3LHXV.js",
+      "bytes": 13614
+    },
+    {
+      "file": "chunk-PMSS2EET.js",
+      "bytes": 12395
+    },
+    {
+      "file": "chunk-LLT6KXDL.js",
+      "bytes": 10695
+    },
+    {
+      "file": "chunk-DDFVDEWX.js",
+      "bytes": 9747
+    },
+    {
+      "file": "chunk-BCCV36BQ.js",
+      "bytes": 8185
+    },
+    {
+      "file": "chunk-J55HGNAF.js",
+      "bytes": 1363
+    },
+    {
+      "file": "chunk-NRECB6XB.js",
+      "bytes": 1238
+    }
+  ]
+}

@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.spec.json",
     "analyze:knip": "knip --reporter compact --no-progress",
     "graph:dependencies": "node scripts/generate-dependency-graph.mjs",
+    "check:bundle-size": "node scripts/check-bundle-size.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:ci": "ng test --watch=false",
@@ -34,7 +35,8 @@
       "src/main.ts",
       "eslint.config.js",
       "scripts/sync-real-photos.mjs",
-      "scripts/generate-dependency-graph.mjs"
+      "scripts/generate-dependency-graph.mjs",
+      "scripts/check-bundle-size.mjs"
     ],
     "project": [
       "src/**/*.ts",
