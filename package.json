@@ -38,6 +38,9 @@
       "src/**/*.ts",
       "src/**/*.html",
       "scripts/**/*.mjs"
+    ],
+    "ignoreDependencies": [
+      "@vitest/coverage-v8"
     ]
   },
   "packageManager": "npm@11.9.0",
@@ -61,6 +64,7 @@
     "@angular/compiler-cli": "^21.1.0",
     "@angular/material": "^21.2.0",
     "@eslint/js": "^9.39.3",
+    "@vitest/coverage-v8": "^4.0.18",
     "angular-eslint": "^21.2.0",
     "eslint": "^9.39.3",
     "jsdom": "^27.1.0",
