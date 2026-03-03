@@ -100,7 +100,7 @@ describe('SettingsComponent', () => {
     expect(hostElement.textContent).not.toContain('Reset all data & reload');
   });
 
-  it('should render Admin Settings for admin user', () => {
+  it('should render Admin Settings for admin user', async () => {
     auth.currentUser.mockReturnValue({
       id: 10,
       email: 'admin@example.com',
@@ -118,6 +118,9 @@ describe('SettingsComponent', () => {
 
     fixture = TestBed.createComponent(SettingsComponent);
     component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 0));
     fixture.detectChanges();
 
     const hostElement = fixture.nativeElement as HTMLElement;

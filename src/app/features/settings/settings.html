@@ -1,7 +1,11 @@
 <div class="settings-wrapper app-page-shell">
-  <app-user-settings />
+  @defer (on immediate) {
+    <app-user-settings />
+  }
 
   @if (isAdmin()) {
-    <app-admin-settings />
+    @defer (on immediate) {
+      <app-admin-settings />
+    }
   }
 </div>
