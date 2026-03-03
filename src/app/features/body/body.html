@@ -155,7 +155,8 @@
               <mat-card-content>
                 <h3>{{ food.title }}</h3>
                 <p class="meta">{{ food.cuisine }} · {{ food.category }}</p>
-                <p class="meta">Author: {{ food.author }} · Created: {{ formatDate(food.createdAt) }}</p>
+                <p class="meta">Author: {{ food.author }}</p>
+                <p class="meta">Created: {{ formatDate(food.createdAt) }}</p>
                 <div class="tags" aria-label="Meal tags">
                   @for (tag of tags(food); track tag) {
                     <span class="tag-pill">{{ tag }}</span>
@@ -181,9 +182,7 @@
                     <mat-icon>thumb_up</mat-icon>
                   </button>
                 </span>
-                @if (!isLoggedIn()) {
-                  <span class="vote-note">Login to vote</span>
-                } @else if (!canVote(food.id)) {
+                @if (isLoggedIn() && !canVote(food.id)) {
                   <span class="vote-note">You have already voted</span>
                 }
               </mat-card-actions>

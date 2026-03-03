@@ -179,7 +179,7 @@ export class AuthComponent {
       this.notifications.success(this.mode() === 'login' ? 'Logged in successfully.' : 'User created successfully.');
       this.store.reset();
 
-      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/home';
+      const returnUrl = normalizeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl'));
       await this.router.navigateByUrl(returnUrl);
     } catch {
       this.loading.set(false);
@@ -278,4 +278,17 @@ export class AuthComponent {
 
     return 'Please fix validation errors and try again.';
   }
+}
+
+function normalizeReturnUrl(value: string | null): string {
+  const normalized = String(value ?? '').trim();
+  if (!normalized) {
+    return '/home';
+  }
+
+  if (!normalized.startsWith('/') || normalized.startsWith('//') || normalized.includes('\\')) {
+    return '/home';
+  }
+
+  return normalized;
 }

@@ -11,7 +11,8 @@
           <mat-card-content>
             <h2>{{ meal.title }}</h2>
             <p class="meta">{{ meal.cuisine }} · {{ meal.category }}</p>
-            <p class="meta">Author: {{ meal.author }} · Created: {{ formatDate(meal.createdAt) }}</p>
+            <p class="meta">Author: {{ meal.author }}</p>
+            <p class="meta">Created: {{ formatDate(meal.createdAt) }}</p>
             <div class="vote-row" aria-label="Voting controls">
               <button mat-icon-button type="button" aria-label="Downvote" [disabled]="!canVote()" (click)="downvote()">
                 <mat-icon>thumb_down</mat-icon>
@@ -21,9 +22,7 @@
                 <mat-icon>thumb_up</mat-icon>
               </button>
             </div>
-            @if (!isLoggedIn()) {
-              <p class="vote-note">Login to vote.</p>
-            } @else if (!canVote()) {
+            @if (isLoggedIn() && !canVote()) {
               <p class="vote-note">You have already voted for this recipe.</p>
             }
 
@@ -46,8 +45,6 @@
                 </mat-form-field>
                 <button mat-flat-button color="primary" type="button" (click)="addTag()">Add tag</button>
               </section>
-            } @else {
-              <p class="vote-note">Only logged users can manage tags on their own recipes.</p>
             }
 
             @if (hasMultipleInstructionSteps()) {
@@ -70,10 +67,10 @@
               }
             }
             @if (meal.sourceUrl) {
-              <a mat-button color="primary" [href]="meal.sourceUrl" target="_blank" rel="noopener">Source</a>
+              <a mat-button color="primary" [href]="meal.sourceUrl" target="_blank" rel="noopener noreferrer">Source</a>
             }
             @if (meal.youtubeUrl) {
-              <a mat-button color="primary" [href]="meal.youtubeUrl" target="_blank" rel="noopener">YouTube</a>
+              <a mat-button color="primary" [href]="meal.youtubeUrl" target="_blank" rel="noopener noreferrer">YouTube</a>
             }
           </mat-card-actions>
         </mat-card>

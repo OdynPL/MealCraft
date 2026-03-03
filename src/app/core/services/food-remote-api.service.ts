@@ -73,7 +73,7 @@ export class FoodRemoteApiService {
       title: item.strMeal,
       image: item.strMealThumb,
       imageType: getImageType(item.strMealThumb),
-      sourceUrl: item.strSource ?? undefined,
+      sourceUrl: normalizeExternalUrl(item.strSource),
       cuisine: item.strArea ?? '',
       category: item.strCategory ?? '',
       tags: baseTags,
@@ -95,8 +95,8 @@ export class FoodRemoteApiService {
       category: item.strCategory ?? '',
       cuisine: item.strArea ?? '',
       instructions: item.strInstructions ?? '',
-      sourceUrl: item.strSource ?? undefined,
-      youtubeUrl: item.strYoutube ?? undefined,
+      sourceUrl: normalizeExternalUrl(item.strSource),
+      youtubeUrl: normalizeExternalUrl(item.strYoutube),
       tags: [...new Set(tags)],
       author: API_AUTHOR,
       createdAt: new Date(0).toISOString()
@@ -144,4 +144,24 @@ function getImageType(imageUrl: string): string {
 
 function buildTags(cuisine: string, category: string): string[] {
   return [cuisine, category].filter((value) => value.trim().length > 0);
+}
+
+function normalizeExternalUrl(value: string | null | undefined): string | undefined {
+  const normalized = String(value ?? '').trim();
+  if (!normalized) {
+    return undefined;
+  }
+
+  try {
+    const url = new URL(normalized);
+    const protocol = url.protocol.toLowerCase();
+
+    if (protocol !== 'http:' && protocol !== 'https:') {
+      return undefined;
+    }
+
+    return url.toString();
+  } catch {
+    return undefined;
+  }
 }

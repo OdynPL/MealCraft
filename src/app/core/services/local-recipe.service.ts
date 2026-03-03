@@ -173,8 +173,6 @@ export class LocalRecipeService {
     const state = this.readState();
 
     const ownCustom = state.custom.some((item) => item.id === id && (item.ownerId === undefined || item.ownerId === userId));
-    const ownOverride = state.overrides.some((item) => item.id === id && (item.ownerId === undefined || item.ownerId === userId));
-
     state.custom = state.custom.filter((item) => item.id !== id || (item.ownerId !== undefined && item.ownerId !== userId));
     state.overrides = state.overrides.filter((item) => item.id !== id || (item.ownerId !== undefined && item.ownerId !== userId));
 
@@ -419,7 +417,22 @@ function isObject(value: unknown): value is Record<string, unknown> {
 
 function normalizeOptionalUrl(value: unknown): string | undefined {
   const normalized = String(value ?? '').trim();
-  return normalized.length > 0 ? normalized : undefined;
+  if (!normalized) {
+    return undefined;
+  }
+
+  try {
+    const url = new URL(normalized);
+    const protocol = url.protocol.toLowerCase();
+
+    if (protocol !== 'http:' && protocol !== 'https:') {
+      return undefined;
+    }
+
+    return url.toString();
+  } catch {
+    return undefined;
+  }
 }
 
 function normalizeCreatedAt(value: unknown): string {
