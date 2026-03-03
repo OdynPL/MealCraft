@@ -93,7 +93,7 @@
         @if (isLoggedIn()) {
           <button
             type="button"
-            class="category-count-pill"
+            class="category-count-pill category-count-pill-mine"
             [class.category-count-pill-active]="mineOnly()"
             (click)="setMineOnly(!mineOnly())"
             [attr.aria-pressed]="mineOnly()"

@@ -10,7 +10,7 @@ import {
   MealDbMealDto,
   MealDbSearchResponseDto
 } from '../dto';
-import { Food, FoodCategoryCount, FoodDetail, FoodFacets, FoodPage, FoodQuery, FoodSortBy, SortDirection } from '../models';
+import { AuthUser, Food, FoodCategoryCount, FoodDetail, FoodFacets, FoodPage, FoodQuery, FoodSortBy, SortDirection } from '../models';
 import { ConfigurationService } from './configuration.service';
 import { AuthService } from './auth.service';
 import { LocalRecipeService } from './local-recipe.service';
@@ -99,7 +99,7 @@ export class FoodApiService {
     const cuisine = this.normalizeText(query.cuisine);
     const category = this.normalizeText(query.category);
     const mineOnly = query.mineOnly;
-    const currentUserId = this.auth.currentUser()?.id;
+    const currentUser = this.auth.currentUser();
 
     return this.mealDbGet<MealDbSearchResponseDto>(
       this.config.searchEndpoint,
@@ -109,7 +109,7 @@ export class FoodApiService {
         map((res) => res.meals ?? []),
         map((meals) => meals.map((item) => this.toFood(item))),
         map((apiItems) => this.applyLocalMutations(apiItems)),
-        map((items) => filterFoods(items, searchText, cuisine, category, mineOnly, currentUserId)),
+        map((items) => filterFoods(items, searchText, cuisine, category, mineOnly, currentUser)),
         map((items) => ({
           allItems: items,
           categoryCounts: buildCategoryCounts(items)
@@ -295,15 +295,35 @@ function filterFoods(
   cuisine?: string,
   category?: string,
   mineOnly?: boolean,
-  currentUserId?: number
+  currentUser?: AuthUser | null
 ): Food[] {
   return items.filter((item) => {
     const matchesQuery = !query || item.title.toLowerCase().includes(query.toLowerCase());
     const matchesCuisine = !cuisine || item.cuisine.toLowerCase() === cuisine.toLowerCase();
     const matchesCategory = !category || item.category.toLowerCase() === category.toLowerCase();
-    const matchesMine = !mineOnly || (currentUserId !== undefined && item.ownerId === currentUserId);
+    const matchesMine = !mineOnly || isOwnedByCurrentUser(item, currentUser);
     return matchesQuery && matchesCuisine && matchesCategory && matchesMine;
   });
+}
+
+function isOwnedByCurrentUser(item: Food, currentUser?: AuthUser | null): boolean {
+  if (!currentUser) {
+    return false;
+  }
+
+  if (item.ownerId === currentUser.id) {
+    return true;
+  }
+
+  if (item.ownerId !== undefined || item.author === API_AUTHOR) {
+    return false;
+  }
+
+  const fullName = `${currentUser.firstName} ${currentUser.lastName}`.trim().toLowerCase();
+  const normalizedAuthor = item.author.trim().toLowerCase();
+  const normalizedEmail = currentUser.email.trim().toLowerCase();
+
+  return normalizedAuthor.length > 0 && (normalizedAuthor === fullName || normalizedAuthor === normalizedEmail);
 }
 
 function sortFoods(
