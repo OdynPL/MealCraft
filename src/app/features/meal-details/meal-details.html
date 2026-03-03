@@ -1,11 +1,7 @@
 <section class="details-wrapper app-page-shell">
   <a mat-button routerLink="/home" (click)="resetAndBack()">← Back to list</a>
 
-  @if (loading()) {
-    <section class="state-box">
-      <mat-spinner diameter="42"></mat-spinner>
-    </section>
-  } @else {
+  @if (!loading()) {
     @if (error(); as message) {
       <section class="state-box" role="alert">{{ message }}</section>
     } @else {

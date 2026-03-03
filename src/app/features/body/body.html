@@ -74,9 +74,6 @@
             (page)="onPageChange($event)"
           />
         </div>
-        @if (store.loading()) {
-          <span class="loading-label">Loading data...</span>
-        }
       </div>
 
       <div class="summary-actions">
@@ -141,11 +138,7 @@
       <section class="error-box" role="alert">{{ errorMessage }}</section>
     }
 
-    @if (store.loading()) {
-      <section class="spinner-wrapper" aria-label="Loading results">
-        <mat-spinner diameter="42"></mat-spinner>
-      </section>
-    } @else {
+    @if (!store.loading()) {
       @if (store.items().length === 0) {
         <section class="empty-state">No meals found for selected filters.</section>
       } @else {

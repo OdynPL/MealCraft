@@ -7,7 +7,6 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { catchError, firstValueFrom, map, of, switchMap, tap } from 'rxjs';
 
@@ -32,8 +31,7 @@ import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dial
     MatDialogModule,
     MatFormFieldModule,
     MatIconModule,
-    MatInputModule,
-    MatProgressSpinnerModule
+    MatInputModule
   ],
   templateUrl: './meal-details.html',
   styleUrl: './meal-details.scss'
