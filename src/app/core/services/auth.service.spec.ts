@@ -320,4 +320,43 @@ describe('AuthService', () => {
     expect(removeSelf.success).toBe(false);
     expect(removeSelf.error).toContain('cannot remove your own account');
   });
+
+  it('should persist ban and remove actions for seeded users after reload', async () => {
+    const service = TestBed.inject(AuthService);
+    await Promise.resolve();
+
+    const login = await service.login('admin@admin.pl', 'admin@admin.pl', true);
+    expect(login.success).toBe(true);
+
+    const usersBefore = await service.listUsersForAdmin();
+    const userToBan = usersBefore.find((user) => user.email === 'user1@test.pl');
+    const userToRemove = usersBefore.find((user) => user.email === 'user2@test.pl');
+
+    expect(userToBan).toBeTruthy();
+    expect(userToRemove).toBeTruthy();
+
+    const banResult = await service.setUserLockForAdmin(userToBan!.id, true);
+    expect(banResult.success).toBe(true);
+
+    const removeResult = await service.removeUserForAdmin(userToRemove!.id);
+    expect(removeResult.success).toBe(true);
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [AuthService, ConfigurationService]
+    });
+
+    const reloadedService = TestBed.inject(AuthService);
+    await Promise.resolve();
+
+    const reloadLogin = await reloadedService.login('admin@admin.pl', 'admin@admin.pl', true);
+    expect(reloadLogin.success).toBe(true);
+
+    const usersAfterReload = await reloadedService.listUsersForAdmin();
+    const bannedAfterReload = usersAfterReload.find((user) => user.email === 'user1@test.pl');
+    const removedAfterReload = usersAfterReload.find((user) => user.email === 'user2@test.pl');
+
+    expect(bannedAfterReload?.isAccountLocked).toBe(true);
+    expect(removedAfterReload).toBeUndefined();
+  });
 });

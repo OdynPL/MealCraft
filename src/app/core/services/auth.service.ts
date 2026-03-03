@@ -440,46 +440,30 @@ export class AuthService {
     }
 
     const users = await this.getAllUsers();
+    const shouldSeedMissingUsers = users.length === 0;
     const now = new Date().toISOString();
 
     for (const seed of seeds) {
       const existing = users.find((user) => user.email === seed.email);
 
-      let passwordPatch: Pick<StoredUser, 'passwordHash' | 'passwordSalt' | 'passwordIterations' | 'passwordVersion'>;
-
       if (existing) {
-        const verification = await verifyPassword(
-          existing,
-          seed.password,
-          this.config.authPasswordAlgorithm,
-          this.config.authPasswordIterations
-        );
-
-        if (verification.valid) {
-          const source = verification.upgradedUser ?? existing;
-          passwordPatch = {
-            passwordHash: source.passwordHash,
-            passwordSalt: source.passwordSalt,
-            passwordIterations: source.passwordIterations,
-            passwordVersion: source.passwordVersion
-          };
-        } else {
-          passwordPatch = await createPasswordRecord(
-            seed.password,
-            this.config.authPasswordAlgorithm,
-            this.config.authPasswordIterations
-          );
-        }
-      } else {
-        passwordPatch = await createPasswordRecord(
-          seed.password,
-          this.config.authPasswordAlgorithm,
-          this.config.authPasswordIterations
-        );
+        continue;
       }
 
+      if (!shouldSeedMissingUsers) {
+        continue;
+      }
+
+      let passwordPatch: Pick<StoredUser, 'passwordHash' | 'passwordSalt' | 'passwordIterations' | 'passwordVersion'>;
+
+      passwordPatch = await createPasswordRecord(
+        seed.password,
+        this.config.authPasswordAlgorithm,
+        this.config.authPasswordIterations
+      );
+
       const seededUser: StoredUser = {
-        id: existing?.id ?? seed.id,
+        id: seed.id,
         email: seed.email,
         ...passwordPatch,
         firstName: seed.firstName,
@@ -487,15 +471,15 @@ export class AuthService {
         phone: seed.phone,
         age: seed.age,
         role: seed.role,
-        registrationDate: existing?.registrationDate ?? now,
+        registrationDate: now,
         isAccountLocked: false,
         failedLoginAttempts: 0,
         emailVerified: true,
-        lastLoginAt: existing?.lastLoginAt,
+        lastLoginAt: undefined,
         accountLockedAt: undefined,
         updatedAt: now,
-        avatar: existing?.avatar,
-        createdAt: existing?.createdAt ?? now
+        avatar: undefined,
+        createdAt: now
       };
 
       await this.putUser(seededUser);
