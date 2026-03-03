@@ -1,0 +1,105 @@
+@use '../shared-settings' as shared;
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+@include shared.settings-card-shell;
+
+.settings-card {
+  max-width: 100%;
+}
+
+.profile-name {
+  margin: 0 0 0.4rem;
+  font-weight: 600;
+}
+
+.settings-section {
+  min-width: 0;
+}
+
+.avatar-upload {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.avatar-circle {
+  width: 92px;
+  height: 92px;
+  border-radius: 999px;
+  border: 2px solid var(--mat-sys-outline-variant);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: var(--mat-sys-surface-container-low);
+}
+
+.avatar-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-actions {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.avatar-actions button {
+  justify-self: start;
+}
+
+.avatar-label {
+  font-weight: 500;
+}
+
+.fields-grid {
+  align-items: start;
+}
+
+.validation-banner {
+  margin: 0;
+  display: grid;
+  justify-items: start;
+  gap: 0.35rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 10px;
+  border: none;
+  color: var(--mat-sys-error);
+  font-size: 1.3rem;
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.validation-banner::before {
+  content: '⚠';
+  font-size: 1.2rem;
+  line-height: 1;
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .avatar-actions {
+    width: 100%;
+  }
+
+  .avatar-actions button {
+    width: 100%;
+  }
+
+  .settings-section > button[mat-flat-button],
+  .settings-section > button[mat-stroked-button] {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .avatar-circle {
+    width: 80px;
+    height: 80px;
+  }
+}
