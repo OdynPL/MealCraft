@@ -8,6 +8,27 @@
   place-items: center;
 }
 
+.state-box[role='alert'] {
+  text-align: center;
+  align-content: center;
+  justify-items: center;
+  gap: 0.45rem;
+  font-size: 1.4rem;
+  line-height: 1.5;
+  font-weight: 600;
+  color: var(--mat-sys-error);
+  border: none;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.state-box[role='alert']::before {
+  content: '⚠';
+  font-size: 1.8rem;
+  line-height: 1;
+  font-weight: 700;
+}
+
 .details-card {
   margin-top: 0.65rem;
   border-radius: 18px;
@@ -53,8 +74,18 @@ h2 {
 
 .vote-note {
   margin: 0 0 0.65rem;
-  font-size: 0.82rem;
+  display: inline-grid;
+  justify-items: start;
+  gap: 0.2rem;
+  font-size: 1.12rem;
   color: var(--mat-sys-on-surface-variant);
+}
+
+.vote-note::before {
+  content: '⚠';
+  font-size: 1rem;
+  line-height: 1;
+  font-weight: 700;
 }
 
 .tags {

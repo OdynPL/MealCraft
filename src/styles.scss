@@ -108,7 +108,23 @@ a {
 
 .app-status-error {
   margin: 0;
+  display: grid;
+  justify-items: start;
+  gap: 0.35rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 10px;
+  border: none;
   color: var(--mat-sys-error);
+  font-size: 1.3rem;
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.app-status-error::before {
+  content: '⚠';
+  font-size: 1.25rem;
+  line-height: 1;
+  font-weight: 700;
 }
 
 .app-status-ok {

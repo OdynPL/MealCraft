@@ -168,10 +168,23 @@
 
 .error-box {
   margin-bottom: 0.75rem;
+  display: grid;
+  justify-items: start;
+  gap: 0.35rem;
   padding: 0.75rem 1rem;
   border-radius: 8px;
-  background: var(--mat-sys-error-container);
-  color: var(--mat-sys-on-error-container);
+  border: none;
+  color: var(--mat-sys-error);
+  font-size: 1.3rem;
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.error-box::before {
+  content: '⚠';
+  font-size: 1.2rem;
+  line-height: 1;
+  font-weight: 700;
 }
 
 .spinner-wrapper {
@@ -300,9 +313,19 @@ h3 {
 }
 
 .vote-note {
-  font-size: 0.75rem;
+  display: inline-grid;
+  justify-items: start;
+  gap: 0.2rem;
+  font-size: 1.12rem;
   color: var(--mat-sys-on-surface-variant);
   margin-left: auto;
+}
+
+.vote-note::before {
+  content: '⚠';
+  font-size: 1rem;
+  line-height: 1;
+  font-weight: 700;
 }
 
 @media (max-width: 740px) {
@@ -358,6 +381,7 @@ h3 {
   .vote-note {
     width: 100%;
     margin-left: 0;
+    justify-items: end;
     text-align: right;
   }
 }
