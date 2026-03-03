@@ -1,6 +1,6 @@
 .details-wrapper {
   max-width: 920px;
-  margin: 1.25rem auto;
+  margin: 1rem auto;
   padding: 0 1rem;
 }
 
@@ -11,7 +11,7 @@
 }
 
 .details-card {
-  margin-top: 0.75rem;
+  margin-top: 0.65rem;
   border-radius: 16px;
   overflow: hidden;
 }
@@ -81,7 +81,19 @@ h2 {
 .tag-form {
   display: flex;
   align-items: flex-start;
+  flex-wrap: nowrap;
   gap: 0.6rem;
+}
+
+.tag-form mat-form-field {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.tag-form button {
+  white-space: nowrap;
+  align-self: flex-start;
+  min-width: 110px;
 }
 
 .instructions {
@@ -99,7 +111,47 @@ h2 {
   line-height: 1.55;
 }
 
-mat-card-actions {
+.details-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
   border-top: 1px solid var(--mat-sys-outline-variant);
   padding-top: 0.55rem;
+}
+
+@media (max-width: 680px) {
+  .tag-form {
+    flex-wrap: wrap;
+  }
+
+  .tag-form button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .details-wrapper {
+    margin: 0.75rem auto;
+    padding: 0 0.6rem;
+  }
+
+  h2 {
+    margin-top: 0.75rem;
+    font-size: 1.22rem;
+    line-height: 1.3;
+  }
+
+  .meta {
+    font-size: 0.84rem;
+  }
+
+  .tag-pill {
+    font-size: 0.75rem;
+  }
+
+  .details-actions > a,
+  .details-actions > button {
+    flex: 1 1 auto;
+    text-align: center;
+  }
 }

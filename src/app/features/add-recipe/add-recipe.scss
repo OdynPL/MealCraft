@@ -1,7 +1,7 @@
 .add-recipe-wrapper {
   display: flex;
   justify-content: center;
-  padding: 1.25rem 1rem;
+  padding: 1rem;
 }
 
 .add-recipe-card {
@@ -11,7 +11,7 @@
 
 .recipe-form {
   display: grid;
-  gap: 0.8rem;
+  gap: 0.7rem;
 }
 
 .instructions-field {
@@ -21,6 +21,9 @@
 .image-upload {
   display: grid;
   gap: 0.5rem;
+  padding: 0.6rem;
+  border-radius: 12px;
+  border: 1px dashed var(--mat-sys-outline-variant);
 }
 
 .image-upload label {
@@ -43,6 +46,39 @@
 .actions {
   display: flex;
   justify-content: flex-end;
+  gap: 0.5rem;
   border-top: 1px solid var(--mat-sys-outline-variant);
   padding-top: 0.6rem;
+}
+
+@media (max-width: 600px) {
+  .add-recipe-wrapper {
+    padding: 0.8rem;
+  }
+
+  .actions {
+    justify-content: stretch;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .add-recipe-card {
+    border-radius: 12px;
+  }
+
+  .recipe-form {
+    gap: 0.55rem;
+  }
+
+  .image-upload {
+    padding: 0.5rem;
+  }
+
+  .image-preview {
+    max-width: 100%;
+  }
 }

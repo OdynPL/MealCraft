@@ -2,10 +2,11 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
+  padding: 0.35rem 0.75rem;
   position: sticky;
   top: 0;
   z-index: 30;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
 }
 
 .logo {
@@ -22,10 +23,12 @@ button {
   font-weight: 500;
   text-transform: none;
   border-radius: 999px;
+  min-height: 36px;
 }
 
 .active-link {
-  background: rgba(255, 255, 255, 0.18);
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
 }
 
 .user-profile {
@@ -35,18 +38,19 @@ button {
   margin-left: 0.4rem;
   padding: 0.2rem 0.5rem 0.2rem 0.2rem;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
 }
 
 .avatar {
   width: 34px;
   height: 34px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--mat-sys-outline-variant);
   overflow: hidden;
   display: grid;
   place-items: center;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--mat-sys-surface-container-high);
 }
 
 .avatar img {
@@ -70,7 +74,57 @@ button {
 }
 
 @media (max-width: 900px) {
+  .header-toolbar {
+    flex-wrap: wrap;
+    row-gap: 0.35rem;
+  }
+
+  .logo {
+    font-size: 1.12rem;
+  }
+
+  .spacer {
+    flex-basis: 0;
+  }
+
+  .user-profile {
+    margin-left: 0;
+  }
+
   .user-name {
     display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .header-toolbar {
+    padding: 0.4rem 0.45rem;
+  }
+
+  button {
+    padding-inline: 0.55rem;
+    min-width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo {
+    width: 100%;
+    font-size: 1rem;
+    letter-spacing: 0.4px;
+  }
+
+  .header-toolbar {
+    gap: 0.2rem;
+  }
+
+  button {
+    min-height: 34px;
+    font-size: 0.83rem;
+    padding-inline: 0.45rem;
+  }
+
+  .user-profile {
+    padding-inline-end: 0.38rem;
   }
 }

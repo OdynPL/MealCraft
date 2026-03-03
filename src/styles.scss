@@ -34,6 +34,8 @@ body {
   // Reset the user agent margin.
   margin: 0;
   height: 100%;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
 }
 
 * {
@@ -70,5 +72,15 @@ a {
 
 .app-confirm-dialog .mat-mdc-dialog-actions {
   padding-top: 0.2rem;
+}
+
+@media (max-width: 480px) {
+  .mat-mdc-card-content {
+    padding-inline: 0.85rem !important;
+  }
+
+  .mat-mdc-card-actions {
+    padding-inline: 0.65rem !important;
+  }
 }
 /* You can add global styles to this file, and also import other style files */

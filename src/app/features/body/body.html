@@ -47,17 +47,22 @@
         </mat-select>
       </mat-form-field>
 
-      <button mat-flat-button color="primary" class="action-button" type="button" (click)="refresh()">Reset</button>
-      <button mat-stroked-button color="warn" class="action-button" type="button" (click)="deleteAllAndReload()">
-        Delete all & reload
-      </button>
     </section>
 
     <section class="results-summary" aria-live="polite">
-      <span>Results: {{ currentRangeLabel() }}</span>
-      @if (store.loading()) {
-        <span class="loading-label">Loading data...</span>
-      }
+      <div class="summary-status">
+        <span>Results: {{ currentRangeLabel() }}</span>
+        @if (store.loading()) {
+          <span class="loading-label">Loading data...</span>
+        }
+      </div>
+
+      <div class="summary-actions">
+        <button mat-flat-button color="primary" class="action-button" type="button" (click)="refresh()">Reset</button>
+        <button mat-stroked-button color="warn" class="action-button" type="button" (click)="deleteAllAndReload()">
+          Delete all & reload
+        </button>
+      </div>
     </section>
 
     @if (categoryCounts().length > 0) {
