@@ -93,6 +93,8 @@ export class FoodStore {
           items: page.items,
           categoryCounts: page.categoryCounts,
           totalResults: page.totalResults,
+          pageIndex: page.pageIndex,
+          pageSize: page.pageSize,
           loading: false
         });
       });

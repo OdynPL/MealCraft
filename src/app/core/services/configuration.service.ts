@@ -26,13 +26,13 @@ export class ConfigurationService {
   readonly authMaxAvatarSizeBytes = 2 * 1024 * 1024;
   readonly authDefaultAvatar = 'https://placehold.co/120x120?text=User';
 
-  readonly defaultPageSize = 12;
+  readonly defaultPageSize = 10;
   readonly minPageSize = 1;
   readonly maxPageSize = 24;
   readonly queryLimit = 60;
 
-  readonly defaultSortBy: FoodSortBy = 'name';
-  readonly defaultSortDirection: SortDirection = 'asc';
+  readonly defaultSortBy: FoodSortBy = 'id';
+  readonly defaultSortDirection: SortDirection = 'desc';
 
   readonly searchEndpoint = '/search.php';
   readonly lookupEndpoint = '/lookup.php';

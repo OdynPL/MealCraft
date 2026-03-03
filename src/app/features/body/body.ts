@@ -11,7 +11,7 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { firstValueFrom } from 'rxjs';
+import { distinctUntilChanged, firstValueFrom, fromEvent, map, startWith } from 'rxjs';
 
 import { Food, FoodSortBy, SortDirection } from '../../core/models';
 import { AuthService } from '../../core/services/auth.service';
@@ -57,9 +57,9 @@ export class BodyComponent {
     nonNullable: true,
     validators: [Validators.minLength(2), Validators.maxLength(60)]
   });
-  protected readonly sortControl = new FormControl('name:asc', { nonNullable: true });
+  protected readonly sortControl = new FormControl('id:desc', { nonNullable: true });
 
-  protected readonly pageSizeOptions = [6, 12, 24];
+  protected readonly pageSizeOptions = [10, 12, 15, 20, 25];
   protected readonly isLoggedIn = computed(() => this.auth.isLoggedIn());
   protected readonly cuisines = computed(() => this.store.cuisines());
   protected readonly categories = computed(() => this.store.categories());
@@ -82,6 +82,19 @@ export class BodyComponent {
 
   constructor() {
     this.applyQueryParams(this.route.snapshot.queryParamMap);
+
+    fromEvent(globalThis, 'resize')
+      .pipe(
+        startWith(null),
+        map(() => recommendedPageSizeForWidth(globalThis.innerWidth)),
+        distinctUntilChanged(),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((recommendedPageSize) => {
+        if (this.store.pageSize() !== recommendedPageSize) {
+          this.store.setPage(0, recommendedPageSize);
+        }
+      });
 
     this.searchControl.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -260,16 +273,16 @@ export class BodyComponent {
     if (this.store.category()) {
       queryParams['category'] = this.store.category();
     }
-    if (this.store.sortBy() !== 'name') {
+    if (this.store.sortBy() !== 'id') {
       queryParams['sortBy'] = this.store.sortBy();
     }
-    if (this.store.sortDirection() !== 'asc') {
+    if (this.store.sortDirection() !== 'desc') {
       queryParams['sortDir'] = this.store.sortDirection();
     }
     if (this.store.pageIndex() > 0) {
       queryParams['page'] = this.store.pageIndex();
     }
-    if (this.store.pageSize() !== 12) {
+    if (this.store.pageSize() !== 10) {
       queryParams['pageSize'] = this.store.pageSize();
     }
 
@@ -285,11 +298,15 @@ function syncControl(control: FormControl<string>, value: string): void {
 }
 
 function parseSortBy(value: string | null): FoodSortBy {
-  return value === 'id' ? 'id' : 'name';
+  if (value === 'name' || value === 'tags') {
+    return value;
+  }
+
+  return 'id';
 }
 
 function parseSortDirection(value: string | null): SortDirection {
-  return value === 'desc' ? 'desc' : 'asc';
+  return value === 'asc' ? 'asc' : 'desc';
 }
 
 function parseNumber(value: string | null, fallback: number): number {
@@ -299,4 +316,16 @@ function parseNumber(value: string | null, fallback: number): number {
 
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function recommendedPageSizeForWidth(width: number): number {
+  if (width <= 740) {
+    return 10;
+  }
+
+  if (width <= 1500) {
+    return 12;
+  }
+
+  return 10;
 }

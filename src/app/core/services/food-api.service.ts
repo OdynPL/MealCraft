@@ -14,7 +14,7 @@ import { Food, FoodCategoryCount, FoodDetail, FoodFacets, FoodPage, FoodQuery, F
 import { ConfigurationService } from './configuration.service';
 import { LocalRecipeService } from './local-recipe.service';
 
-const ALLOWED_SORTS: readonly FoodSortBy[] = ['name', 'id'];
+const ALLOWED_SORTS: readonly FoodSortBy[] = ['name', 'id', 'tags'];
 const ALLOWED_DIRECTIONS: readonly SortDirection[] = ['asc', 'desc'];
 const API_AUTHOR = 'TheMealDB';
 
@@ -112,13 +112,17 @@ export class FoodApiService {
           sortedItems: sortFoods(allItems, sortBy, sortDirection),
           categoryCounts
         })),
-        map(({ sortedItems, categoryCounts }) => ({
-          items: paginate(sortedItems, pageIndex, pageSize),
-          totalResults: sortedItems.length,
-          pageIndex,
-          pageSize,
-          categoryCounts
-        }))
+        map(({ sortedItems, categoryCounts }) => {
+          const pagination = paginate(sortedItems, pageIndex, pageSize);
+
+          return {
+            items: pagination.items,
+            totalResults: sortedItems.length,
+            pageIndex: pagination.pageIndex,
+            pageSize,
+            categoryCounts
+          };
+        })
       );
   }
 
@@ -286,16 +290,39 @@ function sortFoods(items: Food[], sortBy: FoodSortBy, direction: SortDirection):
       return (a.id - b.id) * factor;
     }
 
+    if (sortBy === 'tags') {
+      return tagsSortKey(a).localeCompare(tagsSortKey(b)) * factor;
+    }
+
     return a.title.localeCompare(b.title) * factor;
   });
 
   return sorted;
 }
 
-function paginate(items: Food[], pageIndex: number, pageSize: number): Food[] {
-  const from = pageIndex * pageSize;
+function paginate(items: Food[], pageIndex: number, pageSize: number): { items: Food[]; pageIndex: number } {
+  if (items.length === 0) {
+    return { items: [], pageIndex: 0 };
+  }
+
+  const maxPageIndex = Math.max(Math.ceil(items.length / pageSize) - 1, 0);
+  const normalizedPageIndex = Math.min(pageIndex, maxPageIndex);
+
+  const from = normalizedPageIndex * pageSize;
   const to = from + pageSize;
-  return items.slice(from, to);
+  return {
+    items: items.slice(from, to),
+    pageIndex: normalizedPageIndex
+  };
+}
+
+function tagsSortKey(item: Food): string {
+  const normalizedTags = [...(item.tags ?? [])]
+    .map((tag) => tag.trim().toLowerCase())
+    .filter((tag) => tag.length > 0)
+    .sort((a, b) => a.localeCompare(b));
+
+  return normalizedTags.join('|');
 }
 
 function getImageType(imageUrl: string): string {
