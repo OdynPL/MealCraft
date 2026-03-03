@@ -1,4 +1,4 @@
-<section class="details-wrapper app-page-shell">
+<section class="details-wrapper">
   <a mat-button routerLink="/home" (click)="resetAndBack()">← Back to list</a>
 
   @if (!loading()) {
@@ -7,72 +7,80 @@
     } @else {
       @if (item(); as meal) {
         <mat-card class="details-card" appearance="outlined">
-          <img class="hero" [src]="meal.image" [alt]="meal.title" loading="lazy" decoding="async" />
-          <mat-card-content>
-            <h2>{{ meal.title }}</h2>
-            <p class="meta">{{ meal.cuisine }} · {{ meal.category }}</p>
-            <p class="meta">Author: {{ meal.author }}</p>
-            <p class="meta">Created: {{ formatDate(meal.createdAt) }}</p>
-            <div class="vote-row" aria-label="Voting controls">
-              <button mat-icon-button type="button" aria-label="Downvote" [disabled]="!canVote()" (click)="downvote()">
-                <mat-icon>thumb_down</mat-icon>
-              </button>
-              <strong>{{ score() }}</strong>
-              <button mat-icon-button type="button" aria-label="Upvote" [disabled]="!canVote()" (click)="upvote()">
-                <mat-icon>thumb_up</mat-icon>
-              </button>
-            </div>
-            @if (isLoggedIn() && !canVote()) {
-              <p class="vote-note">You have already voted for this recipe.</p>
-            }
-
-            <div class="tags" aria-label="Meal tags">
-              @for (tag of tags(); track tag) {
-                <span class="tag-pill">
-                  {{ tag }}
-                  @if (canManageTags()) {
-                    <button type="button" class="tag-remove" (click)="removeTag(tag)" aria-label="Remove tag">×</button>
-                  }
-                </span>
-              }
+          <div class="details-layout">
+            <div class="details-media">
+              <img class="hero" [src]="meal.image" [alt]="meal.title" loading="lazy" decoding="async" />
             </div>
 
-            @if (canManageTags()) {
-              <section class="tag-form app-section-panel">
-                <mat-form-field appearance="outline">
-                  <mat-label>Add tag</mat-label>
-                  <input matInput [formControl]="tagInput" placeholder="e.g. spicy" />
-                </mat-form-field>
-                <button mat-flat-button color="primary" type="button" (click)="addTag()">Add tag</button>
-              </section>
-            }
-
-            @if (hasMultipleInstructionSteps()) {
-              <ol class="instructions">
-                @for (step of instructionSteps(); track $index) {
-                  <li>{{ step }}</li>
+            <div class="details-content">
+              <mat-card-content>
+                <h2>{{ meal.title }}</h2>
+                <p class="meta">{{ meal.cuisine }} · {{ meal.category }}</p>
+                <p class="meta">Author: {{ meal.author }}</p>
+                <p class="meta">Created: {{ formatDate(meal.createdAt) }}</p>
+                <div class="vote-row" aria-label="Voting controls">
+                  <button mat-icon-button type="button" aria-label="Downvote" [disabled]="!canVote()" (click)="downvote()">
+                    <mat-icon>thumb_down</mat-icon>
+                  </button>
+                  <strong>{{ score() }}</strong>
+                  <button mat-icon-button type="button" aria-label="Upvote" [disabled]="!canVote()" (click)="upvote()">
+                    <mat-icon>thumb_up</mat-icon>
+                  </button>
+                </div>
+                @if (isLoggedIn() && !canVote()) {
+                  <p class="vote-note">You have already voted for this recipe.</p>
                 }
-              </ol>
-            } @else {
-              <p class="instructions-single">{{ instructionSteps()[0] }}</p>
-            }
-          </mat-card-content>
-          <mat-card-actions class="details-actions">
-            @if (isLoggedIn()) {
-              @if (canEdit()) {
-                <a mat-button color="primary" [routerLink]="['/meals', meal.id, 'edit']">Edit</a>
-              }
-              @if (canDelete()) {
-                <button mat-button color="warn" type="button" (click)="deleteRecipe()">Delete</button>
-              }
-            }
-            @if (meal.sourceUrl) {
-              <a mat-button color="primary" [href]="meal.sourceUrl" target="_blank" rel="noopener noreferrer">Source</a>
-            }
-            @if (meal.youtubeUrl) {
-              <a mat-button color="primary" [href]="meal.youtubeUrl" target="_blank" rel="noopener noreferrer">YouTube</a>
-            }
-          </mat-card-actions>
+
+                <div class="tags" aria-label="Meal tags">
+                  @for (tag of tags(); track tag) {
+                    <span class="tag-pill">
+                      {{ tag }}
+                      @if (canManageTags()) {
+                        <button type="button" class="tag-remove" (click)="removeTag(tag)" aria-label="Remove tag">×</button>
+                      }
+                    </span>
+                  }
+                </div>
+
+                @if (canManageTags()) {
+                  <section class="tag-form app-section-panel">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Add tag</mat-label>
+                      <input matInput [formControl]="tagInput" placeholder="e.g. spicy" />
+                    </mat-form-field>
+                    <button mat-flat-button color="primary" type="button" (click)="addTag()">Add tag</button>
+                  </section>
+                }
+
+                @if (hasMultipleInstructionSteps()) {
+                  <ol class="instructions">
+                    @for (step of instructionSteps(); track $index) {
+                      <li>{{ step }}</li>
+                    }
+                  </ol>
+                } @else {
+                  <p class="instructions-single">{{ instructionSteps()[0] }}</p>
+                }
+              </mat-card-content>
+
+              <mat-card-actions class="details-actions">
+                @if (isLoggedIn()) {
+                  @if (canEdit()) {
+                    <a mat-button color="primary" [routerLink]="['/meals', meal.id, 'edit']">Edit</a>
+                  }
+                  @if (canDelete()) {
+                    <button mat-button color="warn" type="button" (click)="deleteRecipe()">Delete</button>
+                  }
+                }
+                @if (meal.sourceUrl) {
+                  <a mat-button color="primary" [href]="meal.sourceUrl" target="_blank" rel="noopener noreferrer">Source</a>
+                }
+                @if (meal.youtubeUrl) {
+                  <a mat-button color="primary" [href]="meal.youtubeUrl" target="_blank" rel="noopener noreferrer">YouTube</a>
+                }
+              </mat-card-actions>
+            </div>
+          </div>
         </mat-card>
       }
     }
