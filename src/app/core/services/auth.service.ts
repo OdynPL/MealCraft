@@ -353,12 +353,33 @@ function normalizeStoredUser(value: unknown): StoredUser | null {
 }
 
 function normalizeAuthUser(value: unknown): AuthUser | null {
-  const stored = normalizeStoredUser(value);
-  if (!stored) {
+  if (!isObject(value)) {
     return null;
   }
 
-  return toAuthUser(stored);
+  const id = Number(value['id']);
+  const email = String(value['email'] ?? '').trim().toLowerCase();
+  const firstName = String(value['firstName'] ?? '').trim() || 'User';
+  const lastName = String(value['lastName'] ?? '').trim() || '';
+  const phone = String(value['phone'] ?? '').trim() || '000000000';
+  const age = Number(value['age']);
+  const avatar = normalizeOptional(value['avatar']);
+  const createdAt = normalizeDate(value['createdAt']);
+
+  if (!Number.isFinite(id) || id <= 0 || !isValidEmail(email)) {
+    return null;
+  }
+
+  return {
+    id,
+    email,
+    firstName,
+    lastName,
+    phone,
+    age: Number.isFinite(age) && age > 0 ? age : 18,
+    avatar,
+    createdAt
+  };
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
