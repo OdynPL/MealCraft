@@ -129,25 +129,20 @@ export class AuthComponent {
     reader.readAsDataURL(file);
   }
 
+  protected onFormSubmit(event: Event): void {
+    event.preventDefault();
+    void this.submit();
+  }
+
   protected async submit(): Promise<void> {
     this.error.set(null);
 
     const registerMode = this.mode() === 'register';
-    const invalid = this.emailControl.invalid
-      || this.passwordControl.invalid
-      || (registerMode && this.firstNameControl.invalid)
-      || (registerMode && this.lastNameControl.invalid)
-      || (registerMode && this.phoneControl.invalid)
-      || (registerMode && this.ageControl.invalid)
-      || (registerMode && !!this.avatarError());
+    const invalid = this.hasInvalidAuthForm(registerMode);
 
     if (invalid) {
-      this.emailControl.markAsTouched();
-      this.passwordControl.markAsTouched();
-      this.firstNameControl.markAsTouched();
-      this.lastNameControl.markAsTouched();
-      this.phoneControl.markAsTouched();
-      this.ageControl.markAsTouched();
+      this.markRelevantControlsTouched(registerMode);
+      this.error.set(this.firstValidationError(registerMode));
       return;
     }
 
@@ -156,26 +151,122 @@ export class AuthComponent {
     const email = this.emailControl.value;
     const password = this.passwordControl.value;
 
-    const result = this.mode() === 'login'
-      ? await this.auth.login(email, password)
-      : await this.auth.register({
-        email,
-        password,
-        firstName: this.firstNameControl.value,
-        lastName: this.lastNameControl.value,
-        phone: this.phoneControl.value,
-        age: this.ageControl.value,
-        avatar: this.avatarValue
-      });
+    try {
+      const result = this.mode() === 'login'
+        ? await this.auth.login(email, password)
+        : await this.auth.register({
+          email,
+          password,
+          firstName: this.firstNameControl.value,
+          lastName: this.lastNameControl.value,
+          phone: this.phoneControl.value,
+          age: this.ageControl.value,
+          avatar: this.avatarValue
+        });
 
-    this.loading.set(false);
+      this.loading.set(false);
 
-    if (!result.success) {
-      this.error.set(result.error ?? 'Authentication failed.');
+      if (!result.success) {
+        this.error.set(result.error ?? 'Authentication failed.');
+        return;
+      }
+
+      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/home';
+      await this.router.navigateByUrl(returnUrl);
+    } catch {
+      this.loading.set(false);
+      this.error.set('Authentication is temporarily unavailable. Please try again.');
+    }
+  }
+
+  protected forgotPassword(): void {
+    this.error.set('Password reset is not available yet. Create a new account or change password in Settings after login.');
+  }
+
+  private hasInvalidAuthForm(registerMode: boolean): boolean {
+    return this.emailControl.invalid
+      || this.passwordControl.invalid
+      || (registerMode && this.firstNameControl.invalid)
+      || (registerMode && this.lastNameControl.invalid)
+      || (registerMode && this.phoneControl.invalid)
+      || (registerMode && this.ageControl.invalid)
+      || (registerMode && !!this.avatarError());
+  }
+
+  private markRelevantControlsTouched(registerMode: boolean): void {
+    this.emailControl.markAsTouched();
+    this.passwordControl.markAsTouched();
+
+    if (!registerMode) {
       return;
     }
 
-    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/home';
-    await this.router.navigateByUrl(returnUrl);
+    this.firstNameControl.markAsTouched();
+    this.lastNameControl.markAsTouched();
+    this.phoneControl.markAsTouched();
+    this.ageControl.markAsTouched();
+  }
+
+  private firstValidationError(registerMode: boolean): string {
+    if (this.emailControl.hasError('required')) {
+      return 'Email is required.';
+    }
+    if (this.emailControl.hasError('email')) {
+      return 'Enter a valid email address.';
+    }
+    if (this.emailControl.hasError('maxlength')) {
+      return `Email must be at most ${this.config.authMaxEmailLength} characters.`;
+    }
+
+    if (this.passwordControl.hasError('required')) {
+      return 'Password is required.';
+    }
+    if (this.passwordControl.hasError('minlength')) {
+      return `Password must be at least ${this.config.authMinPasswordLength} characters.`;
+    }
+    if (this.passwordControl.hasError('maxlength')) {
+      return `Password must be at most ${this.config.authMaxPasswordLength} characters.`;
+    }
+
+    if (!registerMode) {
+      return 'Please fix validation errors and try again.';
+    }
+
+    if (this.firstNameControl.hasError('required')) {
+      return 'First name is required.';
+    }
+    if (this.firstNameControl.hasError('minlength')) {
+      return `First name must be at least ${this.config.authMinNameLength} characters.`;
+    }
+    if (this.firstNameControl.hasError('maxlength')) {
+      return `First name must be at most ${this.config.authMaxNameLength} characters.`;
+    }
+
+    if (this.lastNameControl.hasError('required')) {
+      return 'Last name is required.';
+    }
+    if (this.lastNameControl.hasError('minlength')) {
+      return `Last name must be at least ${this.config.authMinNameLength} characters.`;
+    }
+    if (this.lastNameControl.hasError('maxlength')) {
+      return `Last name must be at most ${this.config.authMaxNameLength} characters.`;
+    }
+
+    if (this.phoneControl.hasError('required')) {
+      return 'Phone number is required.';
+    }
+    if (this.phoneControl.hasError('pattern') || this.phoneControl.hasError('maxlength')) {
+      return 'Enter a valid phone number.';
+    }
+
+    if (this.ageControl.hasError('required') || this.ageControl.hasError('min') || this.ageControl.hasError('max')) {
+      return `Age must be between ${this.config.authMinAge} and ${this.config.authMaxAge}.`;
+    }
+
+    if (this.avatarError()) {
+      return this.avatarError() ?? 'Avatar is invalid.';
+    }
+
+    return 'Please fix validation errors and try again.';
   }
 }

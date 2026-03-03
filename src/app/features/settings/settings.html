@@ -1,15 +1,15 @@
-<div class="settings-wrapper">
-  <mat-card class="settings-card" appearance="outlined">
+<div class="settings-wrapper app-page-shell">
+  <mat-card class="settings-card app-form-shell" appearance="outlined">
     <mat-card-header>
       <mat-card-title>User settings</mat-card-title>
     </mat-card-header>
 
     <mat-card-content class="settings-content">
-      <section class="settings-section">
+      <form class="settings-section app-section-panel" novalidate (ngSubmit)="saveProfile()">
         <h3>Profile</h3>
         <p class="profile-name">{{ fullName() }}</p>
 
-        <div class="avatar-upload">
+        <div class="avatar-upload app-upload-panel">
           <div class="avatar-circle">
             <img class="avatar-preview" [src]="avatarPreview()" alt="Avatar preview" />
           </div>
@@ -22,10 +22,10 @@
         </div>
 
         @if (avatarError(); as avatarError) {
-          <p class="error">{{ avatarError }}</p>
+          <p class="app-status-error">{{ avatarError }}</p>
         }
 
-        <div class="fields-grid">
+        <div class="fields-grid app-form-grid">
           <mat-form-field appearance="outline">
             <mat-label>First name</mat-label>
             <input matInput [formControl]="firstNameControl" />
@@ -48,19 +48,21 @@
         </div>
 
         @if (profileError(); as profileError) {
-          <p class="error">{{ profileError }}</p>
+          <p class="app-status-error">{{ profileError }}</p>
         }
         @if (profileMessage(); as profileMessage) {
-          <p class="ok">{{ profileMessage }}</p>
+          <p class="app-status-ok">{{ profileMessage }}</p>
         }
 
-        <button mat-flat-button color="primary" type="button" (click)="saveProfile()">Save profile</button>
-      </section>
+        <div class="app-form-actions">
+          <button mat-flat-button color="primary" type="submit">Save profile</button>
+        </div>
+      </form>
 
-      <section class="settings-section">
+      <form class="settings-section app-section-panel" novalidate (ngSubmit)="changePassword()">
         <h3>Password</h3>
 
-        <div class="fields-grid">
+        <div class="fields-grid app-form-grid">
           <mat-form-field appearance="outline">
             <mat-label>Current password</mat-label>
             <input matInput type="password" [formControl]="currentPasswordControl" />
@@ -73,14 +75,16 @@
         </div>
 
         @if (passwordError(); as passwordError) {
-          <p class="error">{{ passwordError }}</p>
+          <p class="app-status-error">{{ passwordError }}</p>
         }
         @if (passwordMessage(); as passwordMessage) {
-          <p class="ok">{{ passwordMessage }}</p>
+          <p class="app-status-ok">{{ passwordMessage }}</p>
         }
 
-        <button mat-stroked-button color="primary" type="button" (click)="changePassword()">Change password</button>
-      </section>
+        <div class="app-form-actions">
+          <button mat-stroked-button color="primary" type="submit">Change password</button>
+        </div>
+      </form>
     </mat-card-content>
   </mat-card>
 </div>

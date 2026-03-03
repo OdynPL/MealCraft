@@ -23,6 +23,7 @@ export class ConfigurationService {
   readonly authSessionStore = 'session';
   readonly authSessionKey = 'current';
   readonly authSessionCacheKey = 'food-explorer.current-user';
+  readonly authUsersCacheKey = 'food-explorer.users';
   readonly authMaxEmailLength = 120;
   readonly authMinPasswordLength = 6;
   readonly authMaxPasswordLength = 120;
@@ -54,16 +55,16 @@ export class ConfigurationService {
   readonly recipeTagsInputMaxLength = 200;
 
   readonly uiSearchMinLength = 2;
-  readonly uiPageSizeOptions = [10, 12, 15, 20, 25] as const;
+  readonly uiPageSizeOptions = [12, 20, 24, 30, 36] as const;
   readonly uiSmallViewportMaxWidth = 740;
   readonly uiMediumViewportMaxWidth = 1500;
-  readonly uiSmallViewportPageSize = 10;
-  readonly uiMediumViewportPageSize = 12;
-  readonly uiLargeViewportPageSize = 10;
+  readonly uiSmallViewportPageSize = 12;
+  readonly uiMediumViewportPageSize = 20;
+  readonly uiLargeViewportPageSize = 24;
 
-  readonly defaultPageSize = 10;
+  readonly defaultPageSize = 20;
   readonly minPageSize = 1;
-  readonly maxPageSize = 24;
+  readonly maxPageSize = 36;
   readonly queryLimit = 60;
 
   readonly defaultSortBy: FoodSortBy = 'id';

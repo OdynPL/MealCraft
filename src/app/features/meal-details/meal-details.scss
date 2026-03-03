@@ -1,7 +1,5 @@
 .details-wrapper {
-  max-width: 920px;
-  margin: 1rem auto;
-  padding: 0 1rem;
+  width: min(1120px, 100%);
 }
 
 .state-box {
@@ -12,7 +10,7 @@
 
 .details-card {
   margin-top: 0.65rem;
-  border-radius: 16px;
+  border-radius: 18px;
   overflow: hidden;
 }
 
@@ -89,6 +87,7 @@ h2 {
   align-items: flex-start;
   flex-wrap: nowrap;
   gap: 0.6rem;
+  margin-top: 0.2rem;
 }
 
 .tag-form mat-form-field {
@@ -137,8 +136,7 @@ h2 {
 
 @media (max-width: 480px) {
   .details-wrapper {
-    margin: 0.75rem auto;
-    padding: 0 0.6rem;
+    width: 100%;
   }
 
   h2 {

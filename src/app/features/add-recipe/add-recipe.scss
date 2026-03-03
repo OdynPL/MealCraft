@@ -1,17 +1,15 @@
 .add-recipe-wrapper {
   display: flex;
   justify-content: center;
-  padding: 1rem;
 }
 
 .add-recipe-card {
-  width: min(900px, 100%);
-  border-radius: 16px;
+  width: 100%;
 }
 
 .recipe-form {
   display: grid;
-  gap: 0.7rem;
+  gap: 0.8rem;
 }
 
 .instructions-field {
@@ -19,11 +17,7 @@
 }
 
 .image-upload {
-  display: grid;
-  gap: 0.5rem;
-  padding: 0.6rem;
-  border-radius: 12px;
-  border: 1px dashed var(--mat-sys-outline-variant);
+  margin-top: 0.2rem;
 }
 
 .image-upload label {
@@ -38,24 +32,11 @@
   object-fit: cover;
 }
 
-.field-error {
-  margin: 0;
-  color: var(--mat-sys-error);
-}
-
 .actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  border-top: 1px solid var(--mat-sys-outline-variant);
-  padding-top: 0.6rem;
+  margin-top: 0.25rem;
 }
 
 @media (max-width: 600px) {
-  .add-recipe-wrapper {
-    padding: 0.8rem;
-  }
-
   .actions {
     justify-content: stretch;
   }
@@ -66,16 +47,8 @@
 }
 
 @media (max-width: 480px) {
-  .add-recipe-card {
-    border-radius: 12px;
-  }
-
   .recipe-form {
-    gap: 0.55rem;
-  }
-
-  .image-upload {
-    padding: 0.5rem;
+    gap: 0.65rem;
   }
 
   .image-preview {

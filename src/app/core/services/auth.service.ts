@@ -186,12 +186,16 @@ export class AuthService {
       return;
     }
 
-    const db = await this.openDb();
-    await this.runTransaction<void>(db, this.config.authSessionStore, 'readwrite', (store, done, fail) => {
-      const request = store.delete(this.config.authSessionKey);
-      request.onsuccess = () => done(undefined);
-      request.onerror = () => fail(request.error);
-    });
+    try {
+      const db = await this.openDb();
+      await this.runTransaction<void>(db, this.config.authSessionStore, 'readwrite', (store, done, fail) => {
+        const request = store.delete(this.config.authSessionKey);
+        request.onsuccess = () => done(undefined);
+        request.onerror = () => fail(request.error);
+      });
+    } catch {
+      return;
+    }
   }
 
   private validateProfileData(firstName: string, lastName: string, phone: string, age: number): string | null {
@@ -227,8 +231,16 @@ export class AuthService {
         request.onerror = () => fail(request.error);
       });
 
-      this.userState.set(user);
-      this.writeSessionCache(user);
+      if (user) {
+        this.userState.set(user);
+        this.writeSessionCache(user);
+        return;
+      }
+
+      if (!this.userState()) {
+        this.userState.set(null);
+        this.writeSessionCache(null);
+      }
     } catch {
       // keep cache fallback
     }
@@ -236,33 +248,49 @@ export class AuthService {
 
   private async getAllUsers(): Promise<StoredUser[]> {
     if (typeof indexedDB === 'undefined') {
-      return [];
+      return this.readUsersCache();
     }
 
-    const db = await this.openDb();
-    return this.runTransaction<StoredUser[]>(db, this.config.authUsersStore, 'readonly', (store, done, fail) => {
-      const request = store.getAll();
-      request.onsuccess = () => {
-        const result = ((request.result as unknown[]) ?? [])
-          .map((item) => normalizeStoredUser(item, this.config.authPasswordAlgorithm, this.config))
-          .filter((item): item is StoredUser => item !== null);
-        done(result);
-      };
-      request.onerror = () => fail(request.error);
-    });
+    try {
+      const db = await this.openDb();
+      return await this.runTransaction<StoredUser[]>(db, this.config.authUsersStore, 'readonly', (store, done, fail) => {
+        const request = store.getAll();
+        request.onsuccess = () => {
+          const result = ((request.result as unknown[]) ?? [])
+            .map((item) => normalizeStoredUser(item, this.config.authPasswordAlgorithm, this.config))
+            .filter((item): item is StoredUser => item !== null);
+          done(result);
+        };
+        request.onerror = () => fail(request.error);
+      });
+    } catch {
+      return this.readUsersCache();
+    }
   }
 
   private async putUser(user: StoredUser): Promise<void> {
+    const users = this.readUsersCache();
+    const index = users.findIndex((item) => item.id === user.id);
+    const nextUsers = index >= 0
+      ? [...users.slice(0, index), user, ...users.slice(index + 1)]
+      : [...users, user];
+
+    this.writeUsersCache(nextUsers);
+
     if (typeof indexedDB === 'undefined') {
-      throw new Error('IndexedDB is not available.');
+      return;
     }
 
-    const db = await this.openDb();
-    await this.runTransaction<void>(db, this.config.authUsersStore, 'readwrite', (store, done, fail) => {
-      const request = store.put(user);
-      request.onsuccess = () => done(undefined);
-      request.onerror = () => fail(request.error);
-    });
+    try {
+      const db = await this.openDb();
+      await this.runTransaction<void>(db, this.config.authUsersStore, 'readwrite', (store, done, fail) => {
+        const request = store.put(user);
+        request.onsuccess = () => done(undefined);
+        request.onerror = () => fail(request.error);
+      });
+    } catch {
+      return;
+    }
   }
 
   private async saveSession(user: AuthUser): Promise<void> {
@@ -273,12 +301,16 @@ export class AuthService {
       return;
     }
 
-    const db = await this.openDb();
-    await this.runTransaction<void>(db, this.config.authSessionStore, 'readwrite', (store, done, fail) => {
-      const request = store.put(user, this.config.authSessionKey);
-      request.onsuccess = () => done(undefined);
-      request.onerror = () => fail(request.error);
-    });
+    try {
+      const db = await this.openDb();
+      await this.runTransaction<void>(db, this.config.authSessionStore, 'readwrite', (store, done, fail) => {
+        const request = store.put(user, this.config.authSessionKey);
+        request.onsuccess = () => done(undefined);
+        request.onerror = () => fail(request.error);
+      });
+    } catch {
+      return;
+    }
   }
 
   private readSessionCache(): AuthUser | null {
@@ -296,6 +328,42 @@ export class AuthService {
       return normalizeAuthUser(value, this.config);
     } catch {
       return null;
+    }
+  }
+
+  private readUsersCache(): StoredUser[] {
+    if (typeof localStorage === 'undefined') {
+      return [];
+    }
+
+    try {
+      const raw = localStorage.getItem(this.config.authUsersCacheKey);
+      if (!raw) {
+        return [];
+      }
+
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+
+      return parsed
+        .map((item) => normalizeStoredUser(item, this.config.authPasswordAlgorithm, this.config))
+        .filter((item): item is StoredUser => item !== null);
+    } catch {
+      return [];
+    }
+  }
+
+  private writeUsersCache(users: StoredUser[]): void {
+    if (typeof localStorage === 'undefined') {
+      return;
+    }
+
+    try {
+      localStorage.setItem(this.config.authUsersCacheKey, JSON.stringify(users));
+    } catch {
+      return;
     }
   }
 
@@ -512,7 +580,7 @@ function isPbkdf2User(
 
 async function derivePasswordHash(password: string, salt: Uint8Array, iterations: number): Promise<Uint8Array> {
   if (!globalThis.crypto?.subtle) {
-    throw new Error('Web Crypto API is not available.');
+    return fallbackDerivePasswordHash(password, salt, iterations);
   }
 
   const keyMaterial = await globalThis.crypto.subtle.importKey(
@@ -535,6 +603,12 @@ async function derivePasswordHash(password: string, salt: Uint8Array, iterations
   );
 
   return new Uint8Array(derivedBits);
+}
+
+function fallbackDerivePasswordHash(password: string, salt: Uint8Array, iterations: number): Uint8Array {
+  const saltEncoded = bytesToBase64(salt);
+  const fallbackHash = toHash(`${password}:${saltEncoded}:${iterations}`);
+  return new TextEncoder().encode(fallbackHash);
 }
 
 function randomBytes(length: number): Uint8Array {

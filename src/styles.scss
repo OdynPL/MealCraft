@@ -65,6 +65,65 @@ a {
   width: 100%;
 }
 
+.app-page-shell {
+  width: min(1200px, 100%);
+  margin-inline: auto;
+  padding: 1rem;
+}
+
+.app-form-shell {
+  width: min(980px, 100%);
+  border-radius: 18px !important;
+  border: 1px solid var(--mat-sys-outline-variant) !important;
+  background: var(--mat-sys-surface-container-low);
+}
+
+.app-form-shell--narrow {
+  width: min(760px, 100%);
+}
+
+.app-section-panel {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  border-radius: 14px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container);
+}
+
+.app-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.app-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  padding-top: 0.7rem;
+}
+
+.app-status-error {
+  margin: 0;
+  color: var(--mat-sys-error);
+}
+
+.app-status-ok {
+  margin: 0;
+  color: var(--mat-sys-primary);
+}
+
+.app-upload-panel {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.65rem;
+  border-radius: 12px;
+  border: 1px dashed var(--mat-sys-outline-variant);
+}
+
 .app-confirm-dialog .mat-mdc-dialog-surface {
   border-radius: 16px !important;
   border: 1px solid var(--mat-sys-outline-variant);
@@ -106,12 +165,36 @@ a {
 }
 
 @media (max-width: 480px) {
+  .app-page-shell {
+    padding: 0.7rem;
+  }
+
+  .app-form-shell {
+    border-radius: 14px !important;
+  }
+
+  .app-section-panel {
+    padding: 0.7rem;
+  }
+
+  .app-form-actions > a,
+  .app-form-actions > button {
+    width: 100%;
+    text-align: center;
+  }
+
   .mat-mdc-card-content {
     padding-inline: 0.85rem !important;
   }
 
   .mat-mdc-card-actions {
     padding-inline: 0.65rem !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .app-form-grid {
+    grid-template-columns: 1fr;
   }
 }
 /* You can add global styles to this file, and also import other style files */

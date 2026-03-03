@@ -1,11 +1,11 @@
-<div class="auth-wrapper">
-  <mat-card class="auth-card" appearance="outlined">
+<div class="auth-wrapper app-page-shell" [class.auth-wrapper-login]="mode() === 'login'">
+  <mat-card class="auth-card app-form-shell app-form-shell--narrow" [class.auth-card-login]="mode() === 'login'" appearance="outlined">
     <mat-card-header>
       <mat-card-title>{{ pageTitle() }}</mat-card-title>
     </mat-card-header>
 
     <mat-card-content>
-      <form class="auth-form" novalidate>
+      <form class="auth-form" novalidate (submit)="onFormSubmit($event)">
         <mat-form-field appearance="outline">
           <mat-label>Email</mat-label>
           <input matInput type="email" [formControl]="emailControl" />
@@ -14,6 +14,9 @@
           }
           @if (emailControl.hasError('email')) {
             <mat-error>Enter a valid email.</mat-error>
+          }
+          @if (emailControl.hasError('maxlength')) {
+            <mat-error>Maximum 120 characters.</mat-error>
           }
         </mat-form-field>
 
@@ -26,73 +29,94 @@
           @if (passwordControl.hasError('minlength')) {
             <mat-error>Minimum 6 characters.</mat-error>
           }
+          @if (passwordControl.hasError('maxlength')) {
+            <mat-error>Maximum 120 characters.</mat-error>
+          }
         </mat-form-field>
 
         @if (mode() === 'register') {
-          <mat-form-field appearance="outline">
-            <mat-label>First name</mat-label>
-            <input matInput [formControl]="firstNameControl" />
-            @if (firstNameControl.hasError('required')) {
-              <mat-error>First name is required.</mat-error>
-            }
-          </mat-form-field>
+          <div class="auth-grid app-form-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>First name</mat-label>
+              <input matInput [formControl]="firstNameControl" />
+              @if (firstNameControl.hasError('required')) {
+                <mat-error>First name is required.</mat-error>
+              }
+              @if (firstNameControl.hasError('minlength')) {
+                <mat-error>Minimum 2 characters.</mat-error>
+              }
+              @if (firstNameControl.hasError('maxlength')) {
+                <mat-error>Maximum 80 characters.</mat-error>
+              }
+            </mat-form-field>
 
-          <mat-form-field appearance="outline">
-            <mat-label>Last name</mat-label>
-            <input matInput [formControl]="lastNameControl" />
-            @if (lastNameControl.hasError('required')) {
-              <mat-error>Last name is required.</mat-error>
-            }
-          </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Last name</mat-label>
+              <input matInput [formControl]="lastNameControl" />
+              @if (lastNameControl.hasError('required')) {
+                <mat-error>Last name is required.</mat-error>
+              }
+              @if (lastNameControl.hasError('minlength')) {
+                <mat-error>Minimum 2 characters.</mat-error>
+              }
+              @if (lastNameControl.hasError('maxlength')) {
+                <mat-error>Maximum 80 characters.</mat-error>
+              }
+            </mat-form-field>
 
-          <mat-form-field appearance="outline">
-            <mat-label>Phone number</mat-label>
-            <input matInput [formControl]="phoneControl" />
-            @if (phoneControl.hasError('required')) {
-              <mat-error>Phone number is required.</mat-error>
-            }
-            @if (phoneControl.hasError('pattern')) {
-              <mat-error>Enter a valid phone number.</mat-error>
-            }
-          </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Phone number</mat-label>
+              <input matInput [formControl]="phoneControl" />
+              @if (phoneControl.hasError('required')) {
+                <mat-error>Phone number is required.</mat-error>
+              }
+              @if (phoneControl.hasError('pattern')) {
+                <mat-error>Enter a valid phone number.</mat-error>
+              }
+              @if (phoneControl.hasError('maxlength')) {
+                <mat-error>Maximum 20 characters.</mat-error>
+              }
+            </mat-form-field>
 
-          <mat-form-field appearance="outline">
-            <mat-label>Age</mat-label>
-            <input matInput type="number" [formControl]="ageControl" />
-            @if (ageControl.hasError('required')) {
-              <mat-error>Age is required.</mat-error>
-            }
-            @if (ageControl.hasError('min') || ageControl.hasError('max')) {
-              <mat-error>Age must be between 13 and 120.</mat-error>
-            }
-          </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Age</mat-label>
+              <input matInput type="number" [formControl]="ageControl" />
+              @if (ageControl.hasError('required')) {
+                <mat-error>Age is required.</mat-error>
+              }
+              @if (ageControl.hasError('min') || ageControl.hasError('max')) {
+                <mat-error>Age must be between 13 and 120.</mat-error>
+              }
+            </mat-form-field>
+          </div>
 
-          <div class="avatar-upload">
+          <div class="avatar-upload app-upload-panel">
             <label for="register-avatar">Avatar (optional)</label>
             <input id="register-avatar" type="file" accept="image/*" (change)="onAvatarSelected($event)" />
             @if (avatarError(); as avatarError) {
-              <p class="error">{{ avatarError }}</p>
+              <p class="app-status-error">{{ avatarError }}</p>
             }
             <img class="avatar-preview" [src]="avatarPreview()" alt="Avatar preview" />
           </div>
         }
 
         @if (error(); as error) {
-          <p class="error">{{ error }}</p>
+          <p class="app-status-error">{{ error }}</p>
         }
+
+        <div class="actions app-form-actions">
+          <button mat-flat-button color="primary" type="submit" [disabled]="loading()">
+            {{ submitLabel() }}
+          </button>
+
+          @if (mode() === 'login') {
+            <button mat-stroked-button color="primary" type="button" routerLink="/register">Register</button>
+            <button mat-button type="button" (click)="forgotPassword()">Forgot password</button>
+          } @else {
+            <button mat-stroked-button color="primary" type="button" routerLink="/login">Back to login</button>
+          }
+        </div>
       </form>
     </mat-card-content>
-
-    <mat-card-actions class="actions">
-      <button mat-flat-button color="primary" type="button" [disabled]="loading()" (click)="submit()">
-        {{ submitLabel() }}
-      </button>
-
-      @if (mode() === 'login') {
-        <a mat-button routerLink="/register">Need account?</a>
-      } @else {
-        <a mat-button routerLink="/login">Already registered?</a>
-      }
-    </mat-card-actions>
   </mat-card>
 </div>
