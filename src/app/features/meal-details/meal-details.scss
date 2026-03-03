@@ -52,6 +52,12 @@ h2 {
   height: 18px;
 }
 
+.vote-note {
+  margin: 0 0 0.65rem;
+  font-size: 0.82rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
 .tags {
   display: flex;
   flex-wrap: wrap;

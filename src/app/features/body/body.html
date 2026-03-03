@@ -112,14 +112,19 @@
                   <button mat-button color="warn" type="button" (click)="deleteRecipe(food.id)">Delete</button>
                 }
                 <span class="vote-controls" aria-label="Voting controls">
-                  <button mat-icon-button type="button" aria-label="Downvote" (click)="downvote(food.id)">
+                  <button mat-icon-button type="button" aria-label="Downvote" [disabled]="!canVote(food.id)" (click)="downvote(food.id)">
                     <mat-icon>thumb_down</mat-icon>
                   </button>
                   <strong>{{ score(food.id) }}</strong>
-                  <button mat-icon-button type="button" aria-label="Upvote" (click)="upvote(food.id)">
+                  <button mat-icon-button type="button" aria-label="Upvote" [disabled]="!canVote(food.id)" (click)="upvote(food.id)">
                     <mat-icon>thumb_up</mat-icon>
                   </button>
                 </span>
+                @if (!isLoggedIn()) {
+                  <span class="vote-note">Login to vote</span>
+                } @else if (!canVote(food.id)) {
+                  <span class="vote-note">You have already voted</span>
+                }
               </mat-card-actions>
             </mat-card>
           }

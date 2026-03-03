@@ -190,6 +190,12 @@ h3 {
   height: 18px;
 }
 
+.vote-note {
+  font-size: 0.75rem;
+  color: var(--mat-sys-on-surface-variant);
+  margin-left: auto;
+}
+
 @media (max-width: 740px) {
   .body-wrapper {
     padding: 0.8rem;
@@ -220,6 +226,12 @@ h3 {
     width: 100%;
     justify-content: end;
     margin-left: 0;
+  }
+
+  .vote-note {
+    width: 100%;
+    margin-left: 0;
+    text-align: right;
   }
 }
 

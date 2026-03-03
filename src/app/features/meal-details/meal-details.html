@@ -17,14 +17,19 @@
             <p class="meta">{{ meal.cuisine }} · {{ meal.category }}</p>
             <p class="meta">Author: {{ meal.author }} · Created: {{ formatDate(meal.createdAt) }}</p>
             <div class="vote-row" aria-label="Voting controls">
-              <button mat-icon-button type="button" aria-label="Downvote" (click)="downvote()">
+              <button mat-icon-button type="button" aria-label="Downvote" [disabled]="!canVote()" (click)="downvote()">
                 <mat-icon>thumb_down</mat-icon>
               </button>
               <strong>{{ score() }}</strong>
-              <button mat-icon-button type="button" aria-label="Upvote" (click)="upvote()">
+              <button mat-icon-button type="button" aria-label="Upvote" [disabled]="!canVote()" (click)="upvote()">
                 <mat-icon>thumb_up</mat-icon>
               </button>
             </div>
+            @if (!isLoggedIn()) {
+              <p class="vote-note">Login to vote.</p>
+            } @else if (!canVote()) {
+              <p class="vote-note">You have already voted for this recipe.</p>
+            }
 
             <div class="tags" aria-label="Meal tags">
               @for (tag of tags(); track tag) {

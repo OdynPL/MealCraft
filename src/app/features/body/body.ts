@@ -156,6 +156,10 @@ export class BodyComponent {
     return this.feedback.getScore(mealId);
   }
 
+  protected canVote(mealId: number): boolean {
+    return this.feedback.canVote(mealId);
+  }
+
   protected tags(food: Food): string[] {
     return this.feedback.getTags(food);
   }

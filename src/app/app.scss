@@ -7,4 +7,11 @@
 .app-content {
 	flex: 1 1 auto;
 	width: 100%;
+	padding-block: 0.2rem;
+}
+
+@media (max-width: 480px) {
+	.app-content {
+		padding-block: 0.1rem;
+	}
 }

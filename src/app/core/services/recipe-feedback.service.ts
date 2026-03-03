@@ -1,8 +1,10 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 
 import { Food } from '../models';
+import { AuthService } from './auth.service';
 
-type VoteMap = Record<number, number>;
+type VoteValue = -1 | 1;
+type VoteMap = Record<number, Record<number, VoteValue>>;
 type TagMap = Record<number, string[]>;
 
 const VOTES_KEY = 'foodExplorerVotes';
@@ -10,24 +12,52 @@ const TAGS_KEY = 'foodExplorerTags';
 
 @Injectable({ providedIn: 'root' })
 export class RecipeFeedbackService {
-  private readonly votes = signal<VoteMap>(readJson<VoteMap>(VOTES_KEY, {}));
+  private readonly auth = inject(AuthService);
+  private readonly votes = signal<VoteMap>(readVotes());
   private readonly tags = signal<TagMap>(readJson<TagMap>(TAGS_KEY, {}));
 
   getScore(mealId: number): number {
-    return this.votes()[mealId] ?? 0;
+    const mealVotes = this.votes()[mealId] ?? {};
+    return Object.values(mealVotes).reduce((sum, vote) => sum + vote, 0);
+  }
+
+  canVote(mealId: number): boolean {
+    const userId = this.auth.currentUser()?.id;
+    if (!userId) {
+      return false;
+    }
+
+    return this.votes()[mealId]?.[userId] === undefined;
   }
 
   upvote(mealId: number): void {
-    this.votes.update((current) => {
-      const next = { ...current, [mealId]: (current[mealId] ?? 0) + 1 };
-      writeJson(VOTES_KEY, next);
-      return next;
-    });
+    this.vote(mealId, 1);
   }
 
   downvote(mealId: number): void {
+    this.vote(mealId, -1);
+  }
+
+  private vote(mealId: number, vote: VoteValue): void {
+    const userId = this.auth.currentUser()?.id;
+    if (!userId) {
+      return;
+    }
+
     this.votes.update((current) => {
-      const next = { ...current, [mealId]: (current[mealId] ?? 0) - 1 };
+      const mealVotes = current[mealId] ?? {};
+      if (mealVotes[userId] !== undefined) {
+        return current;
+      }
+
+      const next: VoteMap = {
+        ...current,
+        [mealId]: {
+          ...mealVotes,
+          [userId]: vote
+        }
+      };
+
       writeJson(VOTES_KEY, next);
       return next;
     });
@@ -97,4 +127,40 @@ function writeJson<T>(key: string, value: T): void {
   } catch {
     return;
   }
+}
+
+function readVotes(): VoteMap {
+  const parsed = readJson<unknown>(VOTES_KEY, {});
+  if (!isObject(parsed)) {
+    return {};
+  }
+
+  const result: VoteMap = {};
+
+  for (const [mealIdRaw, mealVotesRaw] of Object.entries(parsed)) {
+    const mealId = Number(mealIdRaw);
+    if (!Number.isFinite(mealId) || mealId <= 0 || !isObject(mealVotesRaw)) {
+      continue;
+    }
+
+    const normalizedMealVotes: Record<number, VoteValue> = {};
+    for (const [userIdRaw, voteRaw] of Object.entries(mealVotesRaw)) {
+      const userId = Number(userIdRaw);
+      if (!Number.isFinite(userId) || userId <= 0) {
+        continue;
+      }
+
+      if (voteRaw === 1 || voteRaw === -1) {
+        normalizedMealVotes[userId] = voteRaw;
+      }
+    }
+
+    result[mealId] = normalizedMealVotes;
+  }
+
+  return result;
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
 }

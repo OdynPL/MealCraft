@@ -38,12 +38,23 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+html,
+body {
+  min-height: 100%;
+}
+
 * {
   box-sizing: border-box;
 }
 
 a {
   text-decoration: none;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
 }
 
 .mat-mdc-card {
@@ -72,6 +83,14 @@ a {
 
 .app-confirm-dialog .mat-mdc-dialog-actions {
   padding-top: 0.2rem;
+}
+
+.app-mobile-menu .mat-mdc-menu-content {
+  padding-block: 0.35rem;
+}
+
+.app-mobile-menu .mat-mdc-menu-item {
+  min-height: 42px;
 }
 
 @media (max-width: 480px) {

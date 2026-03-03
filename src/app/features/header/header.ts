@@ -1,5 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
@@ -13,7 +15,9 @@ import { FoodStore } from '../../core/stores/food.store';
     RouterLink,
     RouterLinkActive,
     MatToolbarModule,
-    MatButtonModule
+    MatButtonModule,
+    MatMenuModule,
+    MatIconModule
   ],
   templateUrl: './header.html',
   styleUrl: './header.scss',

@@ -145,6 +145,15 @@ export class MealDetailsComponent {
     this.feedback.downvote(mealId);
   }
 
+  protected canVote(): boolean {
+    const mealId = this.item()?.id;
+    if (!mealId) {
+      return false;
+    }
+
+    return this.feedback.canVote(mealId);
+  }
+
   protected async deleteRecipe(): Promise<void> {
     const mealId = this.item()?.id;
     if (!mealId) {
