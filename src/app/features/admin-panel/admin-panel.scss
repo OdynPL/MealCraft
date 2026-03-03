@@ -1,0 +1,95 @@
+.admin-panel-wrapper {
+  display: grid;
+  place-items: center;
+}
+
+.admin-panel-wrapper.app-page-shell {
+  width: min(1640px, 100%);
+}
+
+.admin-panel {
+  width: min(1580px, 100%);
+  max-width: none;
+  display: grid;
+  gap: 1rem;
+  padding: 0.35rem;
+  background: var(--mat-sys-surface) !important;
+  border-radius: 20px !important;
+}
+
+.admin-header h2 {
+  margin: 0;
+  font-size: clamp(1.3rem, 1.2rem + 0.5vw, 1.8rem);
+}
+
+.admin-header p {
+  margin: 0.3rem 0 0;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.admin-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.admin-menu-panel,
+.admin-content-panel {
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface);
+  border-radius: 14px;
+  padding: 0.9rem;
+}
+
+.admin-menu-header {
+  margin: 0 0 0.55rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.admin-menu {
+  display: grid;
+  gap: 0.5rem;
+  align-content: start;
+}
+
+.menu-button {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 0.45rem;
+  border-radius: 12px !important;
+}
+
+.menu-button-active {
+  border-color: var(--mat-sys-primary) !important;
+  background: var(--mat-sys-primary-container) !important;
+  color: var(--mat-sys-on-primary-container) !important;
+}
+
+.admin-content-header {
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  padding-bottom: 0.6rem;
+  margin-bottom: 0.65rem;
+}
+
+.admin-content-header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.admin-content {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .admin-panel-wrapper.app-page-shell {
+    width: min(1400px, 100%);
+  }
+
+  .admin-layout {
+    grid-template-columns: 1fr;
+  }
+}

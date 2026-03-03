@@ -19,6 +19,9 @@
     @if (isLoggedIn()) {
       <a routerLink="/meals/new" routerLinkActive="active-link" (click)="closeMobileMenu()">Add recipe</a>
       <a routerLink="/settings" routerLinkActive="active-link" (click)="closeMobileMenu()">Settings</a>
+      @if (isAdmin()) {
+        <a routerLink="/admin" routerLinkActive="active-link" (click)="closeMobileMenu()">Admin Panel</a>
+      }
       <span class="user-profile" aria-label="Logged user profile">
         <span class="avatar" aria-hidden="true">
           @if (userAvatar()) {
@@ -55,6 +58,9 @@
     @if (isLoggedIn()) {
       <a routerLink="/meals/new" (click)="closeMobileMenu()">Add recipe</a>
       <a routerLink="/settings" (click)="closeMobileMenu()">Settings</a>
+      @if (isAdmin()) {
+        <a routerLink="/admin" (click)="closeMobileMenu()">Admin Panel</a>
+      }
       <button type="button" (click)="logout()">Logout</button>
     } @else {
       <a routerLink="/login" (click)="closeMobileMenu()">Login</a>

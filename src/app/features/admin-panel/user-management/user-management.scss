@@ -1,0 +1,96 @@
+.user-management {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.user-management h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.user-state {
+  margin: 0;
+}
+
+.table-wrapper {
+  overflow: auto;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 12px;
+  background: var(--mat-sys-surface);
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1180px;
+}
+
+.users-table th,
+.users-table td {
+  text-align: left;
+  padding: 0.68rem 0.72rem;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  white-space: nowrap;
+}
+
+.users-table thead th {
+  background: var(--mat-sys-surface);
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.users-table tbody tr:nth-child(even) {
+  background: var(--mat-sys-surface);
+}
+
+.users-table tbody tr:hover {
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.users-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.inline-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(140px, 1fr));
+  gap: 0.35rem;
+}
+
+.inline-edit-grid .mat-mdc-form-field,
+.row-actions .mat-mdc-form-field,
+.users-table .role-field {
+  width: 100%;
+}
+
+.row-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.edit-inline-field {
+  width: 170px;
+}
+
+.edit-inline-field-small {
+  width: 95px;
+}
+
+.row-actions button {
+  border-radius: 10px !important;
+}
+
+.checkbox-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.users-table .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}

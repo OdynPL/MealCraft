@@ -1,0 +1,38 @@
+<section class="admin-panel-wrapper app-page-shell" aria-label="Admin panel">
+  <mat-card class="admin-panel app-form-shell" appearance="outlined">
+    <header class="admin-header">
+      <h2>Admin Panel</h2>
+      <p>Manage administrative options and system users.</p>
+    </header>
+
+    <div class="admin-layout">
+      <mat-card class="admin-menu-panel" appearance="outlined" aria-label="Admin menu">
+        <div class="admin-menu-header">Menu</div>
+        <nav class="admin-menu" aria-label="Admin options">
+          <button
+            mat-stroked-button
+            type="button"
+            class="menu-button"
+            [class.menu-button-active]="activeMenu() === 'users'"
+            (click)="setActiveMenu('users')"
+          >
+            <mat-icon aria-hidden="true">group</mat-icon>
+            User Management
+          </button>
+        </nav>
+      </mat-card>
+
+      <mat-card class="admin-content-panel" appearance="outlined" aria-label="Admin panel content">
+        <header class="admin-content-header">
+          <h3>Administration</h3>
+        </header>
+
+        <div class="admin-content">
+        @if (activeMenu() === 'users') {
+          <app-user-management />
+        }
+        </div>
+      </mat-card>
+    </div>
+  </mat-card>
+</section>

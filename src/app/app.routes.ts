@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { adminGuard } from './core/guards/admin.guard';
 import { guestOnlyGuard } from './core/guards/guest-only.guard';
 
 export const routes: Routes = [
@@ -37,6 +38,11 @@ export const routes: Routes = [
     path: 'settings',
     loadComponent: () => import('./features/settings/settings').then((module) => module.SettingsComponent),
     canActivate: [authGuard]
+  },
+  {
+    path: 'admin',
+    loadComponent: () => import('./features/admin-panel/admin-panel').then((module) => module.AdminPanelComponent),
+    canActivate: [adminGuard]
   },
   {
     path: 'meals/:id/edit',

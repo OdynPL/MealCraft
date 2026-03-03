@@ -58,6 +58,15 @@ export interface UpdateProfilePayload {
   avatar?: string;
 }
 
+export interface AdminUserUpdatePayload {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  age: number;
+  role: UserRole;
+  emailVerified: boolean;
+}
+
 export interface AuthResult {
   success: boolean;
   error?: string;

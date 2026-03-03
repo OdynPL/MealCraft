@@ -21,6 +21,7 @@ export class HeaderComponent {
   protected readonly mobileMenuOpen = signal(false);
 
   protected readonly isLoggedIn = computed(() => this.auth.isLoggedIn());
+  protected readonly isAdmin = computed(() => this.auth.currentUser()?.role === 'admin');
   protected readonly userFullName = computed(() => this.auth.fullName());
   protected readonly userAvatar = computed(() => this.auth.currentUser()?.avatar ?? '');
   protected readonly userInitials = computed(() => buildInitials(this.auth.currentUser()?.firstName, this.auth.currentUser()?.lastName));

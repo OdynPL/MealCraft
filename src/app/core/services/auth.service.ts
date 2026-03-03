@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 
-import { AuthResult, AuthUser, RegisterPayload, StoredUser, UpdateProfilePayload } from '../models/auth';
+import { AdminUserUpdatePayload, AuthResult, AuthUser, RegisterPayload, StoredUser, UpdateProfilePayload } from '../models/auth';
 import { ConfigurationService } from './configuration.service';
 
 @Injectable({ providedIn: 'root' })
@@ -242,6 +242,142 @@ export class AuthService {
     }
   }
 
+  async listUsersForAdmin(): Promise<AuthUser[]> {
+    await this.bootstrapReady;
+
+    const currentUser = this.userState();
+    if (!currentUser || currentUser.role !== 'admin') {
+      return [];
+    }
+
+    const users = await this.getAllUsers();
+    return users
+      .map((user) => toAuthUser(user))
+      .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+  }
+
+  async updateUserForAdmin(userId: number, payload: AdminUserUpdatePayload): Promise<AuthResult> {
+    await this.bootstrapReady;
+
+    const currentUser = this.userState();
+    if (!currentUser || currentUser.role !== 'admin') {
+      return { success: false, error: 'Admin access required.' };
+    }
+
+    const validationError = this.validateProfileData(payload.firstName, payload.lastName, payload.phone, payload.age);
+    if (validationError) {
+      return { success: false, error: validationError };
+    }
+
+    const users = await this.getAllUsers();
+    const index = users.findIndex((user) => user.id === userId);
+    if (index < 0) {
+      return { success: false, error: 'User not found.' };
+    }
+
+    const targetUser = users[index];
+    const normalizedRole = normalizeUserRole(payload.role, this.config.authDefaultRole, this.config.authAllowedRoles);
+    const seedAdminEmail = this.config.authSeedAdminEmail.trim().toLowerCase();
+
+    if (targetUser.email === seedAdminEmail && normalizedRole !== 'admin') {
+      return { success: false, error: 'Seed admin role cannot be changed.' };
+    }
+
+    if (targetUser.id === currentUser.id && normalizedRole !== 'admin') {
+      return { success: false, error: 'You cannot remove your own admin role.' };
+    }
+
+    const updatedUser: StoredUser = {
+      ...targetUser,
+      firstName: payload.firstName.trim(),
+      lastName: payload.lastName.trim(),
+      phone: payload.phone.trim(),
+      age: payload.age,
+      role: normalizedRole,
+      emailVerified: payload.emailVerified,
+      updatedAt: new Date().toISOString()
+    };
+
+    await this.putUser(updatedUser);
+
+    if (updatedUser.id === currentUser.id) {
+      await this.saveSession(toAuthUser(updatedUser));
+    }
+
+    return { success: true };
+  }
+
+  async setUserLockForAdmin(userId: number, shouldLock: boolean): Promise<AuthResult> {
+    await this.bootstrapReady;
+
+    const currentUser = this.userState();
+    if (!currentUser || currentUser.role !== 'admin') {
+      return { success: false, error: 'Admin access required.' };
+    }
+
+    const users = await this.getAllUsers();
+    const index = users.findIndex((user) => user.id === userId);
+    if (index < 0) {
+      return { success: false, error: 'User not found.' };
+    }
+
+    const targetUser = users[index];
+    const seedAdminEmail = this.config.authSeedAdminEmail.trim().toLowerCase();
+
+    if (targetUser.email === seedAdminEmail && shouldLock) {
+      return { success: false, error: 'Seed admin account cannot be banned.' };
+    }
+
+    if (targetUser.id === currentUser.id && shouldLock) {
+      return { success: false, error: 'You cannot ban your own account.' };
+    }
+
+    const updatedUser: StoredUser = {
+      ...targetUser,
+      isAccountLocked: shouldLock,
+      failedLoginAttempts: shouldLock
+        ? Math.max(targetUser.failedLoginAttempts, this.config.authMaxFailedLoginAttempts)
+        : 0,
+      accountLockedAt: shouldLock ? new Date().toISOString() : undefined,
+      updatedAt: new Date().toISOString()
+    };
+
+    await this.putUser(updatedUser);
+
+    if (updatedUser.id === currentUser.id && shouldLock) {
+      await this.logout();
+    }
+
+    return { success: true };
+  }
+
+  async removeUserForAdmin(userId: number): Promise<AuthResult> {
+    await this.bootstrapReady;
+
+    const currentUser = this.userState();
+    if (!currentUser || currentUser.role !== 'admin') {
+      return { success: false, error: 'Admin access required.' };
+    }
+
+    if (currentUser.id === userId) {
+      return { success: false, error: 'You cannot remove your own account.' };
+    }
+
+    const users = await this.getAllUsers();
+    const targetUser = users.find((user) => user.id === userId);
+    if (!targetUser) {
+      return { success: false, error: 'User not found.' };
+    }
+
+    const seedAdminEmail = this.config.authSeedAdminEmail.trim().toLowerCase();
+    if (targetUser.email === seedAdminEmail) {
+      return { success: false, error: 'Seed admin account cannot be removed.' };
+    }
+
+    await this.deleteUser(userId);
+    return { success: true };
+  }
+
   private validateProfileData(firstName: string, lastName: string, phone: string, age: number): string | null {
     if (firstName.trim().length < this.config.authMinNameLength) {
       return `First name must have at least ${this.config.authMinNameLength} characters.`;
@@ -397,6 +533,26 @@ export class AuthService {
       const db = await this.openDb();
       await this.runTransaction<void>(db, this.config.authUsersStore, 'readwrite', (store, done, fail) => {
         const request = store.put(user);
+        request.onsuccess = () => done(undefined);
+        request.onerror = () => fail(request.error);
+      });
+    } catch {
+      return;
+    }
+  }
+
+  private async deleteUser(userId: number): Promise<void> {
+    const users = this.readUsersCache().filter((user) => user.id !== userId);
+    this.writeUsersCache(users);
+
+    if (typeof indexedDB === 'undefined') {
+      return;
+    }
+
+    try {
+      const db = await this.openDb();
+      await this.runTransaction<void>(db, this.config.authUsersStore, 'readwrite', (store, done, fail) => {
+        const request = store.delete(userId);
         request.onsuccess = () => done(undefined);
         request.onerror = () => fail(request.error);
       });
