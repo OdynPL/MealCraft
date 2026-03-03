@@ -71,6 +71,38 @@
   justify-content: flex-end;
 }
 
+.summary-paginator {
+  position: relative;
+  width: fit-content;
+  margin: 0.08rem 0 0.28rem -24px;
+  border-radius: 12px;
+  background: var(--mat-sys-surface-container-low);
+}
+
+.summary-paginator .mat-mdc-paginator {
+  min-height: 40px;
+  height: 40px;
+  background: transparent;
+}
+
+.summary-paginator .mat-mdc-paginator-container {
+  min-height: 40px;
+  height: 40px;
+  padding: 0 0.15rem;
+  align-items: center;
+}
+
+.summary-paginator .mat-mdc-paginator-navigation-previous,
+.summary-paginator .mat-mdc-paginator-navigation-next,
+.summary-paginator .mat-mdc-paginator-navigation-first,
+.summary-paginator .mat-mdc-paginator-navigation-last {
+  align-self: center;
+}
+
+.summary-paginator .mat-mdc-paginator-range-label {
+  display: none;
+}
+
 .loading-label {
   opacity: 0.7;
 }
@@ -280,6 +312,16 @@ h3 {
     justify-content: flex-start;
   }
 
+  .summary-paginator {
+    width: 100%;
+    margin: 0.2rem 0;
+  }
+
+  .summary-paginator .mat-mdc-paginator-container {
+    justify-content: center;
+    gap: 0.1rem;
+  }
+
   .food-card mat-card-actions {
     justify-content: flex-start;
   }
@@ -326,6 +368,10 @@ h3 {
   }
 
   .summary-actions {
+    width: 100%;
+  }
+
+  .summary-paginator {
     width: 100%;
   }
 

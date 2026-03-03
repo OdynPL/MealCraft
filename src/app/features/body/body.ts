@@ -190,6 +190,7 @@ export class BodyComponent {
   }
 
   protected clearCategoryFromPills(): void {
+    this.store.setMineOnly(false);
     this.categoryControl.setValue('');
   }
 

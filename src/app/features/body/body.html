@@ -62,7 +62,18 @@
 
     <section class="results-summary" aria-live="polite">
       <div class="summary-status">
-        <span>Results: {{ currentRangeLabel() }}</span>
+        <div class="summary-paginator" aria-label="Quick pagination">
+          <mat-paginator
+            [length]="store.totalResults()"
+            [pageIndex]="store.pageIndex()"
+            [pageSize]="store.pageSize()"
+            [pageSizeOptions]="pageSizeOptions"
+            [showFirstLastButtons]="true"
+            [hidePageSize]="true"
+            aria-label="Meals quick pagination"
+            (page)="onPageChange($event)"
+          />
+        </div>
         @if (store.loading()) {
           <span class="loading-label">Loading data...</span>
         }
@@ -83,9 +94,9 @@
         <button
           type="button"
           class="category-count-pill"
-          [class.category-count-pill-active]="store.category() === ''"
+          [class.category-count-pill-active]="store.category() === '' && !mineOnly()"
           (click)="clearCategoryFromPills()"
-          [attr.aria-pressed]="store.category() === ''"
+          [attr.aria-pressed]="store.category() === '' && !mineOnly()"
           aria-label="Show all categories"
         >
           All
