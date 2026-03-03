@@ -140,7 +140,7 @@ export class ConfigurationService {
   readonly authSeedAdminLastName = 'Admin';
   readonly authSeedAdminPhone = '+48000000000';
   readonly authSeedAdminAge = 30;
-  readonly authSeedUsers: ReadonlyArray<{
+  readonly authSeedUsers: readonly {
     id: number;
     email: string;
     password: string;
@@ -149,7 +149,7 @@ export class ConfigurationService {
     phone: string;
     age: number;
     role: UserRole;
-  }> = [
+  }[] = [
       {
         id: 1,
         email: 'admin@admin.pl',

@@ -40,5 +40,20 @@ module.exports = defineConfig([
       angular.configs.templateAccessibility,
     ],
     rules: {},
+  },
+  {
+    files: ["**/*.spec.ts"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-empty-function": "off",
+      "@typescript-eslint/array-type": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          "argsIgnorePattern": "^_",
+          "varsIgnorePattern": "^_",
+        },
+      ],
+    },
   }
 ]);

@@ -575,9 +575,7 @@ export class AuthService {
         continue;
       }
 
-      let passwordPatch: Pick<StoredUser, 'passwordHash' | 'passwordSalt' | 'passwordIterations' | 'passwordVersion'>;
-
-      passwordPatch = await createPasswordRecord(
+      const passwordPatch: Pick<StoredUser, 'passwordHash' | 'passwordSalt' | 'passwordIterations' | 'passwordVersion'> = await createPasswordRecord(
         seed.password,
         this.config.authPasswordAlgorithm,
         this.config.authPasswordIterations
