@@ -35,5 +35,32 @@
   "features/settings/user-settings/user-settings.ts": [
     "shared/confirm-dialog/confirm-dialog.ts"
   ],
-  "shared/confirm-dialog/confirm-dialog.ts": []
+  "shared/confirm-dialog/confirm-dialog.ts": [],
+  "route:/": [
+    "features/body/body.ts"
+  ],
+  "route:/meals": [
+    "features/body/body.ts"
+  ],
+  "route:/meals/new": [
+    "features/add-recipe/add-recipe.ts"
+  ],
+  "route:/login": [
+    "features/auth/auth.ts"
+  ],
+  "route:/register": [
+    "features/auth/auth.ts"
+  ],
+  "route:/settings": [
+    "features/settings/settings.ts"
+  ],
+  "route:/admin": [
+    "features/admin-panel/admin-panel.ts"
+  ],
+  "route:/meals/:id/edit": [
+    "features/add-recipe/add-recipe.ts"
+  ],
+  "route:/meals/:id": [
+    "features/meal-details/meal-details.ts"
+  ]
 }

@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.spec.json",
     "analyze:knip": "knip --reporter compact --no-progress",
     "graph:dependencies": "node scripts/generate-dependency-graph.mjs",
-    "graph:render": "mmdc -p scripts/mermaid-puppeteer-config.json -i reports/dependency-graph/graph.mmd -o reports/dependency-graph/graph.svg && mmdc -p scripts/mermaid-puppeteer-config.json -i reports/dependency-graph/component-graph.mmd -o reports/dependency-graph/component-graph.svg && mmdc -p scripts/mermaid-puppeteer-config.json -i reports/dependency-graph/component-graph.mmd -o reports/dependency-graph/component-graph.png",
+    "graph:render": "mmdc -p scripts/mermaid-puppeteer-config.json -i reports/dependency-graph/graph.mmd -o reports/dependency-graph/graph.svg && mmdc -p scripts/mermaid-puppeteer-config.json -i reports/dependency-graph/component-graph.mmd -o reports/dependency-graph/component-graph.svg && mmdc -p scripts/mermaid-puppeteer-config.json -i reports/dependency-graph/component-graph.mmd -o reports/dependency-graph/component-graph.png && mmdc -p scripts/mermaid-puppeteer-config.json -i reports/dependency-graph/component-tree.mmd -o reports/dependency-graph/component-tree.svg && mmdc -p scripts/mermaid-puppeteer-config.json -i reports/dependency-graph/component-tree.mmd -o reports/dependency-graph/component-tree.png",
     "readme:update": "node scripts/update-readme.mjs",
     "check:bundle-size": "node scripts/check-bundle-size.mjs",
     "watch": "ng build --watch --configuration development",

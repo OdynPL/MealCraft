@@ -1,0 +1,60 @@
+{
+  "app.ts": [
+    "features/footer/footer.ts",
+    "features/header/header.ts",
+    "route:/",
+    "route:/admin",
+    "route:/login",
+    "route:/meals",
+    "route:/meals/:id",
+    "route:/meals/:id/edit",
+    "route:/meals/new",
+    "route:/register",
+    "route:/settings"
+  ],
+  "features/footer/footer.ts": [],
+  "features/header/header.ts": [],
+  "route:/": [
+    "features/body/body.ts"
+  ],
+  "route:/admin": [
+    "features/admin-panel/admin-panel.ts"
+  ],
+  "route:/login": [
+    "features/auth/auth.ts"
+  ],
+  "route:/meals": [],
+  "route:/meals/:id": [
+    "features/meal-details/meal-details.ts"
+  ],
+  "route:/meals/:id/edit": [
+    "features/add-recipe/add-recipe.ts"
+  ],
+  "route:/meals/new": [],
+  "route:/register": [],
+  "route:/settings": [
+    "features/settings/settings.ts"
+  ],
+  "features/body/body.ts": [
+    "shared/confirm-dialog/confirm-dialog.ts"
+  ],
+  "features/admin-panel/admin-panel.ts": [
+    "features/admin-panel/activity-log/activity-log.ts",
+    "features/admin-panel/user-management/user-management.ts"
+  ],
+  "features/auth/auth.ts": [],
+  "features/meal-details/meal-details.ts": [],
+  "features/add-recipe/add-recipe.ts": [],
+  "features/settings/settings.ts": [
+    "features/settings/admin-settings/admin-settings.ts",
+    "features/settings/user-settings/user-settings.ts"
+  ],
+  "shared/confirm-dialog/confirm-dialog.ts": [],
+  "features/admin-panel/activity-log/activity-log.ts": [],
+  "features/admin-panel/user-management/user-management.ts": [
+    "features/admin-panel/user-management/edit-user-dialog/edit-user-dialog.ts"
+  ],
+  "features/settings/admin-settings/admin-settings.ts": [],
+  "features/settings/user-settings/user-settings.ts": [],
+  "features/admin-panel/user-management/edit-user-dialog/edit-user-dialog.ts": []
+}
