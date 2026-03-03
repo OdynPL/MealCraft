@@ -153,6 +153,49 @@ jobs:
           path: reports/dependency-graph
           if-no-files-found: error
 
+  docs-sync:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    needs: [architecture-graph, bundle-size-check, test, coverage-report]
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Regenerate dependency graphs
+        run: npm run graph:dependencies
+
+      - name: Render dependency charts to SVG/PNG
+        run: npm run graph:render
+
+      - name: Download coverage artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+          path: .
+
+      - name: Update README auto-docs section
+        run: npm run readme:update
+
+      - name: Auto-commit updated docs and charts
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(docs): update architecture charts and README [skip ci]"
+          file_pattern: "README.md reports/dependency-graph/**"
+
   bundle-size-check:
     runs-on: ubuntu-latest
     needs: static-analysis
@@ -238,7 +281,7 @@ jobs:
   pages-artifact:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    needs: [build, lint, static-analysis, security-audit, dead-code-analysis, architecture-graph, bundle-size-check, test, coverage-report]
+    needs: [build, lint, static-analysis, security-audit, dead-code-analysis, architecture-graph, bundle-size-check, test, coverage-report, docs-sync]
 
     steps:
       - name: Checkout
