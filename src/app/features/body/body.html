@@ -69,10 +69,12 @@
       </div>
 
       <div class="summary-actions">
-        <button mat-flat-button color="primary" class="action-button" type="button" (click)="refresh()">Reset</button>
-        <button mat-stroked-button color="warn" class="action-button" type="button" (click)="deleteAllAndReload()">
-          Delete all & reload
-        </button>
+        <button mat-flat-button color="primary" class="action-button" type="button" (click)="refresh()">Refresh</button>
+        @if (isLoggedIn()) {
+          <button mat-stroked-button color="warn" class="action-button" type="button" (click)="deleteAllAndReload()">
+            Delete all & reload
+          </button>
+        }
       </div>
     </section>
 
@@ -88,6 +90,18 @@
         >
           All
         </button>
+        @if (isLoggedIn()) {
+          <button
+            type="button"
+            class="category-count-pill"
+            [class.category-count-pill-active]="mineOnly()"
+            (click)="setMineOnly(!mineOnly())"
+            [attr.aria-pressed]="mineOnly()"
+            aria-label="Show only my recipes"
+          >
+            Mine
+          </button>
+        }
         @for (entry of categoryCounts(); track entry.category) {
           <button
             type="button"
@@ -138,8 +152,12 @@
               <mat-card-actions>
                 <a mat-button color="primary" [routerLink]="['/meals', food.id]">Read</a>
                 @if (isLoggedIn()) {
-                  <a mat-button color="primary" [routerLink]="['/meals', food.id, 'edit']">Edit</a>
-                  <button mat-button color="warn" type="button" (click)="deleteRecipe(food.id)">Delete</button>
+                  @if (canEditRecipe(food.id)) {
+                    <a mat-button color="primary" [routerLink]="['/meals', food.id, 'edit']">Edit</a>
+                  }
+                  @if (canDeleteRecipe(food.id)) {
+                    <button mat-button color="warn" type="button" (click)="deleteRecipe(food.id)">Delete</button>
+                  }
                 }
                 <span class="vote-controls" aria-label="Voting controls">
                   <button mat-icon-button type="button" aria-label="Downvote" [disabled]="!canVote(food.id)" (click)="downvote(food.id)">

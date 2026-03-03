@@ -4,6 +4,7 @@ export interface FoodState {
   query: string;
   cuisine: string;
   category: string;
+  mineOnly: boolean;
   cuisines: string[];
   categories: string[];
   sortBy: FoodSortBy;

@@ -33,6 +33,16 @@ describe('LocalRecipeService', () => {
     createdAt: new Date('2025-03-01').toISOString()
   };
 
+  const otherUser: AuthUser = {
+    id: 7002,
+    email: 'other@example.com',
+    firstName: 'Other',
+    lastName: 'Chef',
+    phone: '+48987654321',
+    age: 29,
+    createdAt: new Date('2025-03-02').toISOString()
+  };
+
   const baseDraft: LocalRecipeDraft = {
     title: 'Test Recipe',
     cuisine: 'Italian',
@@ -105,6 +115,8 @@ describe('LocalRecipeService', () => {
   });
 
   it('should mark non-custom recipe as deleted', () => {
+    auth.setCurrentUser(loggedUser);
+
     const persisted = {
       custom: [],
       overrides: [
@@ -179,5 +191,73 @@ describe('LocalRecipeService', () => {
 
     expect(facets.categories).toEqual(['Pasta', 'Soup']);
     expect(facets.cuisines).toEqual(['Italian', 'Polish']);
+  });
+
+  it('should forbid editing recipe owned by another user', () => {
+    auth.setCurrentUser(loggedUser);
+
+    const persisted = {
+      custom: [
+        {
+          id: 123,
+          title: 'Foreign recipe',
+          image: 'https://example.com/foreign.jpg',
+          category: 'Soup',
+          cuisine: 'Polish',
+          instructions: 'Cook',
+          tags: ['classic'],
+          ownerId: otherUser.id,
+          author: 'Other Chef',
+          createdAt: new Date('2025-01-01').toISOString()
+        }
+      ],
+      overrides: [],
+      deletedIds: []
+    };
+
+    globalThis.localStorage.setItem(storageKey, JSON.stringify(persisted));
+
+    expect(() => service.save(123, baseDraft)).toThrowError('You can edit only your own recipes.');
+  });
+
+  it('should forbid deleting recipe owned by another user', () => {
+    auth.setCurrentUser(loggedUser);
+
+    const persisted = {
+      custom: [
+        {
+          id: 124,
+          title: 'Foreign recipe',
+          image: 'https://example.com/foreign.jpg',
+          category: 'Soup',
+          cuisine: 'Polish',
+          instructions: 'Cook',
+          tags: ['classic'],
+          ownerId: otherUser.id,
+          author: 'Other Chef',
+          createdAt: new Date('2025-01-01').toISOString()
+        }
+      ],
+      overrides: [],
+      deletedIds: []
+    };
+
+    globalThis.localStorage.setItem(storageKey, JSON.stringify(persisted));
+
+    expect(service.canCurrentUserDelete(124)).toBe(false);
+  });
+
+  it('should allow editing API recipe and assign current user as owner for override', () => {
+    auth.setCurrentUser(loggedUser);
+
+    const updated = service.save(200, {
+      ...baseDraft,
+      title: 'Edited API recipe'
+    });
+
+    expect(updated.id).toBe(200);
+    expect(updated.title).toBe('Edited API recipe');
+    expect(updated.ownerId).toBe(loggedUser.id);
+    expect(service.canCurrentUserDelete(200)).toBe(true);
   });
 });

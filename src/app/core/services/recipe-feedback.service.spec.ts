@@ -1,7 +1,9 @@
 import { TestBed } from '@angular/core/testing';
+import { vi } from 'vitest';
 
 import { AuthUser } from '../models';
 import { AuthService } from './auth.service';
+import { LocalRecipeService } from './local-recipe.service';
 import { RecipeFeedbackService } from './recipe-feedback.service';
 
 class MockAuthService {
@@ -16,9 +18,14 @@ class MockAuthService {
   }
 }
 
+class MockLocalRecipeService {
+  canCurrentUserManageOwnRecipe = vi.fn().mockReturnValue(false);
+}
+
 describe('RecipeFeedbackService', () => {
   let service: RecipeFeedbackService;
   let auth: MockAuthService;
+  let localRecipes: MockLocalRecipeService;
   const votesKey = 'foodExplorerVotes';
   const tagsKey = 'foodExplorerTags';
 
@@ -53,12 +60,14 @@ describe('RecipeFeedbackService', () => {
     TestBed.configureTestingModule({
       providers: [
         RecipeFeedbackService,
-        { provide: AuthService, useClass: MockAuthService }
+        { provide: AuthService, useClass: MockAuthService },
+        { provide: LocalRecipeService, useClass: MockLocalRecipeService }
       ]
     });
 
     service = TestBed.inject(RecipeFeedbackService);
     auth = TestBed.inject(AuthService) as unknown as MockAuthService;
+    localRecipes = TestBed.inject(LocalRecipeService) as unknown as MockLocalRecipeService;
   });
 
   it('should not allow guests to vote', () => {
@@ -96,5 +105,31 @@ describe('RecipeFeedbackService', () => {
 
     expect(service.getScore(25)).toBe(0);
     expect(service.canVote(25)).toBe(false);
+  });
+
+  it('should not add tag for guest or non-owned recipe', () => {
+    localRecipes.canCurrentUserManageOwnRecipe.mockReturnValue(false);
+
+    service.addTag(77, 'spicy');
+
+    expect(service.getTags({ id: 77, tags: [] })).toEqual([]);
+  });
+
+  it('should add and remove tags only when user owns recipe', () => {
+    auth.setCurrentUser(firstUser);
+    localRecipes.canCurrentUserManageOwnRecipe.mockImplementation((id: number) => id === 88);
+
+    service.addTag(88, 'spicy');
+    service.addTag(88, 'spicy');
+    service.addTag(89, 'blocked');
+
+    expect(service.getTags({ id: 88, tags: [] })).toEqual(['spicy']);
+    expect(service.getTags({ id: 89, tags: [] })).toEqual([]);
+
+    service.removeTag(89, 'blocked');
+    expect(service.getTags({ id: 89, tags: [] })).toEqual([]);
+
+    service.removeTag(88, 'spicy');
+    expect(service.getTags({ id: 88, tags: [] })).toEqual([]);
   });
 });

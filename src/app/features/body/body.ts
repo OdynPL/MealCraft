@@ -64,6 +64,7 @@ export class BodyComponent {
   protected readonly cuisines = computed(() => this.store.cuisines());
   protected readonly categories = computed(() => this.store.categories());
   protected readonly categoryCounts = computed(() => this.store.categoryCounts());
+  protected readonly mineOnly = computed(() => this.store.mineOnly());
 
   protected readonly currentRangeLabel = computed(() => {
     const total = this.store.totalResults();
@@ -185,6 +186,10 @@ export class BodyComponent {
     this.categoryControl.setValue('');
   }
 
+  protected setMineOnly(mineOnly: boolean): void {
+    this.store.setMineOnly(mineOnly);
+  }
+
   protected refresh(): void {
     this.store.reset();
     this.lastSyncedUrlState = JSON.stringify({});
@@ -192,15 +197,32 @@ export class BodyComponent {
   }
 
   protected deleteAllAndReload(): void {
+    if (!this.auth.currentUser()) {
+      void this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
+      return;
+    }
+
     this.feedback.clearAll();
-    this.store.deleteAllAndReload();
+    this.store.deleteAllAndReloadForCurrentUser();
     this.lastSyncedUrlState = JSON.stringify({});
     void this.router.navigate(['/home'], { queryParams: {} });
+  }
+
+  protected canDeleteRecipe(mealId: number): boolean {
+    return this.store.canDeleteRecipe(mealId);
+  }
+
+  protected canEditRecipe(mealId: number): boolean {
+    return this.store.canEditRecipe(mealId);
   }
 
   protected async deleteRecipe(mealId: number): Promise<void> {
     if (!this.auth.currentUser()) {
       void this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
+      return;
+    }
+
+    if (!this.store.canDeleteRecipe(mealId)) {
       return;
     }
 
@@ -238,6 +260,7 @@ export class BodyComponent {
     const query = queryParamMap.get('q') ?? '';
     const cuisine = queryParamMap.get('cuisine') ?? '';
     const category = queryParamMap.get('category') ?? '';
+    const mineOnly = parseBoolean(queryParamMap.get('mine'));
     const sortBy = parseSortBy(queryParamMap.get('sortBy'));
     const sortDirection = parseSortDirection(queryParamMap.get('sortDir'));
     const page = parseNumber(queryParamMap.get('page'), 0);
@@ -255,6 +278,10 @@ export class BodyComponent {
 
     if (category !== this.store.category()) {
       this.store.setCategory(category);
+    }
+
+    if (mineOnly !== this.store.mineOnly()) {
+      this.store.setMineOnly(mineOnly);
     }
 
     if (sortBy !== this.store.sortBy() || sortDirection !== this.store.sortDirection()) {
@@ -280,6 +307,9 @@ export class BodyComponent {
     }
     if (this.store.category()) {
       queryParams['category'] = this.store.category();
+    }
+    if (this.store.mineOnly()) {
+      queryParams['mine'] = 1;
     }
     if (this.store.sortBy() !== 'id') {
       queryParams['sortBy'] = this.store.sortBy();
@@ -324,6 +354,10 @@ function parseNumber(value: string | null, fallback: number): number {
 
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function parseBoolean(value: string | null): boolean {
+  return value === '1' || value === 'true';
 }
 
 function recommendedPageSizeForWidth(width: number): number {

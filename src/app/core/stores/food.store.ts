@@ -22,6 +22,7 @@ export class FoodStore {
     query: '',
     cuisine: '',
     category: '',
+    mineOnly: false,
     cuisines: [],
     categories: [],
     sortBy: this.config.defaultSortBy,
@@ -41,6 +42,7 @@ export class FoodStore {
   readonly query = computed(() => this.state().query);
   readonly cuisine = computed(() => this.state().cuisine);
   readonly category = computed(() => this.state().category);
+  readonly mineOnly = computed(() => this.state().mineOnly);
   readonly cuisines = computed(() => this.state().cuisines);
   readonly categories = computed(() => this.state().categories);
   readonly sortBy = computed(() => this.state().sortBy);
@@ -57,6 +59,7 @@ export class FoodStore {
     query: this.state().query,
     cuisine: this.state().cuisine,
     category: this.state().category,
+    mineOnly: this.state().mineOnly,
     sortBy: this.state().sortBy,
     sortDirection: this.state().sortDirection,
     pageIndex: this.state().pageIndex,
@@ -120,6 +123,10 @@ export class FoodStore {
     this.patch({ category, pageIndex: 0 });
   }
 
+  setMineOnly(mineOnly: boolean): void {
+    this.patch({ mineOnly, pageIndex: 0 });
+  }
+
   setSort(sortBy: FoodSortBy, sortDirection: SortDirection): void {
     this.patch({ sortBy, sortDirection, pageIndex: 0 });
   }
@@ -133,12 +140,25 @@ export class FoodStore {
     this.patch({ pageIndex });
   }
 
+  canDeleteRecipe(id: number): boolean {
+    return this.localRecipes.canCurrentUserDelete(id);
+  }
+
+  canEditRecipe(id: number): boolean {
+    return this.localRecipes.canCurrentUserDelete(id);
+  }
+
   refresh(): void {
     this.reset();
   }
 
-  deleteAllAndReload(): void {
-    this.localRecipes.clearAll();
+  deleteAllAndReloadForCurrentUser(): void {
+    const visibleApiRecipeIds = this.state()
+      .items
+      .filter((item) => item.author === 'TheMealDB')
+      .map((item) => item.id);
+
+    this.localRecipes.clearForCurrentUser(visibleApiRecipeIds);
     this.cache.clearByPrefix(this.config.searchEndpoint);
     this.cache.clearByPrefix(this.config.lookupEndpoint);
 
@@ -155,6 +175,10 @@ export class FoodStore {
   }
 
   deleteRecipe(id: number): void {
+    if (!this.canDeleteRecipe(id)) {
+      return;
+    }
+
     this.localRecipes.delete(id);
     this.cache.clearByPrefix(this.config.searchEndpoint);
     this.cache.clearByPrefix(this.config.lookupEndpoint);
@@ -193,6 +217,7 @@ function sameQuery(a: FoodQuery, b: FoodQuery): boolean {
   return a.query === b.query
     && a.cuisine === b.cuisine
     && a.category === b.category
+    && a.mineOnly === b.mineOnly
     && a.sortBy === b.sortBy
     && a.sortDirection === b.sortDirection
     && a.pageIndex === b.pageIndex

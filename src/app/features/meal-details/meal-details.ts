@@ -110,7 +110,7 @@ export class MealDetailsComponent {
 
   protected addTag(): void {
     const mealId = this.item()?.id;
-    if (!mealId || this.tagInput.invalid) {
+    if (!mealId || this.tagInput.invalid || !this.canManageTags()) {
       return;
     }
 
@@ -120,7 +120,7 @@ export class MealDetailsComponent {
 
   protected removeTag(tag: string): void {
     const mealId = this.item()?.id;
-    if (!mealId) {
+    if (!mealId || !this.canManageTags()) {
       return;
     }
 
@@ -152,6 +152,33 @@ export class MealDetailsComponent {
     }
 
     return this.feedback.canVote(mealId);
+  }
+
+  protected canDelete(): boolean {
+    const mealId = this.item()?.id;
+    if (!mealId) {
+      return false;
+    }
+
+    return this.store.canDeleteRecipe(mealId);
+  }
+
+  protected canEdit(): boolean {
+    const mealId = this.item()?.id;
+    if (!mealId) {
+      return false;
+    }
+
+    return this.store.canEditRecipe(mealId);
+  }
+
+  protected canManageTags(): boolean {
+    const mealId = this.item()?.id;
+    if (!mealId) {
+      return false;
+    }
+
+    return this.feedback.canManageTags(mealId);
   }
 
   protected async deleteRecipe(): Promise<void> {

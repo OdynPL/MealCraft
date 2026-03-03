@@ -35,18 +35,24 @@
               @for (tag of tags(); track tag) {
                 <span class="tag-pill">
                   {{ tag }}
-                  <button type="button" class="tag-remove" (click)="removeTag(tag)" aria-label="Remove tag">×</button>
+                  @if (canManageTags()) {
+                    <button type="button" class="tag-remove" (click)="removeTag(tag)" aria-label="Remove tag">×</button>
+                  }
                 </span>
               }
             </div>
 
-            <section class="tag-form">
-              <mat-form-field appearance="outline">
-                <mat-label>Add tag</mat-label>
-                <input matInput [formControl]="tagInput" placeholder="e.g. spicy" />
-              </mat-form-field>
-              <button mat-flat-button color="primary" type="button" (click)="addTag()">Add tag</button>
-            </section>
+            @if (canManageTags()) {
+              <section class="tag-form">
+                <mat-form-field appearance="outline">
+                  <mat-label>Add tag</mat-label>
+                  <input matInput [formControl]="tagInput" placeholder="e.g. spicy" />
+                </mat-form-field>
+                <button mat-flat-button color="primary" type="button" (click)="addTag()">Add tag</button>
+              </section>
+            } @else {
+              <p class="vote-note">Only logged users can manage tags on their own recipes.</p>
+            }
 
             @if (hasMultipleInstructionSteps()) {
               <ol class="instructions">
@@ -60,8 +66,12 @@
           </mat-card-content>
           <mat-card-actions class="details-actions">
             @if (isLoggedIn()) {
-              <a mat-button color="primary" [routerLink]="['/meals', meal.id, 'edit']">Edit</a>
-              <button mat-button color="warn" type="button" (click)="deleteRecipe()">Delete</button>
+              @if (canEdit()) {
+                <a mat-button color="primary" [routerLink]="['/meals', meal.id, 'edit']">Edit</a>
+              }
+              @if (canDelete()) {
+                <button mat-button color="warn" type="button" (click)="deleteRecipe()">Delete</button>
+              }
             }
             @if (meal.sourceUrl) {
               <a mat-button color="primary" [href]="meal.sourceUrl" target="_blank" rel="noopener">Source</a>

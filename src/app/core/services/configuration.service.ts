@@ -5,7 +5,10 @@ import { FoodSortBy, SortDirection } from '../models';
 @Injectable({ providedIn: 'root' })
 export class ConfigurationService {
   readonly mealDbBaseUrl = 'https://www.themealdb.com/api/json/v1/1';
-  readonly mealDbCorsProxyUrl = 'https://api.allorigins.win/raw?url=';
+  readonly mealDbCorsProxyCandidates = [
+    'https://api.allorigins.win/raw?url=',
+    'https://corsproxy.io/?'
+  ] as const;
   readonly useMealDbCorsProxy = typeof globalThis !== 'undefined'
     && typeof globalThis.location !== 'undefined'
     && globalThis.location.hostname.endsWith('github.io');

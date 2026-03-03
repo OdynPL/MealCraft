@@ -15,6 +15,7 @@ export interface LocalRecipeState {
   custom: FoodDetail[];
   overrides: FoodDetail[];
   deletedIds: number[];
+  deletedByUser?: Record<string, number[]>;
 }
 
 export interface LocalRecipeSnapshot {

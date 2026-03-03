@@ -2,6 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 
 import { Food } from '../models';
 import { AuthService } from './auth.service';
+import { LocalRecipeService } from './local-recipe.service';
 
 type VoteValue = -1 | 1;
 type VoteMap = Record<number, Record<number, VoteValue>>;
@@ -13,6 +14,7 @@ const TAGS_KEY = 'foodExplorerTags';
 @Injectable({ providedIn: 'root' })
 export class RecipeFeedbackService {
   private readonly auth = inject(AuthService);
+  private readonly localRecipes = inject(LocalRecipeService);
   private readonly votes = signal<VoteMap>(readVotes());
   private readonly tags = signal<TagMap>(readJson<TagMap>(TAGS_KEY, {}));
 
@@ -68,7 +70,15 @@ export class RecipeFeedbackService {
     return uniqueTags([...(food.tags ?? []), ...customTags]);
   }
 
+  canManageTags(mealId: number): boolean {
+    return this.localRecipes.canCurrentUserManageOwnRecipe(mealId);
+  }
+
   addTag(mealId: number, value: string): void {
+    if (!this.canManageTags(mealId)) {
+      return;
+    }
+
     const normalized = normalizeTag(value);
     if (!normalized) {
       return;
@@ -83,6 +93,10 @@ export class RecipeFeedbackService {
   }
 
   removeTag(mealId: number, value: string): void {
+    if (!this.canManageTags(mealId)) {
+      return;
+    }
+
     this.tags.update((current) => {
       const existing = current[mealId] ?? [];
       const nextTags = existing.filter((tag) => tag !== value);

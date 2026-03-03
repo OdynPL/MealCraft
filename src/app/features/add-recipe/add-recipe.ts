@@ -75,6 +75,14 @@ export class AddRecipeComponent {
   protected readonly loadedRecipe = signal<FoodDetail | null>(null);
   protected readonly isEditMode = computed(() => this.recipeId() !== null);
   protected readonly isLoggedIn = computed(() => this.auth.isLoggedIn());
+  protected readonly canEditRecipe = computed(() => {
+    const editId = this.recipeId();
+    if (editId === null) {
+      return true;
+    }
+
+    return this.store.canEditRecipe(editId);
+  });
   protected readonly formInvalid = computed(() => {
     return this.titleControl.invalid
       || this.cuisineControl.invalid
@@ -188,6 +196,12 @@ export class AddRecipeComponent {
       return;
     }
 
+    if (this.isEditMode() && !this.canEditRecipe()) {
+      this.submitError.set('You can edit only your own recipes.');
+      await this.router.navigate(['/home']);
+      return;
+    }
+
     const tags = this.tagsControl.value
       .split(',')
       .map((value) => value.trim())
@@ -204,11 +218,16 @@ export class AddRecipeComponent {
       tags
     };
 
-    const editId = this.recipeId();
-    const recipe = editId ? this.recipes.save(editId, draft, this.loadedRecipe() ?? undefined) : this.recipes.add(draft);
+    try {
+      const editId = this.recipeId();
+      const recipe = editId ? this.recipes.save(editId, draft, this.loadedRecipe() ?? undefined) : this.recipes.add(draft);
 
-    this.store.reset();
-    await this.router.navigate(['/meals', recipe.id]);
+      this.store.reset();
+      await this.router.navigate(['/meals', recipe.id]);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to save recipe.';
+      this.submitError.set(message);
+    }
   }
 
   private markAllTouched(): void {

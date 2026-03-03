@@ -98,7 +98,7 @@
     </mat-card-content>
 
     <mat-card-actions class="actions">
-      <button mat-button type="button" [disabled]="!isLoggedIn()" (click)="submit()">{{ isEditMode() ? 'Update recipe' : 'Save recipe' }}</button>
+      <button mat-button type="button" [disabled]="!isLoggedIn() || !canEditRecipe()" (click)="submit()">{{ isEditMode() ? 'Update recipe' : 'Save recipe' }}</button>
     </mat-card-actions>
   </mat-card>
 </div>

@@ -7,6 +7,7 @@ export interface Food {
   cuisine: string;
   category: string;
   tags: string[];
+  ownerId?: number;
   author: string;
   createdAt: string;
 }

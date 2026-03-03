@@ -29,11 +29,13 @@ export class LocalRecipeService {
   }
 
   isDeleted(id: number): boolean {
-    return this.readState().deletedIds.includes(id);
+    const state = this.readState();
+    return this.getDeletedIdsForCurrentUser(state).includes(id);
   }
 
   getDeletedIds(): number[] {
-    return this.readState().deletedIds;
+    const state = this.readState();
+    return this.getDeletedIdsForCurrentUser(state);
   }
 
   getSnapshot(): LocalRecipeSnapshot {
@@ -41,8 +43,42 @@ export class LocalRecipeService {
     return {
       custom: [...state.custom],
       overrides: [...state.overrides],
-      deletedIds: [...state.deletedIds]
+      deletedIds: this.getDeletedIdsForCurrentUser(state)
     };
+  }
+
+  canCurrentUserDelete(id: number): boolean {
+    const userId = this.auth.currentUser()?.id;
+    if (!userId) {
+      return false;
+    }
+
+    const state = this.readState();
+    const localRecipe = state.custom.find((item) => item.id === id)
+      ?? state.overrides.find((item) => item.id === id);
+
+    if (!localRecipe) {
+      return true;
+    }
+
+    return localRecipe.ownerId === undefined || localRecipe.ownerId === userId;
+  }
+
+  canCurrentUserManageOwnRecipe(id: number): boolean {
+    const userId = this.auth.currentUser()?.id;
+    if (!userId) {
+      return false;
+    }
+
+    const state = this.readState();
+    const localRecipe = state.custom.find((item) => item.id === id)
+      ?? state.overrides.find((item) => item.id === id);
+
+    if (!localRecipe) {
+      return false;
+    }
+
+    return localRecipe.ownerId === undefined || localRecipe.ownerId === userId;
   }
 
   add(draft: LocalRecipeDraft): FoodDetail {
@@ -65,12 +101,13 @@ export class LocalRecipeService {
       sourceUrl: draft.sourceUrl,
       youtubeUrl: draft.youtubeUrl,
       tags: [...new Set(draft.tags)],
+      ownerId: currentUser.id,
       author,
       createdAt
     };
 
     state.custom = [recipe, ...state.custom];
-    state.deletedIds = state.deletedIds.filter((id) => id !== recipe.id);
+    this.unmarkDeletedForCurrentUser(state, recipe.id);
     this.writeState(state);
 
     return recipe;
@@ -83,13 +120,18 @@ export class LocalRecipeService {
     }
 
     const fallbackAuthor = buildUserDisplayName(currentUser.firstName, currentUser.lastName, currentUser.email);
+    const fallbackOwnerId = currentUser.id;
 
     const state = this.readState();
     const customIndex = state.custom.findIndex((item) => item.id === id);
 
     if (customIndex >= 0) {
       const current = state.custom[customIndex];
-      const updated = this.buildRecipe(id, draft, current, fallbackAuthor);
+      if (current.ownerId !== undefined && current.ownerId !== currentUser.id) {
+        throw new Error('You can edit only your own recipes.');
+      }
+
+      const updated = this.buildRecipe(id, draft, current, fallbackAuthor, fallbackOwnerId);
       state.custom = [
         ...state.custom.slice(0, customIndex),
         updated,
@@ -100,7 +142,11 @@ export class LocalRecipeService {
     }
 
     const overrideBase = base ?? state.overrides.find((item) => item.id === id);
-    const updated = this.buildRecipe(id, draft, overrideBase, fallbackAuthor);
+    if (overrideBase?.ownerId !== undefined && overrideBase.ownerId !== currentUser.id) {
+      throw new Error('You can edit only your own recipes.');
+    }
+
+    const updated = this.buildRecipe(id, draft, overrideBase, fallbackAuthor, fallbackOwnerId);
     const overrideIndex = state.overrides.findIndex((item) => item.id === id);
 
     if (overrideIndex >= 0) {
@@ -113,27 +159,52 @@ export class LocalRecipeService {
       state.overrides = [updated, ...state.overrides];
     }
 
-    state.deletedIds = state.deletedIds.filter((deletedId) => deletedId !== id);
+    this.unmarkDeletedForCurrentUser(state, id);
     this.writeState(state);
     return updated;
   }
 
   delete(id: number): void {
+    const userId = this.auth.currentUser()?.id;
+    if (!userId) {
+      throw new Error('Login is required to delete recipes.');
+    }
+
     const state = this.readState();
 
-    const hasCustom = state.custom.some((item) => item.id === id);
-    state.custom = state.custom.filter((item) => item.id !== id);
-    state.overrides = state.overrides.filter((item) => item.id !== id);
+    const ownCustom = state.custom.some((item) => item.id === id && (item.ownerId === undefined || item.ownerId === userId));
+    const ownOverride = state.overrides.some((item) => item.id === id && (item.ownerId === undefined || item.ownerId === userId));
 
-    if (!hasCustom && !state.deletedIds.includes(id)) {
-      state.deletedIds = [...state.deletedIds, id];
+    state.custom = state.custom.filter((item) => item.id !== id || (item.ownerId !== undefined && item.ownerId !== userId));
+    state.overrides = state.overrides.filter((item) => item.id !== id || (item.ownerId !== undefined && item.ownerId !== userId));
+
+    if (!ownCustom) {
+      this.markDeletedForCurrentUser(state, id);
+    }
+
+    this.writeState(state);
+  }
+
+  clearForCurrentUser(apiRecipeIds: number[]): void {
+    const userId = this.auth.currentUser()?.id;
+    if (!userId) {
+      throw new Error('Login is required to delete recipes.');
+    }
+
+    const state = this.readState();
+
+    state.custom = state.custom.filter((item) => item.ownerId !== userId);
+    state.overrides = state.overrides.filter((item) => item.ownerId !== userId);
+
+    for (const id of apiRecipeIds) {
+      this.markDeletedForCurrentUser(state, id);
     }
 
     this.writeState(state);
   }
 
   clearAll(): void {
-    this.writeState({ custom: [], overrides: [], deletedIds: [] });
+    this.writeState({ custom: [], overrides: [], deletedIds: [], deletedByUser: {} });
   }
 
   getFacetValues(): LocalRecipeFacets {
@@ -152,9 +223,16 @@ export class LocalRecipeService {
     return Math.max(now, maxId + 1);
   }
 
-  private buildRecipe(id: number, draft: LocalRecipeDraft, base: FoodDetail | undefined, fallbackAuthor: string): FoodDetail {
+  private buildRecipe(
+    id: number,
+    draft: LocalRecipeDraft,
+    base: FoodDetail | undefined,
+    fallbackAuthor: string,
+    fallbackOwnerId: number | undefined
+  ): FoodDetail {
     const createdAt = base?.createdAt || new Date().toISOString();
     const author = base?.author || fallbackAuthor;
+    const ownerId = base?.ownerId ?? fallbackOwnerId;
 
     return {
       id,
@@ -166,6 +244,7 @@ export class LocalRecipeService {
       sourceUrl: draft.sourceUrl,
       youtubeUrl: draft.youtubeUrl,
       tags: [...new Set(draft.tags)],
+      ownerId,
       author,
       createdAt
     };
@@ -173,12 +252,12 @@ export class LocalRecipeService {
 
   private readState(): LocalRecipeState {
     if (typeof localStorage === 'undefined') {
-      return { custom: [], overrides: [], deletedIds: [] };
+      return { custom: [], overrides: [], deletedIds: [], deletedByUser: {} };
     }
 
     const raw = localStorage.getItem(this.config.localRecipeStorageKey);
     if (!raw) {
-      return { custom: [], overrides: [], deletedIds: [] };
+      return { custom: [], overrides: [], deletedIds: [], deletedByUser: {} };
     }
 
     try {
@@ -190,17 +269,19 @@ export class LocalRecipeService {
             .map((item) => this.toRecipe(item))
             .filter((item): item is FoodDetail => item !== null),
           overrides: [],
-          deletedIds: []
+          deletedIds: [],
+          deletedByUser: {}
         };
       }
 
       if (!isObject(parsed)) {
-        return { custom: [], overrides: [], deletedIds: [] };
+        return { custom: [], overrides: [], deletedIds: [], deletedByUser: {} };
       }
 
       const customRaw = Array.isArray(parsed['custom']) ? parsed['custom'] : [];
       const overridesRaw = Array.isArray(parsed['overrides']) ? parsed['overrides'] : [];
       const deletedIdsRaw = Array.isArray(parsed['deletedIds']) ? parsed['deletedIds'] : [];
+      const deletedByUserRaw = isObject(parsed['deletedByUser']) ? parsed['deletedByUser'] : {};
 
       return {
         custom: customRaw
@@ -211,10 +292,11 @@ export class LocalRecipeService {
           .filter((item): item is FoodDetail => item !== null),
         deletedIds: deletedIdsRaw
           .map((value) => Number(value))
-          .filter((value) => Number.isFinite(value) && value > 0)
+          .filter((value) => Number.isFinite(value) && value > 0),
+        deletedByUser: parseDeletedByUser(deletedByUserRaw)
       };
     } catch {
-      return { custom: [], overrides: [], deletedIds: [] };
+      return { custom: [], overrides: [], deletedIds: [], deletedByUser: {} };
     }
   }
 
@@ -241,6 +323,7 @@ export class LocalRecipeService {
     const youtubeUrl = normalizeOptionalUrl(value['youtubeUrl']);
     const author = String(value['author'] ?? 'Unknown').trim() || 'Unknown';
     const createdAt = normalizeCreatedAt(value['createdAt']);
+    const ownerId = normalizeOptionalOwnerId(value['ownerId']);
 
     if (!Number.isFinite(id) || id <= 0 || !title || !category || !cuisine || !instructions) {
       return null;
@@ -261,8 +344,51 @@ export class LocalRecipeService {
       sourceUrl,
       youtubeUrl,
       tags: [...new Set(tags)],
+      ownerId,
       author,
       createdAt
+    };
+  }
+
+  private getDeletedIdsForCurrentUser(state: LocalRecipeState): number[] {
+    const userId = this.auth.currentUser()?.id;
+    if (!userId) {
+      return [];
+    }
+
+    const scoped = state.deletedByUser?.[String(userId)] ?? [];
+    return [...new Set(scoped)];
+  }
+
+  private markDeletedForCurrentUser(state: LocalRecipeState, id: number): void {
+    const userId = this.auth.currentUser()?.id;
+    if (!userId || !Number.isFinite(id) || id <= 0) {
+      return;
+    }
+
+    const key = String(userId);
+    const current = state.deletedByUser?.[key] ?? [];
+    const next = [...new Set([...current, id])];
+
+    state.deletedByUser = {
+      ...(state.deletedByUser ?? {}),
+      [key]: next
+    };
+  }
+
+  private unmarkDeletedForCurrentUser(state: LocalRecipeState, id: number): void {
+    const userId = this.auth.currentUser()?.id;
+    if (!userId) {
+      return;
+    }
+
+    const key = String(userId);
+    const current = state.deletedByUser?.[key] ?? [];
+    const next = current.filter((item) => item !== id);
+
+    state.deletedByUser = {
+      ...(state.deletedByUser ?? {}),
+      [key]: next
     };
   }
 }
@@ -285,6 +411,27 @@ function normalizeCreatedAt(value: unknown): string {
   }
 
   return date.toISOString();
+}
+
+function normalizeOptionalOwnerId(value: unknown): number | undefined {
+  const ownerId = Number(value);
+  return Number.isFinite(ownerId) && ownerId > 0 ? ownerId : undefined;
+}
+
+function parseDeletedByUser(value: Record<string, unknown>): Record<string, number[]> {
+  const parsed: Record<string, number[]> = {};
+
+  for (const [key, ids] of Object.entries(value)) {
+    if (!Array.isArray(ids)) {
+      continue;
+    }
+
+    parsed[key] = ids
+      .map((id) => Number(id))
+      .filter((id) => Number.isFinite(id) && id > 0);
+  }
+
+  return parsed;
 }
 
 function uniqueValues(values: string[]): string[] {

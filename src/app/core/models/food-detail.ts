@@ -8,6 +8,7 @@ export interface FoodDetail {
   sourceUrl?: string;
   youtubeUrl?: string;
   tags: string[];
+  ownerId?: number;
   author: string;
   createdAt: string;
 }

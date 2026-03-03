@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { catchError, forkJoin, map, Observable, of } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of, throwError } from 'rxjs';
 
 import {
   MealDbAreaResponseDto,
@@ -12,6 +12,7 @@ import {
 } from '../dto';
 import { Food, FoodCategoryCount, FoodDetail, FoodFacets, FoodPage, FoodQuery, FoodSortBy, SortDirection } from '../models';
 import { ConfigurationService } from './configuration.service';
+import { AuthService } from './auth.service';
 import { LocalRecipeService } from './local-recipe.service';
 import { RecipeFeedbackService } from './recipe-feedback.service';
 
@@ -23,6 +24,7 @@ const API_AUTHOR = 'TheMealDB';
 export class FoodApiService {
   private readonly http = inject(HttpClient);
   private readonly config = inject(ConfigurationService);
+  private readonly auth = inject(AuthService);
   private readonly localRecipes = inject(LocalRecipeService);
   private readonly feedback = inject(RecipeFeedbackService);
 
@@ -96,6 +98,8 @@ export class FoodApiService {
     const searchText = this.normalizeText(query.query) ?? '';
     const cuisine = this.normalizeText(query.cuisine);
     const category = this.normalizeText(query.category);
+    const mineOnly = query.mineOnly;
+    const currentUserId = this.auth.currentUser()?.id;
 
     return this.mealDbGet<MealDbSearchResponseDto>(
       this.config.searchEndpoint,
@@ -105,7 +109,7 @@ export class FoodApiService {
         map((res) => res.meals ?? []),
         map((meals) => meals.map((item) => this.toFood(item))),
         map((apiItems) => this.applyLocalMutations(apiItems)),
-        map((items) => filterFoods(items, searchText, cuisine, category)),
+        map((items) => filterFoods(items, searchText, cuisine, category, mineOnly, currentUserId)),
         map((items) => ({
           allItems: items,
           categoryCounts: buildCategoryCounts(items)
@@ -255,9 +259,20 @@ export class FoodApiService {
     }
 
     const urlWithQuery = buildUrlWithQuery(baseUrl, params);
-    const proxiedUrl = `${this.config.mealDbCorsProxyUrl}${encodeURIComponent(urlWithQuery)}`;
+    const proxiedUrls = this.config.mealDbCorsProxyCandidates
+      .map((proxyBaseUrl) => `${proxyBaseUrl}${encodeURIComponent(urlWithQuery)}`);
 
-    return this.http.get<T>(proxiedUrl);
+    return this.requestWithProxyFallback<T>(proxiedUrls, 0);
+  }
+
+  private requestWithProxyFallback<T>(proxyUrls: readonly string[], index: number): Observable<T> {
+    if (index >= proxyUrls.length) {
+      return throwError(() => new Error('MealDB proxy unavailable.'));
+    }
+
+    return this.http.get<T>(proxyUrls[index]).pipe(
+      catchError(() => this.requestWithProxyFallback<T>(proxyUrls, index + 1))
+    );
   }
 }
 
@@ -274,12 +289,20 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
-function filterFoods(items: Food[], query?: string, cuisine?: string, category?: string): Food[] {
+function filterFoods(
+  items: Food[],
+  query?: string,
+  cuisine?: string,
+  category?: string,
+  mineOnly?: boolean,
+  currentUserId?: number
+): Food[] {
   return items.filter((item) => {
     const matchesQuery = !query || item.title.toLowerCase().includes(query.toLowerCase());
     const matchesCuisine = !cuisine || item.cuisine.toLowerCase() === cuisine.toLowerCase();
     const matchesCategory = !category || item.category.toLowerCase() === category.toLowerCase();
-    return matchesQuery && matchesCuisine && matchesCategory;
+    const matchesMine = !mineOnly || (currentUserId !== undefined && item.ownerId === currentUserId);
+    return matchesQuery && matchesCuisine && matchesCategory && matchesMine;
   });
 }
 
