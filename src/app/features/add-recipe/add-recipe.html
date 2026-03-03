@@ -9,7 +9,11 @@
         <p class="app-status-error">Login is required to add or edit recipes.</p>
       }
 
-      <form id="add-recipe-form" class="recipe-form" novalidate (ngSubmit)="submit()">
+      @if (validationError(); as validationError) {
+        <p class="validation-banner" role="alert">{{ validationError }}</p>
+      }
+
+      <form id="add-recipe-form" class="recipe-form" novalidate (submit)="onRecipeFormSubmit($event)">
         <div class="recipe-grid app-form-grid">
           <mat-form-field appearance="outline">
             <mat-label>Recipe name</mat-label>

@@ -70,6 +70,7 @@ export class AddRecipeComponent {
 
   protected readonly imagePreview = signal(this.config.localRecipePlaceholderImage);
   protected readonly imageError = signal<string | null>(null);
+  protected readonly validationError = signal<string | null>(null);
   protected readonly submitError = signal<string | null>(null);
   protected readonly recipeId = signal<number | null>(null);
   protected readonly loadedRecipe = signal<FoodDetail | null>(null);
@@ -180,7 +181,13 @@ export class AddRecipeComponent {
     reader.readAsDataURL(file);
   }
 
+  protected onRecipeFormSubmit(event: Event): void {
+    event.preventDefault();
+    void this.submit();
+  }
+
   protected async submit(): Promise<void> {
+    this.validationError.set(null);
     this.submitError.set(null);
 
     if (!this.auth.currentUser()) {
@@ -193,6 +200,7 @@ export class AddRecipeComponent {
 
     if (this.formInvalid() || this.imageError()) {
       this.markAllTouched();
+      this.validationError.set(this.firstValidationError());
       return;
     }
 
@@ -238,6 +246,50 @@ export class AddRecipeComponent {
     this.sourceUrlControl.markAsTouched();
     this.youtubeUrlControl.markAsTouched();
     this.tagsControl.markAsTouched();
+  }
+
+  private firstValidationError(): string {
+    if (this.titleControl.hasError('required')) {
+      return 'Recipe name is required.';
+    }
+    if (this.titleControl.hasError('minlength')) {
+      return `Recipe name must be at least ${this.config.authMinNameLength} characters.`;
+    }
+    if (this.titleControl.hasError('maxlength')) {
+      return `Recipe name must be at most ${this.config.recipeTitleMaxLength} characters.`;
+    }
+
+    if (this.cuisineControl.hasError('required') || this.cuisineControl.hasError('minlength') || this.cuisineControl.hasError('maxlength')) {
+      return 'Enter a valid cuisine.';
+    }
+
+    if (this.categoryControl.hasError('required') || this.categoryControl.hasError('minlength') || this.categoryControl.hasError('maxlength')) {
+      return 'Enter a valid category.';
+    }
+
+    if (this.instructionsControl.hasError('required')) {
+      return 'Instructions are required.';
+    }
+    if (this.instructionsControl.hasError('minlength')) {
+      return `Instructions must be at least ${this.config.recipeInstructionsMinLength} characters.`;
+    }
+    if (this.instructionsControl.hasError('maxlength')) {
+      return `Instructions must be at most ${this.config.recipeInstructionsMaxLength} characters.`;
+    }
+
+    if (this.sourceUrlControl.hasError('pattern') || this.youtubeUrlControl.hasError('pattern')) {
+      return 'Source/YouTube URL must start with http:// or https://.';
+    }
+
+    if (this.tagsControl.hasError('maxlength')) {
+      return `Tags must be at most ${this.config.recipeTagsInputMaxLength} characters.`;
+    }
+
+    if (this.imageError()) {
+      return this.imageError() ?? 'Image is invalid.';
+    }
+
+    return 'Please fix validation errors and try again.';
   }
 }
 

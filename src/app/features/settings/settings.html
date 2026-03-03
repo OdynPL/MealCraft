@@ -5,9 +5,13 @@
     </mat-card-header>
 
     <mat-card-content class="settings-content">
-      <form class="settings-section app-section-panel" novalidate (ngSubmit)="saveProfile()">
+      <form class="settings-section" novalidate (submit)="onProfileFormSubmit($event)">
         <h3>Profile</h3>
         <p class="profile-name">{{ fullName() }}</p>
+
+        @if (profileValidationError(); as profileValidationError) {
+          <p class="validation-banner" role="alert">{{ profileValidationError }}</p>
+        }
 
         <div class="avatar-upload app-upload-panel">
           <div class="avatar-circle">
@@ -59,8 +63,12 @@
         </div>
       </form>
 
-      <form class="settings-section app-section-panel" novalidate (ngSubmit)="changePassword()">
+      <form class="settings-section" novalidate (submit)="onPasswordFormSubmit($event)">
         <h3>Password</h3>
+
+        @if (passwordValidationError(); as passwordValidationError) {
+          <p class="validation-banner" role="alert">{{ passwordValidationError }}</p>
+        }
 
         <div class="fields-grid app-form-grid">
           <mat-form-field appearance="outline">

@@ -35,6 +35,8 @@ export class SettingsComponent {
 
   protected readonly profileMessage = signal<string | null>(null);
   protected readonly passwordMessage = signal<string | null>(null);
+  protected readonly profileValidationError = signal<string | null>(null);
+  protected readonly passwordValidationError = signal<string | null>(null);
   protected readonly profileError = signal<string | null>(null);
   protected readonly passwordError = signal<string | null>(null);
   protected readonly avatarError = signal<string | null>(null);
@@ -147,15 +149,27 @@ export class SettingsComponent {
     this.avatarError.set(null);
   }
 
+  protected onProfileFormSubmit(event: Event): void {
+    event.preventDefault();
+    void this.saveProfile();
+  }
+
+  protected onPasswordFormSubmit(event: Event): void {
+    event.preventDefault();
+    void this.changePassword();
+  }
+
   protected async saveProfile(): Promise<void> {
     this.profileMessage.set(null);
     this.profileError.set(null);
+    this.profileValidationError.set(null);
 
     if (this.firstNameControl.invalid || this.lastNameControl.invalid || this.phoneControl.invalid || this.ageControl.invalid || this.avatarError()) {
       this.firstNameControl.markAsTouched();
       this.lastNameControl.markAsTouched();
       this.phoneControl.markAsTouched();
       this.ageControl.markAsTouched();
+      this.profileValidationError.set(this.firstProfileValidationError());
       return;
     }
 
@@ -178,10 +192,12 @@ export class SettingsComponent {
   protected async changePassword(): Promise<void> {
     this.passwordMessage.set(null);
     this.passwordError.set(null);
+    this.passwordValidationError.set(null);
 
     if (this.currentPasswordControl.invalid || this.newPasswordControl.invalid) {
       this.currentPasswordControl.markAsTouched();
       this.newPasswordControl.markAsTouched();
+      this.passwordValidationError.set(this.firstPasswordValidationError());
       return;
     }
 
@@ -195,5 +211,65 @@ export class SettingsComponent {
     this.passwordMessage.set('Password changed successfully.');
     this.currentPasswordControl.setValue('');
     this.newPasswordControl.setValue('');
+  }
+
+  private firstProfileValidationError(): string {
+    if (this.firstNameControl.hasError('required')) {
+      return 'First name is required.';
+    }
+    if (this.firstNameControl.hasError('minlength')) {
+      return `First name must be at least ${this.config.authMinNameLength} characters.`;
+    }
+    if (this.firstNameControl.hasError('maxlength')) {
+      return `First name must be at most ${this.config.authMaxNameLength} characters.`;
+    }
+
+    if (this.lastNameControl.hasError('required')) {
+      return 'Last name is required.';
+    }
+    if (this.lastNameControl.hasError('minlength')) {
+      return `Last name must be at least ${this.config.authMinNameLength} characters.`;
+    }
+    if (this.lastNameControl.hasError('maxlength')) {
+      return `Last name must be at most ${this.config.authMaxNameLength} characters.`;
+    }
+
+    if (this.phoneControl.hasError('required') || this.phoneControl.hasError('pattern') || this.phoneControl.hasError('maxlength')) {
+      return 'Enter a valid phone number.';
+    }
+
+    if (this.ageControl.hasError('required') || this.ageControl.hasError('min') || this.ageControl.hasError('max')) {
+      return `Age must be between ${this.config.authMinAge} and ${this.config.authMaxAge}.`;
+    }
+
+    if (this.avatarError()) {
+      return this.avatarError() ?? 'Avatar is invalid.';
+    }
+
+    return 'Please fix validation errors and try again.';
+  }
+
+  private firstPasswordValidationError(): string {
+    if (this.currentPasswordControl.hasError('required')) {
+      return 'Current password is required.';
+    }
+    if (this.currentPasswordControl.hasError('minlength')) {
+      return `Current password must be at least ${this.config.authMinPasswordLength} characters.`;
+    }
+    if (this.currentPasswordControl.hasError('maxlength')) {
+      return `Current password must be at most ${this.config.authMaxPasswordLength} characters.`;
+    }
+
+    if (this.newPasswordControl.hasError('required')) {
+      return 'New password is required.';
+    }
+    if (this.newPasswordControl.hasError('minlength')) {
+      return `New password must be at least ${this.config.authMinPasswordLength} characters.`;
+    }
+    if (this.newPasswordControl.hasError('maxlength')) {
+      return `New password must be at most ${this.config.authMaxPasswordLength} characters.`;
+    }
+
+    return 'Please fix validation errors and try again.';
   }
 }

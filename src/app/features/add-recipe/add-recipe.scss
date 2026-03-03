@@ -12,6 +12,15 @@
   gap: 0.8rem;
 }
 
+.validation-banner {
+  margin: 0 0 0.75rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-error) 35%, transparent);
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+}
+
 .instructions-field {
   width: 100%;
 }
