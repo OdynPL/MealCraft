@@ -11,12 +11,29 @@
   max-width: 100%;
 }
 
+.settings-card.app-form-shell {
+  width: min(1800px, 100%);
+  max-width: none;
+}
+
 .profile-name {
   margin: 0 0 0.4rem;
   font-weight: 600;
 }
 
 .settings-section {
+  min-width: 0;
+}
+
+.profile-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 30%) minmax(0, 70%);
+  gap: 0.9rem;
+  align-items: start;
+}
+
+.profile-media,
+.profile-main {
   min-width: 0;
 }
 
@@ -83,6 +100,10 @@
 }
 
 @media (max-width: 640px) {
+  .profile-layout {
+    grid-template-columns: 1fr;
+  }
+
   .avatar-actions {
     width: 100%;
   }

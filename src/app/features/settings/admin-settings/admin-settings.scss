@@ -10,3 +10,8 @@
 .settings-card {
   max-width: 100%;
 }
+
+.settings-card.app-form-shell {
+  width: min(1800px, 100%);
+  max-width: none;
+}

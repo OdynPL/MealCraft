@@ -12,53 +12,59 @@
         <p class="validation-banner" role="alert">{{ profileValidationError }}</p>
       }
 
-      <div class="avatar-upload app-upload-panel">
-        <div class="avatar-circle">
-          <img class="avatar-preview" [src]="avatarPreview()" alt="Avatar preview" />
+      <div class="profile-layout">
+        <div class="profile-media">
+          <div class="avatar-upload app-upload-panel">
+            <div class="avatar-circle">
+              <img class="avatar-preview" [src]="avatarPreview()" alt="Avatar preview" />
+            </div>
+
+            <div class="avatar-actions">
+              <label class="avatar-label" for="settings-avatar">Avatar</label>
+              <input id="settings-avatar" type="file" accept="image/*" (change)="onAvatarSelected($event)" />
+              <button mat-button type="button" (click)="removeAvatar()">Remove avatar</button>
+            </div>
+          </div>
+
+          @if (avatarError(); as avatarError) {
+            <p class="app-status-error">{{ avatarError }}</p>
+          }
         </div>
 
-        <div class="avatar-actions">
-          <label class="avatar-label" for="settings-avatar">Avatar</label>
-          <input id="settings-avatar" type="file" accept="image/*" (change)="onAvatarSelected($event)" />
-          <button mat-button type="button" (click)="removeAvatar()">Remove avatar</button>
+        <div class="profile-main">
+          <div class="fields-grid app-form-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>First name</mat-label>
+              <input matInput [formControl]="firstNameControl" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Last name</mat-label>
+              <input matInput [formControl]="lastNameControl" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Phone number</mat-label>
+              <input matInput [formControl]="phoneControl" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Age</mat-label>
+              <input matInput type="number" [formControl]="ageControl" />
+            </mat-form-field>
+          </div>
+
+          @if (profileError(); as profileError) {
+            <p class="app-status-error">{{ profileError }}</p>
+          }
+          @if (profileMessage(); as profileMessage) {
+            <p class="app-status-ok">{{ profileMessage }}</p>
+          }
+
+          <div class="app-form-actions">
+            <button mat-flat-button color="primary" type="submit">Save profile</button>
+          </div>
         </div>
-      </div>
-
-      @if (avatarError(); as avatarError) {
-        <p class="app-status-error">{{ avatarError }}</p>
-      }
-
-      <div class="fields-grid app-form-grid">
-        <mat-form-field appearance="outline">
-          <mat-label>First name</mat-label>
-          <input matInput [formControl]="firstNameControl" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Last name</mat-label>
-          <input matInput [formControl]="lastNameControl" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Phone number</mat-label>
-          <input matInput [formControl]="phoneControl" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Age</mat-label>
-          <input matInput type="number" [formControl]="ageControl" />
-        </mat-form-field>
-      </div>
-
-      @if (profileError(); as profileError) {
-        <p class="app-status-error">{{ profileError }}</p>
-      }
-      @if (profileMessage(); as profileMessage) {
-        <p class="app-status-ok">{{ profileMessage }}</p>
-      }
-
-      <div class="app-form-actions">
-        <button mat-flat-button color="primary" type="submit">Save profile</button>
       </div>
     </form>
 

@@ -3,8 +3,17 @@
   justify-content: center;
 }
 
+.add-recipe-wrapper.app-page-shell {
+  width: min(1860px, 100%);
+}
+
 .add-recipe-card {
   width: 100%;
+}
+
+.add-recipe-card.app-form-shell {
+  width: min(1800px, 100%);
+  max-width: none;
 }
 
 .add-recipe-card mat-card-header {
@@ -18,6 +27,24 @@
 .recipe-form {
   display: grid;
   gap: 0.8rem;
+}
+
+.recipe-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 30%) minmax(0, 70%);
+  gap: 0.9rem;
+  align-items: stretch;
+}
+
+.recipe-media,
+.recipe-main {
+  min-width: 0;
+}
+
+.recipe-main {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
 }
 
 .validation-banner {
@@ -45,6 +72,10 @@
   width: 100%;
 }
 
+.instructions-field .instructions-textarea {
+  min-height: clamp(280px, 42vh, 540px);
+}
+
 .image-upload {
   margin-top: 0.2rem;
 }
@@ -54,8 +85,8 @@
 }
 
 .image-preview {
-  width: min(220px, 100%);
-  max-height: 150px;
+  width: 100%;
+  max-height: 280px;
   border-radius: 14px;
   border: 1px solid var(--mat-sys-outline-variant);
   object-fit: cover;
@@ -66,6 +97,10 @@
 }
 
 @media (max-width: 600px) {
+  .recipe-layout {
+    grid-template-columns: 1fr;
+  }
+
   .actions {
     justify-content: stretch;
   }
@@ -81,7 +116,6 @@
   }
 
   .image-preview {
-    width: min(200px, 100%);
-    max-height: 135px;
+    max-height: 220px;
   }
 }

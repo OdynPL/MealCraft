@@ -4,6 +4,10 @@
   place-items: center;
 }
 
+.settings-wrapper.app-page-shell {
+  width: min(1860px, 100%);
+}
+
 .settings-wrapper app-user-settings,
 .settings-wrapper app-admin-settings {
   width: 100%;
