@@ -24,6 +24,16 @@ const DUMMY_COUNT = 100;
 const DUMMY_BASE_ID = 900_000;
 const DUMMY_CUISINES = ['Italian', 'Mexican', 'Polish', 'French', 'Indian'];
 const DUMMY_CATEGORIES = ['Pasta', 'Soup', 'Beef', 'Dessert', 'Seafood'];
+const DUMMY_PLACEHOLDER_COLORS = [
+  { bg: 'f97316', fg: 'ffffff' },
+  { bg: '0ea5e9', fg: 'ffffff' },
+  { bg: '22c55e', fg: '0f172a' },
+  { bg: 'a855f7', fg: 'ffffff' },
+  { bg: 'ef4444', fg: 'ffffff' },
+  { bg: 'eab308', fg: '0f172a' },
+  { bg: '14b8a6', fg: '0f172a' },
+  { bg: '3b82f6', fg: 'ffffff' }
+] as const;
 const DUMMY_FOODS = buildDummyFoods();
 const DUMMY_DETAILS = new Map<number, FoodDetail>(DUMMY_FOODS.map((item) => [item.id, toDummyDetail(item)]));
 
@@ -434,12 +444,13 @@ function buildDummyFoods(): Food[] {
   for (let index = 0; index < DUMMY_COUNT; index += 1) {
     const cuisine = DUMMY_CUISINES[index % DUMMY_CUISINES.length];
     const category = DUMMY_CATEGORIES[index % DUMMY_CATEGORIES.length];
+    const colorSet = DUMMY_PLACEHOLDER_COLORS[index % DUMMY_PLACEHOLDER_COLORS.length];
     const id = DUMMY_BASE_ID + index + 1;
 
     foods.push({
       id,
       title: `Dummy Recipe ${index + 1}`,
-      image: `https://placehold.co/600x400?text=Dummy+${index + 1}`,
+      image: `https://placehold.co/600x400/${colorSet.bg}/${colorSet.fg}?text=Dummy+${index + 1}`,
       imageType: 'jpg',
       sourceUrl: undefined,
       cuisine,
