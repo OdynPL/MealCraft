@@ -227,20 +227,6 @@ export class BodyComponent {
     void this.router.navigate(['/home'], { queryParams: {} });
   }
 
-  protected deleteAllAndReload(): void {
-    if (!this.auth.currentUser()) {
-      this.notifications.error('Login is required to delete recipes.');
-      void this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
-      return;
-    }
-
-    this.feedback.clearAll();
-    this.store.deleteAllAndReloadForCurrentUser();
-    this.notifications.success('Your recipes were deleted and list was reloaded.');
-    this.lastSyncedUrlState = JSON.stringify({});
-    void this.router.navigate(['/home'], { queryParams: {} });
-  }
-
   protected canDeleteRecipe(mealId: number): boolean {
     return this.store.canDeleteRecipe(mealId);
   }

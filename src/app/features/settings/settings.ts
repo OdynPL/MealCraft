@@ -10,6 +10,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { firstValueFrom } from 'rxjs';
 
 import { AuthService } from '../../core/services/auth.service';
+import { AdminDataResetService } from '../../core/services/admin-data-reset.service';
 import { AppPreferencesService } from '../../core/services/app-preferences.service';
 import { ConfigurationService } from '../../core/services/configuration.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -34,6 +35,7 @@ import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dial
 })
 export class SettingsComponent {
   private readonly auth = inject(AuthService);
+  private readonly adminDataReset = inject(AdminDataResetService);
   private readonly preferences = inject(AppPreferencesService);
   private readonly config = inject(ConfigurationService);
   private readonly notifications = inject(NotificationService);
@@ -48,6 +50,7 @@ export class SettingsComponent {
   protected readonly profileError = signal<string | null>(null);
   protected readonly passwordError = signal<string | null>(null);
   protected readonly avatarError = signal<string | null>(null);
+  protected readonly adminResetInProgress = signal(false);
 
   protected readonly avatarPreview = signal(this.auth.currentUser()?.avatar ?? this.config.authDefaultAvatar);
   private avatarValue = this.auth.currentUser()?.avatar;
@@ -180,6 +183,40 @@ export class SettingsComponent {
   protected onPasswordFormSubmit(event: Event): void {
     event.preventDefault();
     void this.changePassword();
+  }
+
+  protected async onAdminResetAllData(): Promise<void> {
+    if (!this.isAdmin() || this.adminResetInProgress()) {
+      return;
+    }
+
+    const confirmed = await firstValueFrom(this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Reset application data',
+        message: 'This will permanently remove all local recipes, user accounts, sessions, votes, tags and cached data. Continue?',
+        confirmLabel: 'Reset and reload',
+        cancelLabel: 'Cancel'
+      },
+      panelClass: 'app-confirm-dialog'
+    }).afterClosed());
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.adminResetInProgress.set(true);
+
+    try {
+      await this.adminDataReset.resetAllData();
+      this.notifications.success('Application data has been reset. Reloading...');
+
+      if (typeof globalThis.location !== 'undefined') {
+        globalThis.location.reload();
+      }
+    } catch {
+      this.notifications.error('Unable to reset application data.');
+      this.adminResetInProgress.set(false);
+    }
   }
 
   protected async saveProfile(): Promise<void> {

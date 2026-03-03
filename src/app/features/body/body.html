@@ -78,11 +78,6 @@
 
       <div class="summary-actions">
         <button mat-flat-button color="primary" class="action-button" type="button" (click)="refresh()">Refresh</button>
-        @if (isLoggedIn()) {
-          <button mat-stroked-button color="warn" class="action-button" type="button" (click)="deleteAllAndReload()">
-            Delete all & reload
-          </button>
-        }
       </div>
     </section>
 

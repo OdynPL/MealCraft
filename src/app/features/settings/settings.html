@@ -104,7 +104,7 @@
 
       <mat-card-content class="settings-content">
         <section class="settings-section" aria-label="Product source settings">
-          <h3>Products</h3>
+          <h3>Dummy Products</h3>
           <p class="settings-hint">Choose whether to include local dummy products in the main recipes grid.</p>
 
           <mat-slide-toggle
@@ -114,6 +114,23 @@
           >
             Dummy products
           </mat-slide-toggle>
+        </section>
+
+        <section class="settings-section" aria-label="Administrative data reset">
+          <h3>Cache & Data reset</h3>
+          <p class="settings-hint">Clear IndexedDB, local recipes, users, votes, tags and cached data, then reload and seed fresh defaults.</p>
+
+          <div class="app-form-actions">
+            <button
+              mat-stroked-button
+              color="warn"
+              type="button"
+              [disabled]="adminResetInProgress()"
+              (click)="onAdminResetAllData()"
+            >
+              Reset all data & reload
+            </button>
+          </div>
         </section>
       </mat-card-content>
     </mat-card>

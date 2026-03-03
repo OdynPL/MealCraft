@@ -6,6 +6,7 @@ import { of } from 'rxjs';
 import { vi } from 'vitest';
 
 import { SettingsComponent } from './settings';
+import { AdminDataResetService } from '../../core/services/admin-data-reset.service';
 import { AuthService } from '../../core/services/auth.service';
 import { AppPreferencesService } from '../../core/services/app-preferences.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -45,6 +46,10 @@ class MockFoodStore {
   reset = vi.fn();
 }
 
+class MockAdminDataResetService {
+  resetAllData = vi.fn().mockResolvedValue(undefined);
+}
+
 class MockMatDialog {
   open = vi.fn().mockReturnValue({
     afterClosed: () => of(false)
@@ -55,6 +60,7 @@ describe('SettingsComponent', () => {
   let component: SettingsComponent;
   let fixture: ComponentFixture<SettingsComponent>;
   let auth: MockAuthService;
+  let adminDataReset: MockAdminDataResetService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -66,6 +72,7 @@ describe('SettingsComponent', () => {
         { provide: AppPreferencesService, useClass: MockAppPreferencesService },
         { provide: NotificationService, useClass: MockNotificationService },
         { provide: FoodStore, useClass: MockFoodStore },
+        { provide: AdminDataResetService, useClass: MockAdminDataResetService },
         { provide: MatDialog, useClass: MockMatDialog }
       ]
     }).compileComponents();
@@ -73,6 +80,7 @@ describe('SettingsComponent', () => {
     fixture = TestBed.createComponent(SettingsComponent);
     component = fixture.componentInstance;
     auth = TestBed.inject(AuthService) as unknown as MockAuthService;
+    adminDataReset = TestBed.inject(AdminDataResetService) as unknown as MockAdminDataResetService;
     await fixture.whenStable();
     fixture.detectChanges();
   });
@@ -91,6 +99,7 @@ describe('SettingsComponent', () => {
     expect(cardTitles).not.toContain('Admin Settings');
     expect(dummyProductsToggle).toBeNull();
     expect(hostElement.textContent).not.toContain('Dummy products');
+    expect(hostElement.textContent).not.toContain('Reset all data & reload');
   });
 
   it('should render Admin Settings for admin user', () => {
@@ -123,5 +132,49 @@ describe('SettingsComponent', () => {
     expect(cardTitles).toContain('Admin Settings');
     expect(dummyProductsToggle).toBeTruthy();
     expect(hostElement.textContent).toContain('Dummy products');
+    expect(hostElement.textContent).toContain('Reset all data & reload');
+  });
+
+  it('should reset all data and reload after admin confirms reset action', async () => {
+    auth.currentUser.mockReturnValue({
+      id: 10,
+      email: 'admin@example.com',
+      firstName: 'System',
+      lastName: 'Admin',
+      phone: '123456789',
+      age: 35,
+      role: 'admin',
+      registrationDate: new Date('2026-01-01').toISOString(),
+      isAccountLocked: false,
+      emailVerified: true,
+      createdAt: new Date('2026-01-01').toISOString()
+    });
+    auth.fullName.mockReturnValue('System Admin');
+    const dialogOpenSpy = vi.fn().mockReturnValue({
+      afterClosed: () => of(true)
+    });
+
+    const reloadSpy = vi.fn();
+    vi.stubGlobal('location', { reload: reloadSpy });
+
+    fixture = TestBed.createComponent(SettingsComponent);
+    component = fixture.componentInstance;
+    (component as unknown as { dialog: { open: typeof dialogOpenSpy } }).dialog = { open: dialogOpenSpy };
+    fixture.detectChanges();
+
+    const hostElement = fixture.nativeElement as HTMLElement;
+    const resetButton = Array.from(hostElement.querySelectorAll('button'))
+      .find((button) => (button.textContent ?? '').includes('Reset all data & reload'));
+
+    expect(resetButton).toBeTruthy();
+
+    (resetButton as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    expect(dialogOpenSpy).toHaveBeenCalledTimes(1);
+    expect(adminDataReset.resetAllData).toHaveBeenCalledTimes(1);
+    expect(reloadSpy).toHaveBeenCalledTimes(1);
+
+    vi.unstubAllGlobals();
   });
 });
