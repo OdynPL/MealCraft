@@ -86,11 +86,23 @@ a {
 }
 
 .app-mobile-menu .mat-mdc-menu-content {
-  padding-block: 0.35rem;
+  padding: 0.4rem;
 }
 
 .app-mobile-menu .mat-mdc-menu-item {
-  min-height: 42px;
+  min-height: 44px;
+  border-radius: 10px;
+  margin-bottom: 0.15rem;
+}
+
+.app-mobile-menu .mat-mdc-menu-item:hover {
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.app-mobile-menu .mat-icon {
+  margin-right: 0.5rem;
+  opacity: 0.82;
 }
 
 @media (max-width: 480px) {
