@@ -1,5 +1,13 @@
 <app-header></app-header>
 
+@if (isLoading()) {
+	<section class="app-global-loader" aria-live="polite" aria-label="Loading in progress">
+		<div class="app-global-loader-shell">
+			<div class="app-circle-loader" aria-hidden="true"></div>
+		</div>
+	</section>
+}
+
 <main class="app-content">
 	<router-outlet></router-outlet>
 </main>

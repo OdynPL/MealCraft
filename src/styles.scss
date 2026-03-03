@@ -171,6 +171,10 @@ a {
   pointer-events: none;
 }
 
+.cdk-overlay-pane:has(.mat-mdc-snack-bar-container.app-snackbar) {
+  pointer-events: none;
+}
+
 .mat-mdc-snack-bar-container.app-snackbar .mdc-snackbar__label {
   font-weight: 500;
 }

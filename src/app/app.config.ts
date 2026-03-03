@@ -7,6 +7,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { routes } from './app.routes';
 import { httpCacheInterceptor } from './core/http/http-cache.interceptor';
+import { loadingInterceptor } from './core/http/loading.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -14,6 +15,6 @@ export const appConfig: ApplicationConfig = {
     provideAnimations(),
     importProvidersFrom(MatSnackBarModule),
     provideRouter(routes, withHashLocation()),
-    provideHttpClient(withInterceptors([httpCacheInterceptor]))
+    provideHttpClient(withInterceptors([loadingInterceptor, httpCacheInterceptor]))
   ]
 };

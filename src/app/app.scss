@@ -4,6 +4,114 @@
 	flex-direction: column;
 }
 
+.app-global-loader {
+	position: fixed;
+	inset: 0;
+	z-index: 99999;
+	display: grid;
+	place-items: center;
+	pointer-events: none;
+}
+
+.app-global-loader-shell {
+	display: grid;
+	place-items: center;
+}
+
+.app-circle-loader {
+	position: relative;
+	width: 186px;
+	height: 186px;
+	filter: drop-shadow(0 14px 30px color-mix(in srgb, var(--mat-sys-primary) 24%, transparent));
+	animation: app-ring-glow 2.6s ease-in-out infinite;
+}
+
+.app-circle-loader::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	border-radius: 999px;
+	background: repeating-conic-gradient(
+		from 0deg,
+		var(--mat-sys-primary) 0deg 34deg,
+		transparent 34deg 44deg,
+		var(--mat-sys-tertiary) 44deg 76deg,
+		transparent 76deg 92deg
+	);
+	mask: radial-gradient(farthest-side, transparent calc(100% - 10px), #000 calc(100% - 10px));
+	-webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 10px), #000 calc(100% - 10px));
+	animation: app-ring-outer-spin 2.2s cubic-bezier(0.4, 0.08, 0.2, 0.95) infinite, app-ring-color-shift 4.8s ease-in-out infinite;
+}
+
+.app-circle-loader::after {
+	content: '';
+	position: absolute;
+	inset: 26px;
+	border-radius: 999px;
+	background: repeating-conic-gradient(
+		from 0deg,
+		var(--mat-sys-secondary) 0deg 28deg,
+		transparent 28deg 38deg,
+		var(--mat-sys-primary) 38deg 64deg,
+		transparent 64deg 82deg
+	);
+	mask: radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 8px));
+	-webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 8px));
+	opacity: 0.88;
+	animation: app-ring-inner-spin 2.9s cubic-bezier(0.45, 0.06, 0.25, 0.96) infinite, app-ring-color-shift 5.4s ease-in-out infinite reverse;
+}
+
+@keyframes app-ring-outer-spin {
+	0% {
+		transform: rotate(0deg) scale(1);
+	}
+	50% {
+		transform: rotate(205deg) scale(1.016);
+	}
+	to {
+		transform: rotate(360deg) scale(1);
+	}
+}
+
+@keyframes app-ring-inner-spin {
+	0% {
+		transform: rotate(0deg) scale(1);
+	}
+	50% {
+		transform: rotate(-190deg) scale(0.985);
+	}
+	to {
+		transform: rotate(-360deg) scale(1);
+	}
+}
+
+@keyframes app-ring-color-shift {
+	0% {
+		filter: hue-rotate(0deg) saturate(1);
+		opacity: 0.76;
+	}
+	35% {
+		opacity: 1;
+	}
+	50% {
+		filter: hue-rotate(90deg) saturate(1.28);
+	}
+	100% {
+		filter: hue-rotate(180deg) saturate(1);
+		opacity: 0.8;
+	}
+}
+
+@keyframes app-ring-glow {
+	0%,
+	100% {
+		filter: drop-shadow(0 12px 24px color-mix(in srgb, var(--mat-sys-primary) 18%, transparent));
+	}
+	50% {
+		filter: drop-shadow(0 18px 36px color-mix(in srgb, var(--mat-sys-primary) 30%, transparent));
+	}
+}
+
 .app-content {
 	flex: 1 1 auto;
 	width: 100%;
@@ -11,6 +119,15 @@
 }
 
 @media (max-width: 480px) {
+	.app-circle-loader {
+		width: 150px;
+		height: 150px;
+	}
+
+	.app-circle-loader::after {
+		inset: 22px;
+	}
+
 	.app-content {
 		padding-block: 0.1rem;
 	}

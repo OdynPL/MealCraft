@@ -59,10 +59,10 @@ export class ConfigurationService {
   readonly uiSmallViewportMaxWidth = 740;
   readonly uiMediumViewportMaxWidth = 1500;
   readonly uiSmallViewportPageSize = 12;
-  readonly uiMediumViewportPageSize = 20;
+  readonly uiMediumViewportPageSize = 24;
   readonly uiLargeViewportPageSize = 24;
 
-  readonly defaultPageSize = 20;
+  readonly defaultPageSize = 24;
   readonly minPageSize = 1;
   readonly maxPageSize = 36;
   readonly queryLimit = 60;

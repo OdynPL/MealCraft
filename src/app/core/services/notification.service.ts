@@ -19,7 +19,7 @@ export class NotificationService {
 
   private open(message: string, panelClass: string): void {
     this.snackBar?.open(message, undefined, {
-      duration: 2600,
+      duration: 1500,
       horizontalPosition: 'end',
       verticalPosition: 'top',
       panelClass: ['app-snackbar', panelClass]
