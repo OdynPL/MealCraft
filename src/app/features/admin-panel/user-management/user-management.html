@@ -8,6 +8,63 @@
   } @else if (users().length === 0) {
     <p class="user-state">No users found.</p>
   } @else {
+    <div class="controls-bar" aria-label="User management controls">
+      <mat-form-field appearance="outline" class="control-field control-search">
+        <mat-label>Search</mat-label>
+        <input matInput type="text" [value]="searchTerm()" (input)="updateSearchTerm($event)" placeholder="Name, email, phone" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="control-field">
+        <mat-label>Role</mat-label>
+        <mat-select [value]="roleFilter()" (valueChange)="updateRoleFilter($event)">
+          <mat-option value="all">All</mat-option>
+          <mat-option value="admin">Admin</mat-option>
+          <mat-option value="user">User</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="control-field">
+        <mat-label>Locked</mat-label>
+        <mat-select [value]="lockFilter()" (valueChange)="updateLockFilter($event)">
+          <mat-option value="all">All</mat-option>
+          <mat-option value="locked">Locked</mat-option>
+          <mat-option value="unlocked">Unlocked</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="control-field">
+        <mat-label>Sort by</mat-label>
+        <mat-select [value]="sortBy()" (valueChange)="updateSortBy($event)">
+          <mat-option value="registered">Registered</mat-option>
+          <mat-option value="lastLogin">Last login</mat-option>
+          <mat-option value="name">Name</mat-option>
+          <mat-option value="email">Email</mat-option>
+          <mat-option value="role">Role</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="control-field control-direction">
+        <mat-label>Direction</mat-label>
+        <mat-select [value]="sortDirection()" (valueChange)="updateSortDirection($event)">
+          <mat-option value="desc">Desc</mat-option>
+          <mat-option value="asc">Asc</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="control-field control-size">
+        <mat-label>Rows</mat-label>
+        <mat-select [value]="pageSize()" (valueChange)="updatePageSize($event)">
+          @for (size of pageSizeOptions; track size) {
+            <mat-option [value]="size">{{ size }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    @if (totalItems() === 0) {
+      <p class="user-state">No results for current filters.</p>
+    }
+
     <div class="table-wrapper">
       <table class="users-table">
         <thead>
@@ -25,7 +82,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (user of users(); track user.id) {
+          @for (user of pageUsers(); track user.id) {
             <tr [class.user-row-banned]="user.isAccountLocked">
               <td>{{ fullName(user) }}</td>
               <td>{{ user.email }}</td>
@@ -79,6 +136,15 @@
           }
         </tbody>
       </table>
+    </div>
+
+    <div class="pagination-bar" aria-label="User management pagination">
+      <span class="pagination-info">{{ pageFrom() }}-{{ pageTo() }} of {{ totalItems() }}</span>
+      <div class="pagination-actions">
+        <button mat-stroked-button type="button" [disabled]="pageIndex() <= 0" (click)="prevPage()">Prev</button>
+        <span class="pagination-page">Page {{ pageIndex() + 1 }} / {{ totalPages() }}</span>
+        <button mat-stroked-button type="button" [disabled]="pageIndex() >= totalPages() - 1" (click)="nextPage()">Next</button>
+      </div>
     </div>
   }
 </section>

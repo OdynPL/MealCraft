@@ -5,6 +5,12 @@
   margin-top: 0.8rem;
   font-size: 0.9rem;
 
+  .footer-divider {
+    border: 0;
+    border-top: 1px solid var(--mat-sys-outline-variant);
+    margin: 0;
+  }
+
   p {
     margin: 0.75rem 0 0;
   }

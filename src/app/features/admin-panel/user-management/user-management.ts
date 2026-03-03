@@ -1,7 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { firstValueFrom } from 'rxjs';
 
@@ -21,6 +24,9 @@ import { YesNoColorPipe } from './yes-no-color.pipe';
     MatDialogModule,
     MatButtonModule,
     MatIconModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
     MatTooltipModule,
     RoleLabelPipe,
     YesNoColorPipe
@@ -38,11 +44,152 @@ export class UserManagementComponent {
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly actionUserId = signal<number | null>(null);
+  protected readonly searchTerm = signal('');
+  protected readonly roleFilter = signal<'all' | 'admin' | 'user'>('all');
+  protected readonly lockFilter = signal<'all' | 'locked' | 'unlocked'>('all');
+  protected readonly sortBy = signal<'name' | 'email' | 'role' | 'registered' | 'lastLogin'>('registered');
+  protected readonly sortDirection = signal<'asc' | 'desc'>('desc');
+  protected readonly pageSize = signal(10);
+  protected readonly pageIndex = signal(0);
+
+  protected readonly pageSizeOptions = [10, 20, 50] as const;
 
   protected readonly currentUserId = computed(() => this.auth.currentUser()?.id ?? null);
+  protected readonly filteredUsers = computed(() => {
+    const term = this.searchTerm().trim().toLowerCase();
+    const roleFilter = this.roleFilter();
+    const lockFilter = this.lockFilter();
+
+    return this.users().filter((user) => {
+      if (roleFilter !== 'all' && user.role !== roleFilter) {
+        return false;
+      }
+
+      if (lockFilter === 'locked' && !user.isAccountLocked) {
+        return false;
+      }
+
+      if (lockFilter === 'unlocked' && user.isAccountLocked) {
+        return false;
+      }
+
+      if (!term) {
+        return true;
+      }
+
+      const haystack = [
+        this.fullName(user),
+        user.email,
+        user.phone,
+        user.role,
+        String(user.age)
+      ].join(' ').toLowerCase();
+
+      return haystack.includes(term);
+    });
+  });
+
+  protected readonly sortedUsers = computed(() => {
+    const sortBy = this.sortBy();
+    const direction = this.sortDirection();
+    const factor = direction === 'asc' ? 1 : -1;
+    const users = [...this.filteredUsers()];
+
+    users.sort((left, right) => {
+      let comparison = 0;
+
+      switch (sortBy) {
+        case 'name':
+          comparison = this.fullName(left).localeCompare(this.fullName(right));
+          break;
+        case 'email':
+          comparison = left.email.localeCompare(right.email);
+          break;
+        case 'role':
+          comparison = left.role.localeCompare(right.role);
+          break;
+        case 'lastLogin':
+          comparison = this.timestamp(left.lastLoginAt) - this.timestamp(right.lastLoginAt);
+          break;
+        case 'registered':
+        default:
+          comparison = this.timestamp(left.registrationDate) - this.timestamp(right.registrationDate);
+          break;
+      }
+
+      return comparison * factor;
+    });
+
+    return users;
+  });
+
+  protected readonly totalItems = computed(() => this.sortedUsers().length);
+  protected readonly totalPages = computed(() => Math.max(1, Math.ceil(this.totalItems() / this.pageSize())));
+  protected readonly pageUsers = computed(() => {
+    const currentPage = Math.min(this.pageIndex(), this.totalPages() - 1);
+    const size = this.pageSize();
+    const start = currentPage * size;
+    const end = start + size;
+    return this.sortedUsers().slice(start, end);
+  });
+  protected readonly pageFrom = computed(() => {
+    if (this.totalItems() === 0) {
+      return 0;
+    }
+
+    const currentPage = Math.min(this.pageIndex(), this.totalPages() - 1);
+    return currentPage * this.pageSize() + 1;
+  });
+  protected readonly pageTo = computed(() => {
+    if (this.totalItems() === 0) {
+      return 0;
+    }
+
+    return Math.min(this.pageFrom() + this.pageSize() - 1, this.totalItems());
+  });
 
   constructor() {
     void this.loadUsers();
+  }
+
+  protected updateSearchTerm(event: Event): void {
+    const value = (event.target as HTMLInputElement | null)?.value ?? '';
+    this.searchTerm.set(value);
+    this.pageIndex.set(0);
+  }
+
+  protected updateRoleFilter(value: string): void {
+    this.roleFilter.set((value as 'all' | 'admin' | 'user') || 'all');
+    this.pageIndex.set(0);
+  }
+
+  protected updateLockFilter(value: string): void {
+    this.lockFilter.set((value as 'all' | 'locked' | 'unlocked') || 'all');
+    this.pageIndex.set(0);
+  }
+
+  protected updateSortBy(value: string): void {
+    this.sortBy.set((value as 'name' | 'email' | 'role' | 'registered' | 'lastLogin') || 'registered');
+    this.pageIndex.set(0);
+  }
+
+  protected updateSortDirection(value: string): void {
+    this.sortDirection.set((value as 'asc' | 'desc') || 'desc');
+    this.pageIndex.set(0);
+  }
+
+  protected updatePageSize(value: string): void {
+    const parsed = Number(value);
+    this.pageSize.set(Number.isFinite(parsed) && parsed > 0 ? parsed : 10);
+    this.pageIndex.set(0);
+  }
+
+  protected prevPage(): void {
+    this.pageIndex.update((current) => Math.max(0, current - 1));
+  }
+
+  protected nextPage(): void {
+    this.pageIndex.update((current) => Math.min(this.totalPages() - 1, current + 1));
   }
 
   protected fullName(user: AuthUser): string {
@@ -194,6 +341,15 @@ export class UserManagementComponent {
       month: 'short',
       day: '2-digit'
     }).format(date);
+  }
+
+  private timestamp(value: string | undefined): number {
+    if (!value) {
+      return 0;
+    }
+
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? 0 : date.getTime();
   }
 
   private async loadUsers(): Promise<void> {

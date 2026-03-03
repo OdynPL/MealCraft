@@ -42,10 +42,6 @@
   border-radius: 10px;
 }
 
-.field {
-  width: 100%;
-}
-
 .search-field {
   grid-column: span 2;
 }
@@ -80,13 +76,11 @@
 }
 
 .summary-paginator .mat-mdc-paginator {
-  min-height: 40px;
   height: 40px;
   background: transparent;
 }
 
 .summary-paginator .mat-mdc-paginator-container {
-  min-height: 40px;
   height: 40px;
   padding: 0 0.15rem;
   align-items: center;
@@ -101,10 +95,6 @@
 
 .summary-paginator .mat-mdc-paginator-range-label {
   display: none;
-}
-
-.loading-label {
-  opacity: 0.7;
 }
 
 .category-counts {
@@ -136,30 +126,16 @@
   color: var(--mat-sys-on-primary-container);
 }
 
-.category-count-pill-mine {
-  background: var(--mat-sys-secondary-container);
-  color: var(--mat-sys-on-secondary-container);
-  border-color: color-mix(in srgb, var(--mat-sys-secondary) 28%, transparent);
-}
-
-.category-count-pill-mine.category-count-pill-active {
-  border-color: var(--mat-sys-secondary);
-  background: var(--mat-sys-secondary-container);
-  color: var(--mat-sys-on-secondary-container);
-}
-
+.category-count-pill-mine,
 .category-count-pill-all,
 .category-count-pill-more {
-  background: var(--mat-sys-secondary-container);
-  color: var(--mat-sys-on-secondary-container);
   border-color: color-mix(in srgb, var(--mat-sys-secondary) 28%, transparent);
 }
 
+.category-count-pill-mine.category-count-pill-active,
 .category-count-pill-all.category-count-pill-active,
 .category-count-pill-more.category-count-pill-active {
   border-color: var(--mat-sys-secondary);
-  background: var(--mat-sys-secondary-container);
-  color: var(--mat-sys-on-secondary-container);
 }
 
 .category-count-pill-more {
@@ -377,38 +353,10 @@ h3 {
     justify-items: end;
     text-align: right;
   }
-}
-
-@media (max-width: 480px) {
-  .body-container {
-    padding: 0.7rem;
-  }
-
-  .home-hero {
-    margin-bottom: 0.7rem;
-    padding: 0.72rem 0.75rem;
-    border-radius: 12px;
-  }
-
-  .home-hero h1 {
-    font-size: 1.06rem;
-  }
-
-  .home-hero p {
-    font-size: 0.86rem;
-  }
 
   .filters {
     grid-template-columns: 1fr;
     gap: 0.45rem;
-  }
-
-  .summary-actions {
-    width: 100%;
-  }
-
-  .summary-paginator {
-    width: 100%;
   }
 
   .action-button {
