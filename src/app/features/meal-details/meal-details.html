@@ -41,7 +41,7 @@
 
                 @if (canManageTags()) {
                   <section class="tag-form app-section-panel">
-                    <mat-form-field appearance="outline">
+                    <mat-form-field appearance="outline" floatLabel="always">
                       <mat-label>Add tag</mat-label>
                       <input matInput [formControl]="tagInput" placeholder="e.g. spicy" />
                     </mat-form-field>

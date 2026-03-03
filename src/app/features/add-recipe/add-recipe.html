@@ -31,11 +31,29 @@
 
               <img class="image-preview" [src]="imagePreview()" alt="Recipe preview" />
             </div>
+
+            <div class="media-links">
+              <mat-form-field appearance="outline" floatLabel="always">
+                <mat-label>Source URL (optional)</mat-label>
+                <input matInput [formControl]="sourceUrlControl" maxlength="300" placeholder="https://..." />
+                @if (sourceUrlControl.hasError('pattern')) {
+                  <mat-error>Enter a valid URL starting with http:// or https://.</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" floatLabel="always">
+                <mat-label>YouTube URL (optional)</mat-label>
+                <input matInput [formControl]="youtubeUrlControl" maxlength="300" placeholder="https://..." />
+                @if (youtubeUrlControl.hasError('pattern')) {
+                  <mat-error>Enter a valid URL starting with http:// or https://.</mat-error>
+                }
+              </mat-form-field>
+            </div>
           </div>
 
           <div class="recipe-main">
             <div class="recipe-grid app-form-grid">
-              <mat-form-field appearance="outline">
+              <mat-form-field appearance="outline" floatLabel="always">
                 <mat-label>Recipe name</mat-label>
                 <input matInput [formControl]="titleControl" maxlength="80" />
                 @if (titleControl.hasError('required')) {
@@ -46,51 +64,63 @@
                 }
               </mat-form-field>
 
-              <mat-form-field appearance="outline">
+              <mat-form-field appearance="outline" floatLabel="always">
                 <mat-label>Cuisine</mat-label>
-                <input matInput [formControl]="cuisineControl" [matAutocomplete]="cuisineAuto" maxlength="40" />
-                <mat-autocomplete #cuisineAuto="matAutocomplete" autoActiveFirstOption>
-                  @for (cuisine of filteredCuisineOptions(); track cuisine) {
+                <mat-select [formControl]="cuisineControl">
+                  @for (cuisine of cuisineOptions(); track cuisine) {
                     <mat-option [value]="cuisine">{{ cuisine }}</mat-option>
                   }
-                </mat-autocomplete>
+                </mat-select>
                 @if (cuisineControl.hasError('required')) {
                   <mat-error>Cuisine is required.</mat-error>
                 }
-                @if (cuisineControl.hasError('minlength')) {
-                  <mat-error>Minimum 2 characters.</mat-error>
-                }
-                @if (cuisineControl.hasError('invalidOption')) {
-                  <mat-error>Select cuisine from list.</mat-error>
-                }
               </mat-form-field>
 
-              <mat-form-field appearance="outline">
+              <mat-form-field appearance="outline" floatLabel="always">
                 <mat-label>Category</mat-label>
-                <input matInput [formControl]="categoryControl" [matAutocomplete]="categoryAuto" maxlength="40" />
-                <mat-autocomplete #categoryAuto="matAutocomplete" autoActiveFirstOption>
-                  @for (category of filteredCategoryOptions(); track category) {
+                <mat-select [formControl]="categoryControl">
+                  @for (category of categoryOptions(); track category) {
                     <mat-option [value]="category">{{ category }}</mat-option>
                   }
-                </mat-autocomplete>
+                </mat-select>
                 @if (categoryControl.hasError('required')) {
                   <mat-error>Category is required.</mat-error>
                 }
-                @if (categoryControl.hasError('minlength')) {
-                  <mat-error>Minimum 2 characters.</mat-error>
-                }
-                @if (categoryControl.hasError('invalidOption')) {
-                  <mat-error>Select category from list.</mat-error>
-                }
               </mat-form-field>
 
-              <mat-form-field appearance="outline">
-                <mat-label>Tags (optional, comma separated)</mat-label>
-                <input matInput [formControl]="tagsControl" maxlength="200" placeholder="quick, spicy, family" />
-              </mat-form-field>
+              <div class="tags-field-group">
+                <mat-form-field appearance="outline" floatLabel="always" class="tags-select-field">
+                  <mat-label>Tags (optional)</mat-label>
+                  <mat-select [formControl]="tagsControl" multiple>
+                    <mat-select-trigger>
+                      <div class="tags-trigger-tiles">
+                        @if (tagsControl.value.length === 0) {
+                          <span class="tags-trigger-placeholder">Select tags</span>
+                        } @else {
+                          @for (tag of tagsControl.value; track tag) {
+                            <span class="tags-trigger-tile">{{ tag }}</span>
+                          }
+                        }
+                      </div>
+                    </mat-select-trigger>
+                    @for (tag of tagOptions(); track tag) {
+                      <mat-option [value]="tag">{{ tag }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <div class="tag-add-row">
+                  <mat-form-field appearance="outline" floatLabel="always" class="tag-add-input">
+                    <mat-label>Add tag</mat-label>
+                    <input matInput [formControl]="newTagControl" maxlength="24" placeholder="new tag" (blur)="normalizePendingTagInput()" />
+                  </mat-form-field>
+
+                  <button mat-stroked-button type="button" class="tag-add-button" (click)="addTag()">+</button>
+                </div>
+              </div>
             </div>
 
-            <mat-form-field appearance="outline" class="instructions-field">
+            <mat-form-field appearance="outline" floatLabel="always" class="instructions-field">
               <mat-label>Instructions</mat-label>
               <textarea class="instructions-textarea" matInput [formControl]="instructionsControl" rows="12" maxlength="5000"></textarea>
               @if (instructionsControl.hasError('required')) {
@@ -100,24 +130,6 @@
                 <mat-error>Minimum 10 characters.</mat-error>
               }
             </mat-form-field>
-
-            <div class="recipe-grid app-form-grid">
-              <mat-form-field appearance="outline">
-                <mat-label>Source URL (optional)</mat-label>
-                <input matInput [formControl]="sourceUrlControl" maxlength="300" placeholder="https://..." />
-                @if (sourceUrlControl.hasError('pattern')) {
-                  <mat-error>Enter a valid URL starting with http:// or https://.</mat-error>
-                }
-              </mat-form-field>
-
-              <mat-form-field appearance="outline">
-                <mat-label>YouTube URL (optional)</mat-label>
-                <input matInput [formControl]="youtubeUrlControl" maxlength="300" placeholder="https://..." />
-                @if (youtubeUrlControl.hasError('pattern')) {
-                  <mat-error>Enter a valid URL starting with http:// or https://.</mat-error>
-                }
-              </mat-form-field>
-            </div>
 
             @if (submitError(); as submitError) {
               <p class="app-status-error">{{ submitError }}</p>

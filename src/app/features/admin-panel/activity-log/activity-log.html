@@ -2,12 +2,12 @@
   <h3>Activity Log</h3>
 
   <div class="activity-controls" aria-label="Activity log filters">
-    <mat-form-field appearance="outline" class="activity-control activity-search">
+    <mat-form-field appearance="outline" floatLabel="always" class="activity-control activity-search">
       <mat-label>Search</mat-label>
       <input matInput type="text" [value]="searchTerm()" (input)="onSearch($event)" placeholder="Action, actor, target, details" />
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="activity-control">
+    <mat-form-field appearance="outline" floatLabel="always" class="activity-control">
       <mat-label>Area</mat-label>
       <mat-select [value]="areaFilter()" (valueChange)="setAreaFilter($event)">
         <mat-option value="all">All</mat-option>
@@ -19,7 +19,7 @@
       </mat-select>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="activity-control">
+    <mat-form-field appearance="outline" floatLabel="always" class="activity-control">
       <mat-label>Status</mat-label>
       <mat-select [value]="statusFilter()" (valueChange)="setStatusFilter($event)">
         <mat-option value="all">All</mat-option>
@@ -30,7 +30,7 @@
       </mat-select>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="activity-control activity-size">
+    <mat-form-field appearance="outline" floatLabel="always" class="activity-control activity-size">
       <mat-label>Rows</mat-label>
       <mat-select [value]="pageSize()" (valueChange)="setPageSize($event)">
         @for (size of pageSizeOptions; track size) {

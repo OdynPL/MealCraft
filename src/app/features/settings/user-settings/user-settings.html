@@ -33,22 +33,22 @@
 
         <div class="profile-main">
           <div class="fields-grid app-form-grid">
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" floatLabel="always">
               <mat-label>First name</mat-label>
               <input matInput [formControl]="firstNameControl" />
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" floatLabel="always">
               <mat-label>Last name</mat-label>
               <input matInput [formControl]="lastNameControl" />
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" floatLabel="always">
               <mat-label>Phone number</mat-label>
               <input matInput [formControl]="phoneControl" />
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" floatLabel="always">
               <mat-label>Age</mat-label>
               <input matInput type="number" [formControl]="ageControl" />
             </mat-form-field>
@@ -76,12 +76,12 @@
       }
 
       <div class="fields-grid app-form-grid">
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" floatLabel="always">
           <mat-label>Current password</mat-label>
           <input matInput type="password" [formControl]="currentPasswordControl" />
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" floatLabel="always">
           <mat-label>New password</mat-label>
           <input matInput type="password" [formControl]="newPasswordControl" />
         </mat-form-field>

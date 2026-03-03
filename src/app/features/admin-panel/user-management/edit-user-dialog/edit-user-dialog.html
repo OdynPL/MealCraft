@@ -2,7 +2,7 @@
 
 <mat-dialog-content>
   <div class="edit-user-grid">
-    <mat-form-field appearance="outline">
+    <mat-form-field appearance="outline" floatLabel="always">
       <mat-label>First name</mat-label>
       <input matInput type="text" [formControl]="firstNameControl" />
       @if (firstNameError; as message) {
@@ -10,7 +10,7 @@
       }
     </mat-form-field>
 
-    <mat-form-field appearance="outline">
+    <mat-form-field appearance="outline" floatLabel="always">
       <mat-label>Last name</mat-label>
       <input matInput type="text" [formControl]="lastNameControl" />
       @if (lastNameError; as message) {
@@ -18,7 +18,7 @@
       }
     </mat-form-field>
 
-    <mat-form-field appearance="outline">
+    <mat-form-field appearance="outline" floatLabel="always">
       <mat-label>Phone</mat-label>
       <input matInput type="text" [formControl]="phoneControl" />
       @if (phoneError; as message) {
@@ -26,7 +26,7 @@
       }
     </mat-form-field>
 
-    <mat-form-field appearance="outline">
+    <mat-form-field appearance="outline" floatLabel="always">
       <mat-label>Age</mat-label>
       <input matInput type="number" [formControl]="ageControl" />
       @if (ageError; as message) {
@@ -34,7 +34,7 @@
       }
     </mat-form-field>
 
-    <mat-form-field appearance="outline">
+    <mat-form-field appearance="outline" floatLabel="always">
       <mat-label>Role</mat-label>
       <mat-select [formControl]="roleControl">
         <mat-option value="user">User</mat-option>

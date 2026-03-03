@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, WritableSignal, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AbstractControl, FormControl, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { of, switchMap } from 'rxjs';
 
 import { FoodDetail } from '../../core/models';
@@ -23,10 +23,10 @@ import { FoodStore } from '../../core/stores/food.store';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
-    MatAutocompleteModule,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     MatButtonModule
   ],
   templateUrl: './add-recipe.html',
@@ -44,6 +44,7 @@ export class AddRecipeComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly cuisineOptionsState = signal<string[]>([...this.config.knownCuisines]);
   private readonly categoryOptionsState = signal<string[]>([...this.config.knownCategories]);
+  private readonly tagOptionsState = signal<string[]>([]);
 
   protected readonly titleControl = new FormControl('', {
     nonNullable: true,
@@ -51,21 +52,11 @@ export class AddRecipeComponent {
   });
   protected readonly cuisineControl = new FormControl('', {
     nonNullable: true,
-    validators: [
-      Validators.required,
-      Validators.minLength(this.config.authMinNameLength),
-      Validators.maxLength(this.config.recipeFacetMaxLength),
-      (control) => this.validateFromOptions(control, this.cuisineOptionsState())
-    ]
+    validators: [Validators.required]
   });
   protected readonly categoryControl = new FormControl('', {
     nonNullable: true,
-    validators: [
-      Validators.required,
-      Validators.minLength(this.config.authMinNameLength),
-      Validators.maxLength(this.config.recipeFacetMaxLength),
-      (control) => this.validateFromOptions(control, this.categoryOptionsState())
-    ]
+    validators: [Validators.required]
   });
   protected readonly instructionsControl = new FormControl('', {
     nonNullable: true,
@@ -79,9 +70,13 @@ export class AddRecipeComponent {
     nonNullable: true,
     validators: [Validators.maxLength(this.config.recipeUrlMaxLength), Validators.pattern(/^$|https?:\/\/.+/i)]
   });
-  protected readonly tagsControl = new FormControl('', {
+  protected readonly tagsControl = new FormControl<string[]>([], {
     nonNullable: true,
-    validators: [Validators.maxLength(this.config.recipeTagsInputMaxLength)]
+    validators: [maxTagCollectionLengthValidator(this.config.recipeTagsInputMaxLength)]
+  });
+  protected readonly newTagControl = new FormControl('', {
+    nonNullable: true,
+    validators: [Validators.maxLength(this.config.feedbackTagMaxLength)]
   });
 
   protected readonly imagePreview = signal(this.config.localRecipePlaceholderImage);
@@ -90,10 +85,9 @@ export class AddRecipeComponent {
   protected readonly submitError = signal<string | null>(null);
   protected readonly cuisineOptions = computed(() => this.cuisineOptionsState());
   protected readonly categoryOptions = computed(() => this.categoryOptionsState());
+  protected readonly tagOptions = computed(() => this.tagOptionsState());
   protected readonly recipeId = signal<number | null>(null);
   protected readonly loadedRecipe = signal<FoodDetail | null>(null);
-  protected readonly filteredCuisineOptions = computed(() => filterOptions(this.cuisineOptions(), this.cuisineControl.value));
-  protected readonly filteredCategoryOptions = computed(() => filterOptions(this.categoryOptions(), this.categoryControl.value));
   protected readonly isEditMode = computed(() => this.recipeId() !== null);
   protected readonly isLoggedIn = computed(() => this.auth.isLoggedIn());
   protected readonly canEditRecipe = computed(() => {
@@ -126,6 +120,23 @@ export class AddRecipeComponent {
         this.categoryControl.updateValueAndValidity({ emitEvent: false });
       });
 
+    this.api.search({
+      query: '',
+      cuisine: '',
+      category: '',
+      tag: '',
+      mineOnly: false,
+      pageIndex: 0,
+      pageSize: this.config.defaultPageSize,
+      sortBy: this.config.defaultSortBy,
+      sortDirection: this.config.defaultSortDirection,
+      refreshTick: Date.now()
+    })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((page) => {
+        this.tagOptionsState.set(normalizeTagOptionSet([...page.tagCounts.map((entry) => entry.tag), ...this.tagsControl.value]));
+      });
+
     this.route.paramMap
       .pipe(
         switchMap((params) => {
@@ -155,10 +166,38 @@ export class AddRecipeComponent {
         this.instructionsControl.setValue(recipe.instructions);
         this.sourceUrlControl.setValue(recipe.sourceUrl ?? '');
         this.youtubeUrlControl.setValue(recipe.youtubeUrl ?? '');
-        this.tagsControl.setValue(recipe.tags.join(', '));
+        this.tagsControl.setValue(uniqueTags(recipe.tags));
+        this.tagOptionsState.set(normalizeTagOptionSet([...this.tagOptionsState(), ...recipe.tags]));
         this.uploadedImage = recipe.image;
         this.imagePreview.set(recipe.image || this.config.localRecipePlaceholderImage);
       });
+  }
+
+  protected normalizePendingTagInput(): void {
+    const normalized = normalizeTagValue(this.newTagControl.value);
+    this.newTagControl.setValue(normalized, { emitEvent: false });
+  }
+
+  protected addTag(): void {
+    const normalized = normalizeTagValue(this.newTagControl.value);
+    if (!normalized) {
+      this.newTagControl.setValue('');
+      return;
+    }
+
+    const existingTag = findCaseInsensitive(this.tagOptionsState(), normalized);
+    const canonicalTag = existingTag ?? normalized;
+
+    if (!existingTag) {
+      this.tagOptionsState.set(normalizeTagOptionSet([...this.tagOptionsState(), canonicalTag]));
+    }
+
+    const nextTags = uniqueTags([...this.tagsControl.value, canonicalTag]);
+    this.tagsControl.setValue(nextTags);
+    this.tagsControl.markAsDirty();
+    this.tagsControl.updateValueAndValidity();
+
+    this.newTagControl.setValue('');
   }
 
   protected onImageSelected(event: Event): void {
@@ -243,10 +282,7 @@ export class AddRecipeComponent {
       return;
     }
 
-    const tags = this.tagsControl.value
-      .split(',')
-      .map((value) => value.trim())
-      .filter((value) => value.length > 0);
+    const tags = uniqueTags(this.tagsControl.value);
 
     const draft = {
       title: this.titleControl.value.trim(),
@@ -282,6 +318,7 @@ export class AddRecipeComponent {
     this.sourceUrlControl.markAsTouched();
     this.youtubeUrlControl.markAsTouched();
     this.tagsControl.markAsTouched();
+    this.newTagControl.markAsTouched();
   }
 
   private firstValidationError(): string {
@@ -298,15 +335,9 @@ export class AddRecipeComponent {
     if (this.cuisineControl.hasError('required') || this.cuisineControl.hasError('minlength') || this.cuisineControl.hasError('maxlength')) {
       return 'Enter a valid cuisine.';
     }
-    if (this.cuisineControl.hasError('invalidOption')) {
-      return 'Select cuisine from the list.';
-    }
 
     if (this.categoryControl.hasError('required') || this.categoryControl.hasError('minlength') || this.categoryControl.hasError('maxlength')) {
       return 'Enter a valid category.';
-    }
-    if (this.categoryControl.hasError('invalidOption')) {
-      return 'Select category from the list.';
     }
 
     if (this.instructionsControl.hasError('required')) {
@@ -323,7 +354,7 @@ export class AddRecipeComponent {
       return 'Source/YouTube URL must start with http:// or https://.';
     }
 
-    if (this.tagsControl.hasError('maxlength')) {
+    if (this.tagsControl.hasError('tagsMaxLength')) {
       return `Tags must be at most ${this.config.recipeTagsInputMaxLength} characters.`;
     }
 
@@ -332,18 +363,6 @@ export class AddRecipeComponent {
     }
 
     return 'Please fix validation errors and try again.';
-  }
-
-  private validateFromOptions(control: AbstractControl<string>, options: readonly string[]): ValidationErrors | null {
-    const value = control.value.trim();
-    if (!value) {
-      return null;
-    }
-
-    const normalizedValue = value.toLowerCase();
-    const allowed = options.some((option) => option.toLowerCase() === normalizedValue);
-
-    return allowed ? null : { invalidOption: true };
   }
 
   private canonicalFacetValue(options: string[], rawValue: string): string {
@@ -368,19 +387,60 @@ function normalizeOptional(value: string): string | undefined {
   return normalized.length > 0 ? normalized : undefined;
 }
 
-function filterOptions(options: string[], query: string): string[] {
-  const normalizedQuery = query.trim().toLowerCase();
-  if (!normalizedQuery) {
-    return options;
-  }
-
-  return options.filter((option) => option.toLowerCase().includes(normalizedQuery));
-}
-
 function mergeOptionSets(base: readonly string[], extras: readonly string[]): string[] {
   const normalized = [...base, ...extras]
     .map((item) => item.trim())
     .filter((item) => item.length > 0);
 
   return [...new Set(normalized)].sort((a, b) => a.localeCompare(b));
+}
+
+function uniqueTags(tags: readonly string[]): string[] {
+  return normalizeTagOptionSet(tags);
+}
+
+function normalizeTagOptionSet(tags: readonly string[]): string[] {
+  const normalizedByKey = new Map<string, string>();
+
+  for (const rawTag of tags) {
+    const normalized = normalizeTagValue(rawTag);
+    if (!normalized) {
+      continue;
+    }
+
+    const key = normalized.toLowerCase();
+    if (!normalizedByKey.has(key)) {
+      normalizedByKey.set(key, normalized);
+    }
+  }
+
+  return [...normalizedByKey.values()].sort((a, b) => a.localeCompare(b));
+}
+
+function normalizeTagValue(value: string): string {
+  const compact = value.trim().replace(/\s+/g, ' ');
+  if (!compact) {
+    return '';
+  }
+
+  return compact
+    .split(' ')
+    .map((word) => (word ? `${word[0].toUpperCase()}${word.slice(1).toLowerCase()}` : ''))
+    .join(' ');
+}
+
+function findCaseInsensitive(items: readonly string[], value: string): string | undefined {
+  const key = value.toLowerCase();
+  return items.find((item) => item.toLowerCase() === key);
+}
+
+function maxTagCollectionLengthValidator(maxLength: number): ValidatorFn {
+  return (control: AbstractControl<string[]>): ValidationErrors | null => {
+    const tags = (control.value ?? []).map((tag) => tag.trim()).filter((tag) => tag.length > 0);
+    const normalized = tags.join(', ');
+
+    return normalized.length <= maxLength
+      ? null
+      : { tagsMaxLength: { requiredLength: maxLength, actualLength: normalized.length } };
+  };
 }

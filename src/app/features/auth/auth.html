@@ -6,7 +6,7 @@
 
     <mat-card-content>
       <form class="auth-form" novalidate (submit)="onFormSubmit($event)">
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" floatLabel="always">
           <mat-label>Email</mat-label>
           <input matInput type="email" name="email" autocomplete="username" [formControl]="emailControl" />
           @if (emailControl.hasError('required')) {
@@ -20,7 +20,7 @@
           }
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" floatLabel="always">
           <mat-label>Password</mat-label>
           <input
             matInput
@@ -46,7 +46,7 @@
 
         @if (mode() === 'register') {
           <div class="auth-grid app-form-grid">
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" floatLabel="always">
               <mat-label>First name</mat-label>
               <input matInput [formControl]="firstNameControl" />
               @if (firstNameControl.hasError('required')) {
@@ -60,7 +60,7 @@
               }
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" floatLabel="always">
               <mat-label>Last name</mat-label>
               <input matInput [formControl]="lastNameControl" />
               @if (lastNameControl.hasError('required')) {
@@ -74,7 +74,7 @@
               }
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" floatLabel="always">
               <mat-label>Phone number</mat-label>
               <input matInput [formControl]="phoneControl" />
               @if (phoneControl.hasError('required')) {
@@ -88,7 +88,7 @@
               }
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" floatLabel="always">
               <mat-label>Age</mat-label>
               <input matInput type="number" [formControl]="ageControl" />
               @if (ageControl.hasError('required')) {
@@ -99,7 +99,7 @@
               }
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" floatLabel="always">
               <mat-label>Role</mat-label>
               <mat-select [formControl]="roleControl">
                 @for (role of roleOptions; track role) {
