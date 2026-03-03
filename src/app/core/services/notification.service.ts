@@ -1,9 +1,10 @@
+import { DOCUMENT } from '@angular/common';
 import { Injectable, inject } from '@angular/core';
-import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
-  private readonly snackBar = inject(MatSnackBar, { optional: true });
+  private readonly document = inject(DOCUMENT);
+  private toastContainer: HTMLElement | null = null;
 
   success(message: string): void {
     this.open(message, 'snackbar-success');
@@ -18,11 +19,40 @@ export class NotificationService {
   }
 
   private open(message: string, panelClass: string): void {
-    this.snackBar?.open(message, undefined, {
-      duration: 1500,
-      horizontalPosition: 'end',
-      verticalPosition: 'top',
-      panelClass: ['app-snackbar', panelClass]
+    const container = this.getContainer();
+    const toast = this.document.createElement('div');
+    toast.className = `app-toast ${panelClass}`;
+    toast.textContent = message;
+    toast.setAttribute('role', 'status');
+    container.appendChild(toast);
+
+    requestAnimationFrame(() => {
+      toast.classList.add('app-toast--visible');
     });
+
+    window.setTimeout(() => {
+      toast.classList.remove('app-toast--visible');
+      window.setTimeout(() => {
+        toast.remove();
+      }, 160);
+    }, 1500);
+  }
+
+  private getContainer(): HTMLElement {
+    if (this.toastContainer) {
+      return this.toastContainer;
+    }
+
+    const existing = this.document.querySelector<HTMLElement>('.app-toast-container');
+    if (existing) {
+      this.toastContainer = existing;
+      return existing;
+    }
+
+    const container = this.document.createElement('div');
+    container.className = 'app-toast-container';
+    this.document.body.appendChild(container);
+    this.toastContainer = container;
+    return container;
   }
 }

@@ -102,8 +102,9 @@ h2 {
   padding: 0.1rem 0.45rem;
   border-radius: 999px;
   font-size: 0.8rem;
-  background: var(--mat-sys-tertiary-container);
-  color: var(--mat-sys-on-tertiary-container);
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .tag-remove {

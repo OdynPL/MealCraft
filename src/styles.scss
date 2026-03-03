@@ -180,41 +180,46 @@ a {
   opacity: 0.82;
 }
 
-.mat-mdc-snack-bar-container.app-snackbar {
-  margin-top: 132px;
+.app-toast-container {
+  position: fixed;
+  top: 84px;
+  right: 14px;
+  z-index: 1200;
+  display: grid;
+  gap: 0.4rem;
+  pointer-events: none;
+}
+
+.app-toast {
+  min-width: 220px;
+  max-width: min(70vw, 460px);
   border-radius: 14px;
   border: 1px solid var(--mat-sys-outline-variant);
-  pointer-events: none;
-}
-
-.cdk-overlay-pane:has(.mat-mdc-snack-bar-container.app-snackbar) {
-  pointer-events: none;
-}
-
-.mat-mdc-snack-bar-container.app-snackbar .mdc-snackbar__label {
+  padding: 0.55rem 0.72rem;
   font-weight: 500;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 140ms ease, transform 140ms ease;
 }
 
-.mat-mdc-snack-bar-container.app-snackbar .mat-mdc-snack-bar-action {
-  font-weight: 600;
+.app-toast--visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
-.mat-mdc-snack-bar-container.snackbar-success {
-  --mdc-snackbar-container-color: var(--mat-sys-primary-container);
-  --mdc-snackbar-supporting-text-color: var(--mat-sys-on-primary-container);
-  --mat-snack-bar-button-color: var(--mat-sys-on-primary-container);
+.app-toast.snackbar-success {
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
 }
 
-.mat-mdc-snack-bar-container.snackbar-info {
-  --mdc-snackbar-container-color: var(--mat-sys-secondary-container);
-  --mdc-snackbar-supporting-text-color: var(--mat-sys-on-secondary-container);
-  --mat-snack-bar-button-color: var(--mat-sys-on-secondary-container);
+.app-toast.snackbar-info {
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
 }
 
-.mat-mdc-snack-bar-container.snackbar-error {
-  --mdc-snackbar-container-color: var(--mat-sys-error-container);
-  --mdc-snackbar-supporting-text-color: var(--mat-sys-on-error-container);
-  --mat-snack-bar-button-color: var(--mat-sys-on-error-container);
+.app-toast.snackbar-error {
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
 }
 
 @media (max-width: 480px) {
@@ -244,14 +249,155 @@ a {
     padding-inline: 0.65rem !important;
   }
 
-  .mat-mdc-snack-bar-container.app-snackbar {
-    margin-top: 112px;
+  .app-toast-container {
+    top: 76px;
+    right: 8px;
+  }
+
+  .app-toast {
+    min-width: 0;
+    max-width: min(92vw, 420px);
   }
 }
 
 @media (max-width: 760px) {
   .app-form-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+.home-page .food-card mat-card-content {
+  flex: 1 1 auto;
+}
+
+.home-page .food-card mat-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.home-page .food-card mat-card-actions > a,
+.home-page .food-card mat-card-actions > button:not(.mat-icon-button) {
+  margin: 0;
+}
+
+.home-page .tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.45rem;
+}
+
+.home-page .tag-pill {
+  padding: 0.12rem 0.48rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.home-page .vote-controls {
+  display: inline-grid;
+  grid-auto-flow: column;
+  align-items: center;
+  margin-left: 0;
+  gap: 0.2rem;
+  min-height: 32px;
+}
+
+.home-page .vote-controls button {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+}
+
+.home-page .vote-controls mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.home-page .vote-note {
+  display: inline-grid;
+  justify-items: start;
+  gap: 0.2rem;
+  font-size: 1.12rem;
+  color: var(--mat-sys-on-surface-variant);
+  margin-left: auto;
+}
+
+.home-page .summary-paginator {
+  position: relative;
+  width: fit-content;
+  margin: 0;
+  border-radius: 12px;
+  background: var(--mat-sys-surface-container-low);
+}
+
+.home-page .summary-paginator .mat-mdc-paginator {
+  height: 38px;
+  background: transparent;
+}
+
+.home-page .summary-paginator .mat-mdc-paginator-container {
+  min-height: 38px;
+  height: 38px;
+  padding: 0 0.1rem;
+  align-items: center;
+}
+
+.home-page .summary-paginator .mat-mdc-icon-button {
+  width: 34px;
+  height: 34px;
+  padding: 5px;
+}
+
+.home-page .summary-paginator .mat-mdc-paginator-navigation-previous,
+.home-page .summary-paginator .mat-mdc-paginator-navigation-next,
+.home-page .summary-paginator .mat-mdc-paginator-navigation-first,
+.home-page .summary-paginator .mat-mdc-paginator-navigation-last {
+  align-self: center;
+}
+
+.home-page .summary-paginator .mat-mdc-paginator-range-label {
+  display: none;
+}
+
+@media (max-width: 740px) {
+  .home-page .food-card mat-card-actions {
+    justify-content: flex-start;
+  }
+
+  .home-page .summary-paginator {
+    width: 100%;
+    margin: 0.2rem 0;
+  }
+
+  .home-page .summary-paginator .mat-mdc-paginator-container {
+    justify-content: center;
+    gap: 0.1rem;
+  }
+
+  .home-page .vote-controls {
+    width: 100%;
+    justify-content: end;
+    margin-left: 0;
+  }
+
+  .home-page .vote-note {
+    width: 100%;
+    margin-left: 0;
+    justify-items: end;
+    text-align: right;
+  }
+
+  .home-page .food-card mat-card-actions > a,
+  .home-page .food-card mat-card-actions > button:not(.mat-icon-button) {
+    flex: 1 1 auto;
+    text-align: center;
   }
 }
 /* You can add global styles to this file, and also import other style files */
