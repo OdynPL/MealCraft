@@ -27,91 +27,29 @@
         <tbody>
           @for (user of users(); track user.id) {
             <tr [class.user-row-banned]="user.isAccountLocked">
-              <td>
-                @if (isEditing(user.id)) {
-                  <div class="inline-edit-grid">
-                    <mat-form-field appearance="outline">
-                      <mat-label>First name</mat-label>
-                      <input matInput type="text" [formControl]="firstNameControl" aria-label="Edit first name" />
-                    </mat-form-field>
-                    <mat-form-field appearance="outline">
-                      <mat-label>Last name</mat-label>
-                      <input matInput type="text" [formControl]="lastNameControl" aria-label="Edit last name" />
-                    </mat-form-field>
-                  </div>
-                } @else {
-                  {{ fullName(user) }}
-                }
-              </td>
+              <td>{{ fullName(user) }}</td>
               <td>{{ user.email }}</td>
-              <td>
-                @if (isEditing(user.id)) {
-                  <mat-form-field appearance="outline" class="table-edit-field">
-                    <mat-label>Phone</mat-label>
-                    <input matInput type="text" [formControl]="phoneControl" aria-label="Edit phone" />
-                  </mat-form-field>
-                } @else {
-                  {{ user.phone }}
-                }
-              </td>
-              <td>
-                @if (isEditing(user.id)) {
-                  <mat-form-field appearance="outline" class="table-edit-field table-edit-field-small">
-                    <mat-label>Age</mat-label>
-                    <input matInput type="number" [formControl]="ageControl" aria-label="Edit age" />
-                  </mat-form-field>
-                } @else {
-                  {{ user.age }}
-                }
-              </td>
-              <td>
-                @if (isEditing(user.id)) {
-                  <mat-form-field appearance="outline" class="role-field">
-                    <mat-label>Role</mat-label>
-                    <mat-select [formControl]="roleControl" aria-label="Edit user role">
-                        <mat-option value="user">User</mat-option>
-                        <mat-option value="admin">Admin</mat-option>
-                    </mat-select>
-                  </mat-form-field>
-                } @else {
-                  <span class="role-label">{{ user.role | roleLabel }}</span>
-                }
-              </td>
-              <td>
-                @if (isEditing(user.id)) {
-                  <mat-checkbox [formControl]="emailVerifiedControl" aria-label="Edit email verified">Verified</mat-checkbox>
-                } @else {
-                  <span [class]="(user.emailVerified ? 'Yes' : 'No') | yesNoColor">{{ user.emailVerified ? 'Yes' : 'No' }}</span>
-                }
-              </td>
+              <td>{{ user.phone }}</td>
+              <td>{{ user.age }}</td>
+              <td><span class="role-label">{{ user.role | roleLabel }}</span></td>
+              <td><span [class]="(user.emailVerified ? 'Yes' : 'No') | yesNoColor">{{ user.emailVerified ? 'Yes' : 'No' }}</span></td>
               <td><span [class]="(user.isAccountLocked ? 'Yes' : 'No') | yesNoColor">{{ user.isAccountLocked ? 'Yes' : 'No' }}</span></td>
               <td>{{ formatDate(user.registrationDate) }}</td>
               <td>{{ formatDate(user.lastLoginAt) }}</td>
               <td>
                 <div class="row-actions">
-                  @if (isEditing(user.id)) {
-                    <button mat-flat-button type="button" class="action-btn action-btn-edit" [disabled]="isBusy(user.id)" (click)="saveEdit(user)">
-                      <mat-icon aria-hidden="true">save</mat-icon>
-                      Save
-                    </button>
-                    <button mat-stroked-button type="button" [disabled]="isBusy(user.id)" (click)="cancelEdit()">
-                      <mat-icon aria-hidden="true">close</mat-icon>
-                      Cancel
-                    </button>
-                  } @else {
-                    <button mat-flat-button type="button" class="action-btn action-btn-edit" [disabled]="isBusy(user.id) || !canEditUser(user)" (click)="startEdit(user)">
-                      <mat-icon aria-hidden="true">edit</mat-icon>
-                      Edit
-                    </button>
-                    <button mat-flat-button type="button" class="action-btn" [class.action-btn-ban]="!user.isAccountLocked" [class.action-btn-unban]="user.isAccountLocked" [disabled]="isBusy(user.id) || !canBanUser(user)" (click)="banUser(user)">
-                      <mat-icon aria-hidden="true">block</mat-icon>
-                      {{ user.isAccountLocked ? 'Unban' : 'Ban' }}
-                    </button>
-                    <button mat-flat-button type="button" class="action-btn action-btn-remove" [disabled]="isBusy(user.id) || !canRemoveUser(user)" (click)="removeUser(user)">
-                      <mat-icon aria-hidden="true">person_remove</mat-icon>
-                      Remove
-                    </button>
-                  }
+                  <button mat-flat-button type="button" class="action-btn action-btn-edit" [disabled]="isBusy(user.id) || !canEditUser(user)" (click)="startEdit(user)">
+                    <mat-icon aria-hidden="true">edit</mat-icon>
+                    Edit
+                  </button>
+                  <button mat-flat-button type="button" class="action-btn" [class.action-btn-ban]="!user.isAccountLocked" [class.action-btn-unban]="user.isAccountLocked" [disabled]="isBusy(user.id) || !canBanUser(user)" (click)="banUser(user)">
+                    <mat-icon aria-hidden="true">block</mat-icon>
+                    {{ user.isAccountLocked ? 'Unban' : 'Ban' }}
+                  </button>
+                  <button mat-flat-button type="button" class="action-btn action-btn-remove" [disabled]="isBusy(user.id) || !canRemoveUser(user)" (click)="removeUser(user)">
+                    <mat-icon aria-hidden="true">person_remove</mat-icon>
+                    Remove
+                  </button>
                 </div>
               </td>
             </tr>

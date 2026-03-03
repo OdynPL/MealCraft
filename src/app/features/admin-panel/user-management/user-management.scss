@@ -67,32 +67,12 @@
   border-bottom: none;
 }
 
-.inline-edit-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(140px, 1fr));
-  gap: 0.35rem;
-}
-
-.inline-edit-grid .mat-mdc-form-field,
-.row-actions .mat-mdc-form-field,
-.users-table .role-field {
-  width: 100%;
-}
-
 .row-actions {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 0.35rem;
   justify-content: flex-end;
-}
-
-.table-edit-field {
-  width: 170px;
-}
-
-.table-edit-field-small {
-  width: 95px;
 }
 
 .row-actions button {
@@ -153,10 +133,6 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-}
-
-.users-table .mat-mdc-form-field-subscript-wrapper {
-  display: none;
 }
 
 .role-label {

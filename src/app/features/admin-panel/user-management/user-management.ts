@@ -1,12 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { firstValueFrom } from 'rxjs';
 
 import { AuthUser } from '../../../core/models/auth';
@@ -14,6 +9,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ConfigurationService } from '../../../core/services/configuration.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog';
+import { EditUserDialogComponent } from './edit-user-dialog/edit-user-dialog';
 import { RoleLabelPipe } from './role-label.pipe';
 import { YesNoColorPipe } from './yes-no-color.pipe';
 
@@ -21,14 +17,9 @@ import { YesNoColorPipe } from './yes-no-color.pipe';
   selector: 'app-user-management',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    ReactiveFormsModule,
     MatDialogModule,
     MatButtonModule,
     MatIconModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatCheckboxModule,
     RoleLabelPipe,
     YesNoColorPipe
   ],
@@ -44,27 +35,7 @@ export class UserManagementComponent {
   protected readonly users = signal<AuthUser[]>([]);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
-  protected readonly editingUserId = signal<number | null>(null);
   protected readonly actionUserId = signal<number | null>(null);
-
-  protected readonly firstNameControl = new FormControl('', {
-    nonNullable: true,
-    validators: [Validators.required, Validators.minLength(this.config.authMinNameLength), Validators.maxLength(this.config.authMaxNameLength)]
-  });
-  protected readonly lastNameControl = new FormControl('', {
-    nonNullable: true,
-    validators: [Validators.required, Validators.minLength(this.config.authMinNameLength), Validators.maxLength(this.config.authMaxNameLength)]
-  });
-  protected readonly phoneControl = new FormControl('', {
-    nonNullable: true,
-    validators: [Validators.required, Validators.pattern(this.config.authPhonePattern), Validators.maxLength(this.config.authMaxPhoneLength)]
-  });
-  protected readonly ageControl = new FormControl(this.config.authDefaultAge, {
-    nonNullable: true,
-    validators: [Validators.required, Validators.min(this.config.authMinAge), Validators.max(this.config.authMaxAge)]
-  });
-  protected readonly roleControl = new FormControl<'user' | 'admin'>('user', { nonNullable: true });
-  protected readonly emailVerifiedControl = new FormControl(false, { nonNullable: true });
 
   protected readonly currentUserId = computed(() => this.auth.currentUser()?.id ?? null);
 
@@ -76,53 +47,29 @@ export class UserManagementComponent {
     return `${user.firstName} ${user.lastName}`.trim() || 'Unknown';
   }
 
-  protected isEditing(userId: number): boolean {
-    return this.editingUserId() === userId;
-  }
-
   protected isBusy(userId: number): boolean {
     return this.actionUserId() === userId;
   }
 
-  protected startEdit(user: AuthUser): void {
-    this.editingUserId.set(user.id);
-    this.firstNameControl.setValue(user.firstName);
-    this.lastNameControl.setValue(user.lastName);
-    this.phoneControl.setValue(user.phone);
-    this.ageControl.setValue(user.age);
-    this.roleControl.setValue(user.role);
-    this.emailVerifiedControl.setValue(user.emailVerified);
-  }
-
-  protected cancelEdit(): void {
-    this.editingUserId.set(null);
-  }
-
-  protected async saveEdit(user: AuthUser): Promise<void> {
-    if (!this.isEditing(user.id)) {
+  protected async startEdit(user: AuthUser): Promise<void> {
+    if (this.isBusy(user.id) || !this.canEditUser(user)) {
       return;
     }
 
-    if (this.firstNameControl.invalid || this.lastNameControl.invalid || this.phoneControl.invalid || this.ageControl.invalid) {
-      this.firstNameControl.markAsTouched();
-      this.lastNameControl.markAsTouched();
-      this.phoneControl.markAsTouched();
-      this.ageControl.markAsTouched();
-      this.notifications.error('Please fix user form validation errors.');
+    const payload = await firstValueFrom(this.dialog.open(EditUserDialogComponent, {
+      data: { user },
+      panelClass: 'app-confirm-dialog',
+      width: 'min(560px, calc(100vw - 2rem))'
+    }).afterClosed());
+
+    if (!payload) {
       return;
     }
 
     this.actionUserId.set(user.id);
 
     try {
-      const result = await this.auth.updateUserForAdmin(user.id, {
-        firstName: this.firstNameControl.value,
-        lastName: this.lastNameControl.value,
-        phone: this.phoneControl.value,
-        age: this.ageControl.value,
-        role: this.roleControl.value,
-        emailVerified: this.emailVerifiedControl.value
-      });
+      const result = await this.auth.updateUserForAdmin(user.id, payload);
 
       if (!result.success) {
         this.notifications.error(result.error ?? 'Unable to update user.');
@@ -130,7 +77,6 @@ export class UserManagementComponent {
       }
 
       this.notifications.success('User updated.');
-      this.editingUserId.set(null);
       await this.loadUsers();
     } finally {
       this.actionUserId.set(null);
@@ -204,9 +150,6 @@ export class UserManagementComponent {
       }
 
       this.notifications.success('User removed.');
-      if (this.editingUserId() === user.id) {
-        this.editingUserId.set(null);
-      }
       await this.loadUsers();
     } finally {
       this.actionUserId.set(null);
