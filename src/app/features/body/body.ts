@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -41,6 +41,8 @@ import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dial
   styleUrl: './body.scss',
 })
 export class BodyComponent {
+  private static readonly TAGS_COLLAPSED_LIMIT = 12;
+
   private readonly destroyRef = inject(DestroyRef);
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
@@ -70,8 +72,21 @@ export class BodyComponent {
   protected readonly isLoggedIn = computed(() => this.auth.isLoggedIn());
   protected readonly cuisines = computed(() => this.store.cuisines());
   protected readonly categories = computed(() => this.store.categories());
-  protected readonly categoryCounts = computed(() => this.store.categoryCounts());
+  protected readonly tagCounts = computed(() => this.store.tagCounts());
+  protected readonly visibleTagCounts = computed(() => {
+    const allTags = this.tagCounts();
+    if (this.tagsExpanded()) {
+      return allTags;
+    }
+
+    return allTags.slice(0, BodyComponent.TAGS_COLLAPSED_LIMIT);
+  });
+  protected readonly hasTagToggle = computed(() => this.tagCounts().length > BodyComponent.TAGS_COLLAPSED_LIMIT);
+  protected readonly tagToggleLabel = computed(() => this.tagsExpanded() ? 'See less' : 'See more');
   protected readonly mineOnly = computed(() => this.store.mineOnly());
+  protected readonly selectedTag = computed(() => this.store.tag());
+  protected readonly hasOwnRecipes = computed(() => this.store.hasOwnRecipes());
+  protected readonly tagsExpanded = signal(false);
 
   protected readonly currentRangeLabel = computed(() => {
     const total = this.store.totalResults();
@@ -132,6 +147,11 @@ export class BodyComponent {
       .subscribe((params) => this.applyQueryParams(params));
 
     effect(() => {
+      this.store.refreshTick();
+      this.tagsExpanded.set(false);
+    });
+
+    effect(() => {
       syncControl(this.searchControl, this.store.query());
       syncControl(this.cuisineControl, this.store.cuisine());
       syncControl(this.categoryControl, this.store.category());
@@ -185,24 +205,20 @@ export class BodyComponent {
     return this.feedback.getTags(food);
   }
 
-  protected selectCategoryFromPill(category: string): void {
-    if (this.mineOnly()) {
-      this.store.setMineOnly(false);
-    }
-
-    this.categoryControl.setValue(category);
+  protected selectTagFromPill(tag: string): void {
+    this.store.setTag(tag);
   }
 
-  protected clearCategoryFromPills(): void {
+  protected clearTagFromPills(): void {
     this.store.setMineOnly(false);
-    this.categoryControl.setValue('');
+    this.store.setTag('');
+  }
+
+  protected toggleTagsExpanded(): void {
+    this.tagsExpanded.update((expanded) => !expanded);
   }
 
   protected setMineOnly(mineOnly: boolean): void {
-    if (mineOnly && this.categoryControl.value) {
-      this.categoryControl.setValue('');
-    }
-
     this.store.setMineOnly(mineOnly);
   }
 
@@ -282,6 +298,7 @@ export class BodyComponent {
     const query = queryParamMap.get('q') ?? '';
     const cuisine = queryParamMap.get('cuisine') ?? '';
     const category = queryParamMap.get('category') ?? '';
+    const tag = queryParamMap.get('tag') ?? '';
     const mineOnly = parseBoolean(queryParamMap.get('mine'));
     const sortBy = parseSortBy(queryParamMap.get('sortBy'));
     const sortDirection = parseSortDirection(queryParamMap.get('sortDir'));
@@ -300,6 +317,10 @@ export class BodyComponent {
 
     if (category !== this.store.category()) {
       this.store.setCategory(category);
+    }
+
+    if (tag !== this.store.tag()) {
+      this.store.setTag(tag);
     }
 
     if (mineOnly !== this.store.mineOnly()) {
@@ -329,6 +350,9 @@ export class BodyComponent {
     }
     if (this.store.category()) {
       queryParams['category'] = this.store.category();
+    }
+    if (this.store.tag()) {
+      queryParams['tag'] = this.store.tag();
     }
     if (this.store.mineOnly()) {
       queryParams['mine'] = 1;

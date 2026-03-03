@@ -22,6 +22,7 @@ export class FoodStore {
     query: '',
     cuisine: '',
     category: '',
+    tag: '',
     mineOnly: false,
     cuisines: [],
     categories: [],
@@ -32,6 +33,8 @@ export class FoodStore {
     refreshTick: 0,
     items: [],
     categoryCounts: [],
+    tagCounts: [],
+    hasOwnRecipes: false,
     totalResults: 0,
     loading: false,
     error: null
@@ -42,6 +45,7 @@ export class FoodStore {
   readonly query = computed(() => this.state().query);
   readonly cuisine = computed(() => this.state().cuisine);
   readonly category = computed(() => this.state().category);
+  readonly tag = computed(() => this.state().tag);
   readonly mineOnly = computed(() => this.state().mineOnly);
   readonly cuisines = computed(() => this.state().cuisines);
   readonly categories = computed(() => this.state().categories);
@@ -49,8 +53,11 @@ export class FoodStore {
   readonly sortDirection = computed(() => this.state().sortDirection);
   readonly pageIndex = computed(() => this.state().pageIndex);
   readonly pageSize = computed(() => this.state().pageSize);
+  readonly refreshTick = computed(() => this.state().refreshTick);
   readonly items = computed(() => this.state().items);
   readonly categoryCounts = computed(() => this.state().categoryCounts);
+  readonly tagCounts = computed(() => this.state().tagCounts);
+  readonly hasOwnRecipes = computed(() => this.state().hasOwnRecipes);
   readonly totalResults = computed(() => this.state().totalResults);
   readonly loading = computed(() => this.state().loading);
   readonly error = computed(() => this.state().error);
@@ -59,6 +66,7 @@ export class FoodStore {
     query: this.state().query,
     cuisine: this.state().cuisine,
     category: this.state().category,
+    tag: this.state().tag,
     mineOnly: this.state().mineOnly,
     sortBy: this.state().sortBy,
     sortDirection: this.state().sortDirection,
@@ -83,6 +91,8 @@ export class FoodStore {
                 error: mapApiError(error),
                 items: [],
                 categoryCounts: [],
+                tagCounts: [],
+                hasOwnRecipes: false,
                 totalResults: 0
               });
               return of(emptyPage(query.pageIndex, query.pageSize));
@@ -95,6 +105,8 @@ export class FoodStore {
         this.patch({
           items: page.items,
           categoryCounts: page.categoryCounts,
+          tagCounts: page.tagCounts,
+          hasOwnRecipes: page.hasOwnRecipes,
           totalResults: page.totalResults,
           pageIndex: page.pageIndex,
           pageSize: page.pageSize,
@@ -121,6 +133,10 @@ export class FoodStore {
 
   setCategory(category: string): void {
     this.patch({ category, pageIndex: 0 });
+  }
+
+  setTag(tag: string): void {
+    this.patch({ tag, pageIndex: 0 });
   }
 
   setMineOnly(mineOnly: boolean): void {
@@ -214,6 +230,7 @@ function sameQuery(a: FoodQuery, b: FoodQuery): boolean {
   return a.query === b.query
     && a.cuisine === b.cuisine
     && a.category === b.category
+    && a.tag === b.tag
     && a.mineOnly === b.mineOnly
     && a.sortBy === b.sortBy
     && a.sortDirection === b.sortDirection
@@ -228,7 +245,9 @@ function emptyPage(pageIndex: number, pageSize: number): FoodPage {
     totalResults: 0,
     pageIndex,
     pageSize,
-    categoryCounts: []
+    categoryCounts: [],
+    tagCounts: [],
+    hasOwnRecipes: false
   };
 }
 

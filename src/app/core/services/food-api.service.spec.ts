@@ -76,6 +76,10 @@ class MockRecipeFeedbackService {
   getScore(): number {
     return 0;
   }
+
+  getTags(food: { tags: string[] }): string[] {
+    return food.tags;
+  }
 }
 
 describe('FoodApiService', () => {
@@ -121,6 +125,7 @@ describe('FoodApiService', () => {
       query: '',
       cuisine: '',
       category: '',
+      tag: '',
       mineOnly: true,
       sortBy: 'id',
       sortDirection: 'desc',
@@ -161,6 +166,7 @@ describe('FoodApiService', () => {
       query: 'Local',
       cuisine: '',
       category: '',
+      tag: '',
       mineOnly: false,
       sortBy: 'name',
       sortDirection: 'asc',
@@ -201,6 +207,7 @@ describe('FoodApiService', () => {
       query: 'Dummy Recipe',
       cuisine: '',
       category: '',
+      tag: '',
       mineOnly: false,
       sortBy: 'name',
       sortDirection: 'asc',

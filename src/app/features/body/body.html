@@ -89,19 +89,18 @@
       </div>
     </section>
 
-    @if (categoryCounts().length > 0) {
-      <section class="category-counts" aria-label="Product count by category">
+    <section class="category-counts" aria-label="Product tags filters">
         <button
           type="button"
-          class="category-count-pill"
-          [class.category-count-pill-active]="store.category() === '' && !mineOnly()"
-          (click)="clearCategoryFromPills()"
-          [attr.aria-pressed]="store.category() === '' && !mineOnly()"
-          aria-label="Show all categories"
+          class="category-count-pill category-count-pill-all"
+          [class.category-count-pill-active]="selectedTag() === '' && !mineOnly()"
+          (click)="clearTagFromPills()"
+          [attr.aria-pressed]="selectedTag() === '' && !mineOnly()"
+          aria-label="Show all recipes"
         >
           All
         </button>
-        @if (isLoggedIn()) {
+        @if (hasOwnRecipes()) {
           <button
             type="button"
             class="category-count-pill category-count-pill-mine"
@@ -113,20 +112,30 @@
             Mine
           </button>
         }
-        @for (entry of categoryCounts(); track entry.category) {
+        @for (entry of visibleTagCounts(); track entry.tag) {
           <button
             type="button"
             class="category-count-pill"
-            [class.category-count-pill-active]="store.category() === entry.category"
-            (click)="selectCategoryFromPill(entry.category)"
-            [attr.aria-pressed]="store.category() === entry.category"
-            [attr.aria-label]="'Filter by category ' + entry.category"
+            [class.category-count-pill-active]="selectedTag() === entry.tag"
+            (click)="selectTagFromPill(entry.tag)"
+            [attr.aria-pressed]="selectedTag() === entry.tag"
+            [attr.aria-label]="'Filter by tag ' + entry.tag"
           >
-            {{ entry.category }} · {{ entry.count }}
+            {{ entry.tag }} · {{ entry.count }}
           </button>
         }
-      </section>
-    }
+
+        @if (hasTagToggle()) {
+          <button
+            type="button"
+            class="category-count-pill category-count-pill-more"
+            (click)="toggleTagsExpanded()"
+            [attr.aria-label]="tagsExpanded() ? 'Show fewer tags' : 'Show all tags'"
+          >
+            {{ tagToggleLabel() }}
+          </button>
+        }
+    </section>
 
     @if (store.error(); as errorMessage) {
       <section class="error-box" role="alert">{{ errorMessage }}</section>

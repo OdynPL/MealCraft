@@ -16,8 +16,9 @@
 
 .hero {
   width: 100%;
-  max-height: 410px;
-  object-fit: cover;
+  height: auto;
+  display: block;
+  background: var(--mat-sys-surface-container-low);
 }
 
 h2 {

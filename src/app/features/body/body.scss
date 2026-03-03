@@ -139,12 +139,31 @@
 .category-count-pill-mine {
   background: var(--mat-sys-tertiary-container);
   color: var(--mat-sys-on-tertiary-container);
+  border-color: color-mix(in srgb, var(--mat-sys-tertiary) 28%, transparent);
 }
 
 .category-count-pill-mine.category-count-pill-active {
   border-color: var(--mat-sys-tertiary);
   background: var(--mat-sys-tertiary-container);
   color: var(--mat-sys-on-tertiary-container);
+}
+
+.category-count-pill-all,
+.category-count-pill-more {
+  background: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+  border-color: color-mix(in srgb, var(--mat-sys-tertiary) 28%, transparent);
+}
+
+.category-count-pill-all.category-count-pill-active,
+.category-count-pill-more.category-count-pill-active {
+  border-color: var(--mat-sys-tertiary);
+  background: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+}
+
+.category-count-pill-more {
+  font-weight: 600;
 }
 
 .error-box {

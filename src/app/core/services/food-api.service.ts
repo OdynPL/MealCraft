@@ -10,7 +10,7 @@ import {
   MealDbMealDto,
   MealDbSearchResponseDto
 } from '../dto';
-import { AuthUser, Food, FoodCategoryCount, FoodDetail, FoodFacets, FoodPage, FoodQuery, FoodSortBy, SortDirection } from '../models';
+import { AuthUser, Food, FoodCategoryCount, FoodDetail, FoodFacets, FoodPage, FoodQuery, FoodSortBy, FoodTagCount, SortDirection } from '../models';
 import { ConfigurationService } from './configuration.service';
 import { AuthService } from './auth.service';
 import { LocalRecipeService } from './local-recipe.service';
@@ -135,6 +135,7 @@ export class FoodApiService {
     const searchText = this.normalizeText(query.query) ?? '';
     const cuisine = this.normalizeText(query.cuisine);
     const category = this.normalizeText(query.category);
+    const tag = this.normalizeText(query.tag);
     const mineOnly = query.mineOnly;
     const currentUser = this.auth.currentUser();
 
@@ -155,16 +156,30 @@ export class FoodApiService {
             map((dummyFoods) => this.applyLocalMutations([...apiItems, ...dummyFoods]))
           );
         }),
-        map((items) => filterFoods(items, searchText, cuisine, category, mineOnly, currentUser)),
-        map((items) => ({
-          allItems: items,
-          categoryCounts: buildCategoryCounts(items)
-        })),
-        map(({ allItems, categoryCounts }) => ({
+        map((items) => items.map((item) => ({
+          ...item,
+          tags: this.feedback.getTags(item)
+        }))),
+        map((items) => {
+          const itemsWithoutMineFilter = filterFoods(items, searchText, cuisine, category, tag, false, currentUser);
+          const filteredItems = mineOnly
+            ? itemsWithoutMineFilter.filter((item) => isOwnedByCurrentUser(item, currentUser))
+            : itemsWithoutMineFilter;
+
+          return {
+            allItems: filteredItems,
+            categoryCounts: buildCategoryCounts(filteredItems),
+            tagCounts: buildTagCounts(filteredItems),
+            hasOwnRecipes: itemsWithoutMineFilter.some((item) => isOwnedByCurrentUser(item, currentUser))
+          };
+        }),
+        map(({ allItems, categoryCounts, tagCounts, hasOwnRecipes }) => ({
           sortedItems: sortFoods(allItems, sortBy, sortDirection, (mealId) => this.feedback.getScore(mealId)),
-          categoryCounts
+          categoryCounts,
+          tagCounts,
+          hasOwnRecipes
         })),
-        map(({ sortedItems, categoryCounts }) => {
+        map(({ sortedItems, categoryCounts, tagCounts, hasOwnRecipes }) => {
           const pagination = paginate(sortedItems, pageIndex, pageSize);
 
           return {
@@ -172,7 +187,9 @@ export class FoodApiService {
             totalResults: sortedItems.length,
             pageIndex: pagination.pageIndex,
             pageSize,
-            categoryCounts
+            categoryCounts,
+            tagCounts,
+            hasOwnRecipes
           };
         })
       );
@@ -378,6 +395,7 @@ function filterFoods(
   query?: string,
   cuisine?: string,
   category?: string,
+  tag?: string,
   mineOnly?: boolean,
   currentUser?: AuthUser | null
 ): Food[] {
@@ -385,8 +403,9 @@ function filterFoods(
     const matchesQuery = !query || item.title.toLowerCase().includes(query.toLowerCase());
     const matchesCuisine = !cuisine || item.cuisine.toLowerCase() === cuisine.toLowerCase();
     const matchesCategory = !category || item.category.toLowerCase() === category.toLowerCase();
+    const matchesTag = !tag || (item.tags ?? []).some((value) => value.toLowerCase() === tag.toLowerCase());
     const matchesMine = !mineOnly || isOwnedByCurrentUser(item, currentUser);
-    return matchesQuery && matchesCuisine && matchesCategory && matchesMine;
+    return matchesQuery && matchesCuisine && matchesCategory && matchesTag && matchesMine;
   });
 }
 
@@ -488,6 +507,22 @@ function buildCategoryCounts(items: Food[]): FoodCategoryCount[] {
   return [...counter.entries()]
     .map(([category, count]) => ({ category, count }))
     .sort((a, b) => a.category.localeCompare(b.category));
+}
+
+function buildTagCounts(items: Food[]): FoodTagCount[] {
+  const counter = new Map<string, number>();
+
+  for (const item of items) {
+    const uniqueTags = new Set((item.tags ?? []).map((value) => value.trim()).filter((value) => value.length > 0));
+
+    for (const tag of uniqueTags) {
+      counter.set(tag, (counter.get(tag) ?? 0) + 1);
+    }
+  }
+
+  return [...counter.entries()]
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => a.tag.localeCompare(b.tag));
 }
 
 function uniqueSortedValues(items: string[]): string[] {
