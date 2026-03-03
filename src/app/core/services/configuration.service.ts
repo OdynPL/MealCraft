@@ -5,6 +5,10 @@ import { FoodSortBy, SortDirection } from '../models';
 @Injectable({ providedIn: 'root' })
 export class ConfigurationService {
   readonly mealDbBaseUrl = 'https://www.themealdb.com/api/json/v1/1';
+  readonly mealDbCorsProxyUrl = 'https://api.allorigins.win/raw?url=';
+  readonly useMealDbCorsProxy = typeof globalThis !== 'undefined'
+    && typeof globalThis.location !== 'undefined'
+    && globalThis.location.hostname.endsWith('github.io');
   readonly localRecipeStorageKey = 'food-app.local-recipes';
   readonly localRecipePlaceholderImage = 'https://placehold.co/600x400?text=Recipe+Image';
   readonly maxUploadedImageSizeBytes = 2 * 1024 * 1024;

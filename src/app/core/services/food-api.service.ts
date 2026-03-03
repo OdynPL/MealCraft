@@ -25,17 +25,19 @@ export class FoodApiService {
   private readonly localRecipes = inject(LocalRecipeService);
 
   getFacets(): Observable<FoodFacets> {
-    const cuisines$ = this.http.get<MealDbAreaResponseDto>(`${this.config.mealDbBaseUrl}${this.config.listEndpoint}`, {
-      params: new HttpParams().set('a', 'list')
-    }).pipe(
+    const cuisines$ = this.mealDbGet<MealDbAreaResponseDto>(
+      this.config.listEndpoint,
+      new HttpParams().set('a', 'list')
+    ).pipe(
       map((res) => (res.meals ?? []).map((item) => item.strArea).filter(Boolean)),
       map((items) => items.sort((a, b) => a.localeCompare(b))),
       catchError(() => of([]))
     );
 
-    const categories$ = this.http.get<MealDbCategoryResponseDto>(`${this.config.mealDbBaseUrl}${this.config.listEndpoint}`, {
-      params: new HttpParams().set('c', 'list')
-    }).pipe(
+    const categories$ = this.mealDbGet<MealDbCategoryResponseDto>(
+      this.config.listEndpoint,
+      new HttpParams().set('c', 'list')
+    ).pipe(
       map((res) => (res.meals ?? []).map((item) => item.strCategory).filter(Boolean)),
       map((items) => items.sort((a, b) => a.localeCompare(b))),
       catchError(() => of([]))
@@ -67,10 +69,10 @@ export class FoodApiService {
 
     const localOverride = snapshot.overrides.find((item) => item.id === id);
 
-    return this.http
-      .get<MealDbDetailResponseDto>(`${this.config.mealDbBaseUrl}${this.config.lookupEndpoint}`, {
-        params: new HttpParams().set('i', String(id))
-      })
+    return this.mealDbGet<MealDbDetailResponseDto>(
+      this.config.lookupEndpoint,
+      new HttpParams().set('i', String(id))
+    )
       .pipe(map((res) => {
         const meal = res.meals?.[0];
         if (!meal) {
@@ -93,10 +95,10 @@ export class FoodApiService {
     const cuisine = this.normalizeText(query.cuisine);
     const category = this.normalizeText(query.category);
 
-    return this.http
-      .get<MealDbSearchResponseDto>(`${this.config.mealDbBaseUrl}${this.config.searchEndpoint}`, {
-        params: new HttpParams().set('s', searchText)
-      })
+    return this.mealDbGet<MealDbSearchResponseDto>(
+      this.config.searchEndpoint,
+      new HttpParams().set('s', searchText)
+    )
       .pipe(
         map((res) => res.meals ?? []),
         map((meals) => meals.map((item) => this.toFood(item))),
@@ -238,6 +240,28 @@ export class FoodApiService {
     const normalized = value.trim().slice(0, this.config.queryLimit);
     return normalized.length > 0 ? normalized : undefined;
   }
+
+  private mealDbGet<T>(endpoint: string, params?: HttpParams): Observable<T> {
+    const baseUrl = `${this.config.mealDbBaseUrl}${endpoint}`;
+
+    if (!this.config.useMealDbCorsProxy) {
+      return this.http.get<T>(baseUrl, params ? { params } : undefined);
+    }
+
+    const urlWithQuery = buildUrlWithQuery(baseUrl, params);
+    const proxiedUrl = `${this.config.mealDbCorsProxyUrl}${encodeURIComponent(urlWithQuery)}`;
+
+    return this.http.get<T>(proxiedUrl);
+  }
+}
+
+function buildUrlWithQuery(url: string, params?: HttpParams): string {
+  if (!params) {
+    return url;
+  }
+
+  const query = params.toString();
+  return query ? `${url}?${query}` : url;
 }
 
 function clamp(value: number, min: number, max: number): number {
