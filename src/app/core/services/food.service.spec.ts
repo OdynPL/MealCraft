@@ -136,7 +136,7 @@ describe('FoodService', () => {
       resultTitles = page.items.map((item) => item.title);
     });
 
-    const req = httpMock.expectOne((request) => request.url.includes('/search.php'));
+    const req = httpMock.expectOne((request) => decodeURIComponent(request.url).includes('/search.php'));
     req.flush({
       meals: [
         {
@@ -177,7 +177,7 @@ describe('FoodService', () => {
       resultTitles = page.items.map((item) => item.title);
     });
 
-    const req = httpMock.expectOne((request) => request.url.includes('/search.php'));
+    const req = httpMock.expectOne((request) => decodeURIComponent(request.url).includes('/search.php'));
     req.flush({
       meals: [
         {
@@ -218,8 +218,20 @@ describe('FoodService', () => {
       resultTitles = page.items.map((item) => item.title);
     });
 
-    const req = httpMock.expectOne((request) => request.url.includes('/search.php'));
+    const req = httpMock.expectOne((request) => decodeURIComponent(request.url).includes('/search.php'));
     req.flush('network error', {
+      status: 500,
+      statusText: 'Server Error'
+    });
+
+    const fallbackReq = httpMock.expectOne((request) => decodeURIComponent(request.url).includes('/search.php'));
+    fallbackReq.flush('network error', {
+      status: 500,
+      statusText: 'Server Error'
+    });
+
+    const fallbackReq2 = httpMock.expectOne((request) => decodeURIComponent(request.url).includes('/search.php'));
+    fallbackReq2.flush('network error', {
       status: 500,
       statusText: 'Server Error'
     });

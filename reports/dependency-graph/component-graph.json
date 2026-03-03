@@ -1,0 +1,39 @@
+{
+  "app.ts": [
+    "features/footer/footer.ts",
+    "features/header/header.ts"
+  ],
+  "features/add-recipe/add-recipe.ts": [],
+  "features/admin-panel/activity-log/activity-log.ts": [
+    "shared/confirm-dialog/confirm-dialog.ts"
+  ],
+  "features/admin-panel/admin-panel.ts": [
+    "features/admin-panel/activity-log/activity-log.ts",
+    "features/admin-panel/user-management/user-management.ts"
+  ],
+  "features/admin-panel/user-management/edit-user-dialog/edit-user-dialog.ts": [],
+  "features/admin-panel/user-management/user-management.ts": [
+    "features/admin-panel/user-management/edit-user-dialog/edit-user-dialog.ts",
+    "shared/confirm-dialog/confirm-dialog.ts"
+  ],
+  "features/auth/auth.ts": [],
+  "features/body/body.ts": [
+    "shared/confirm-dialog/confirm-dialog.ts"
+  ],
+  "features/footer/footer.ts": [],
+  "features/header/header.ts": [],
+  "features/meal-details/meal-details.ts": [
+    "shared/confirm-dialog/confirm-dialog.ts"
+  ],
+  "features/settings/admin-settings/admin-settings.ts": [
+    "shared/confirm-dialog/confirm-dialog.ts"
+  ],
+  "features/settings/settings.ts": [
+    "features/settings/admin-settings/admin-settings.ts",
+    "features/settings/user-settings/user-settings.ts"
+  ],
+  "features/settings/user-settings/user-settings.ts": [
+    "shared/confirm-dialog/confirm-dialog.ts"
+  ],
+  "shared/confirm-dialog/confirm-dialog.ts": []
+}
