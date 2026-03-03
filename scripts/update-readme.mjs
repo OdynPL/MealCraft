@@ -152,18 +152,6 @@ async function buildCoverageTable() {
       hasCoverageData: true,
       thresholdPass: threshold.pass,
       markdown: [
-      '### Coverage Report',
-      '',
-      '| Metric | Value |',
-      '|---|---:|',
-      `| Statements | ${toPercent(total?.statements?.pct)} |`,
-      `| Branches | ${toPercent(total?.branches?.pct)} |`,
-      `| Functions | ${toPercent(total?.functions?.pct)} |`,
-      `| Lines | ${toPercent(total?.lines?.pct)} |`,
-      `| Threshold (Lines >= ${COVERAGE_THRESHOLD}%) | ${threshold.status} |`,
-      '',
-      `_Source: ${path.relative(path.dirname(README_PATH), summaryPath).replace(/\\/g, '/')}._`,
-      ''
     ].join('\n')
     };
   }
@@ -214,14 +202,6 @@ function buildTestsStatusTable({ hasCoverageData, thresholdPass }) {
   const coverageGateStatus = hasCoverageData ? toStatusBadge(thresholdPass) : '❓ UNKNOWN';
 
   return [
-    '### Test Status',
-    '',
-    '| Test | Status |',
-    '|---|---:|',
-    '| Unit tests (`npm run test:ci`) | ' + unitTestsStatus + ' |',
-    '| Coverage tests (`npm run test:ci:coverage`) | ' + coverageTestsStatus + ' |',
-    `| Coverage threshold gate (Lines >= ${COVERAGE_THRESHOLD}%) | ${coverageGateStatus} |`,
-    ''
   ].join('\n');
 }
 
@@ -239,9 +219,7 @@ async function buildAutoDocsSection() {
     '',
     '![Component Tree](reports/dependency-graph/component-tree.svg)',
     '',
-    coverageTable.markdown.trimEnd(),
-    '',
-    testsStatusTable.trimEnd(),
+    // ...no coverage or test status...
     END_MARKER,
     ''
   ].join('\n');
