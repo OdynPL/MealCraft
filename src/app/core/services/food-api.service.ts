@@ -19,6 +19,13 @@ import { RecipeFeedbackService } from './recipe-feedback.service';
 const ALLOWED_SORTS: readonly FoodSortBy[] = ['name', 'id', 'tags', 'votes'];
 const ALLOWED_DIRECTIONS: readonly SortDirection[] = ['asc', 'desc'];
 const API_AUTHOR = 'TheMealDB';
+const DUMMY_AUTHOR = 'MealCraft Dummy';
+const DUMMY_COUNT = 100;
+const DUMMY_BASE_ID = 900_000;
+const DUMMY_CUISINES = ['Italian', 'Mexican', 'Polish', 'French', 'Indian'];
+const DUMMY_CATEGORIES = ['Pasta', 'Soup', 'Beef', 'Dessert', 'Seafood'];
+const DUMMY_FOODS = buildDummyFoods();
+const DUMMY_DETAILS = new Map<number, FoodDetail>(DUMMY_FOODS.map((item) => [item.id, toDummyDetail(item)]));
 
 @Injectable({ providedIn: 'root' })
 export class FoodApiService {
@@ -50,10 +57,11 @@ export class FoodApiService {
     return forkJoin({ cuisines: cuisines$, categories: categories$ }).pipe(
       map(({ cuisines, categories }) => {
         const localFacets = this.localRecipes.getFacetValues();
+        const dummyFacets = getDummyFacets();
 
         return {
-          cuisines: uniqueSortedValues([...cuisines, ...localFacets.cuisines]),
-          categories: uniqueSortedValues([...categories, ...localFacets.categories])
+          cuisines: uniqueSortedValues([...cuisines, ...localFacets.cuisines, ...dummyFacets.cuisines]),
+          categories: uniqueSortedValues([...categories, ...localFacets.categories, ...dummyFacets.categories])
         };
       })
     );
@@ -72,6 +80,11 @@ export class FoodApiService {
     }
 
     const localOverride = snapshot.overrides.find((item) => item.id === id);
+    const dummyDetail = DUMMY_DETAILS.get(id);
+
+    if (dummyDetail) {
+      return of(localOverride ? this.mergeDetail(dummyDetail, localOverride) : dummyDetail);
+    }
 
     return this.mealDbGet<MealDbDetailResponseDto>(
       this.config.lookupEndpoint,
@@ -106,9 +119,10 @@ export class FoodApiService {
       new HttpParams().set('s', searchText)
     )
       .pipe(
+        catchError(() => of({ meals: [] } as MealDbSearchResponseDto)),
         map((res) => res.meals ?? []),
         map((meals) => meals.map((item) => this.toFood(item))),
-        map((apiItems) => this.applyLocalMutations(apiItems)),
+        map((apiItems) => this.applyLocalMutations([...apiItems, ...DUMMY_FOODS])),
         map((items) => filterFoods(items, searchText, cuisine, category, mineOnly, currentUser)),
         map((items) => ({
           allItems: items,
@@ -412,4 +426,52 @@ function uniqueSortedValues(items: string[]): string[] {
     .filter((value) => value.length > 0);
 
   return [...new Set(values)].sort((a, b) => a.localeCompare(b));
+}
+
+function buildDummyFoods(): Food[] {
+  const foods: Food[] = [];
+
+  for (let index = 0; index < DUMMY_COUNT; index += 1) {
+    const cuisine = DUMMY_CUISINES[index % DUMMY_CUISINES.length];
+    const category = DUMMY_CATEGORIES[index % DUMMY_CATEGORIES.length];
+    const id = DUMMY_BASE_ID + index + 1;
+
+    foods.push({
+      id,
+      title: `Dummy Recipe ${index + 1}`,
+      image: `https://placehold.co/600x400?text=Dummy+${index + 1}`,
+      imageType: 'jpg',
+      sourceUrl: undefined,
+      cuisine,
+      category,
+      tags: ['dummy', cuisine, category],
+      author: DUMMY_AUTHOR,
+      createdAt: new Date(0).toISOString()
+    });
+  }
+
+  return foods;
+}
+
+function toDummyDetail(food: Food): FoodDetail {
+  return {
+    id: food.id,
+    title: food.title,
+    image: food.image,
+    category: food.category,
+    cuisine: food.cuisine,
+    instructions: `This is a fallback dummy recipe for ${food.title}. Combine ingredients, season to taste, and cook until done.`,
+    sourceUrl: undefined,
+    youtubeUrl: undefined,
+    tags: food.tags,
+    author: food.author,
+    createdAt: food.createdAt
+  };
+}
+
+function getDummyFacets(): { cuisines: string[]; categories: string[] } {
+  return {
+    cuisines: uniqueSortedValues(DUMMY_FOODS.map((item) => item.cuisine)),
+    categories: uniqueSortedValues(DUMMY_FOODS.map((item) => item.category))
+  };
 }

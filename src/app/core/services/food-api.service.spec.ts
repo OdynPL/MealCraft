@@ -144,12 +144,12 @@ describe('FoodApiService', () => {
     let resultTitles: string[] = [];
 
     service.search({
-      query: '',
+      query: 'Local',
       cuisine: '',
       category: '',
       mineOnly: false,
-      sortBy: 'id',
-      sortDirection: 'desc',
+      sortBy: 'name',
+      sortDirection: 'asc',
       pageIndex: 0,
       pageSize: 50,
       refreshTick: 0
@@ -174,6 +174,33 @@ describe('FoodApiService', () => {
     expect(resultTitles).toContain('Owned Local');
     expect(resultTitles).toContain('Legacy Local');
     expect(resultTitles).toContain('Foreign Local');
-    expect(resultTitles).toContain('API meal');
+    expect(resultTitles).not.toContain('API meal');
+  });
+
+  it('should return dummy recipes when API request fails', () => {
+    let resultTitles: string[] = [];
+
+    service.search({
+      query: 'Dummy Recipe',
+      cuisine: '',
+      category: '',
+      mineOnly: false,
+      sortBy: 'name',
+      sortDirection: 'asc',
+      pageIndex: 0,
+      pageSize: 10,
+      refreshTick: 0
+    }).subscribe((page) => {
+      resultTitles = page.items.map((item) => item.title);
+    });
+
+    const req = httpMock.expectOne((request) => request.url.includes('/search.php'));
+    req.flush('network error', {
+      status: 500,
+      statusText: 'Server Error'
+    });
+
+    expect(resultTitles.length).toBeGreaterThan(0);
+    expect(resultTitles.some((title) => title.startsWith('Dummy Recipe'))).toBe(true);
   });
 });
