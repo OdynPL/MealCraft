@@ -13,6 +13,7 @@ import { catchError, firstValueFrom, map, of, switchMap, tap } from 'rxjs';
 
 import { FoodDetail } from '../../core/models';
 import { AuthService } from '../../core/services/auth.service';
+import { ConfigurationService } from '../../core/services/configuration.service';
 import { FoodApiService } from '../../core/services/food-api.service';
 import { RecipeFeedbackService } from '../../core/services/recipe-feedback.service';
 import { FoodStore } from '../../core/stores/food.store';
@@ -41,6 +42,7 @@ export class MealDetailsComponent {
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
   private readonly auth = inject(AuthService);
+  private readonly config = inject(ConfigurationService);
   private readonly api = inject(FoodApiService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly store = inject(FoodStore);
@@ -52,7 +54,7 @@ export class MealDetailsComponent {
   protected readonly isLoggedIn = computed(() => this.auth.isLoggedIn());
   protected readonly tagInput = new FormControl('', {
     nonNullable: true,
-    validators: [Validators.minLength(2), Validators.maxLength(24)]
+    validators: [Validators.minLength(this.config.feedbackTagMinLength), Validators.maxLength(this.config.feedbackTagMaxLength)]
   });
   protected readonly tags = computed(() => {
     const meal = this.item();

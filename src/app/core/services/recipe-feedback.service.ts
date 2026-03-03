@@ -2,21 +2,20 @@ import { Injectable, inject, signal } from '@angular/core';
 
 import { Food } from '../models';
 import { AuthService } from './auth.service';
+import { ConfigurationService } from './configuration.service';
 import { LocalRecipeService } from './local-recipe.service';
 
 type VoteValue = -1 | 1;
 type VoteMap = Record<number, Record<number, VoteValue>>;
 type TagMap = Record<number, string[]>;
 
-const VOTES_KEY = 'foodExplorerVotes';
-const TAGS_KEY = 'foodExplorerTags';
-
 @Injectable({ providedIn: 'root' })
 export class RecipeFeedbackService {
   private readonly auth = inject(AuthService);
+  private readonly config = inject(ConfigurationService);
   private readonly localRecipes = inject(LocalRecipeService);
-  private readonly votes = signal<VoteMap>(readVotes());
-  private readonly tags = signal<TagMap>(readJson<TagMap>(TAGS_KEY, {}));
+  private readonly votes = signal<VoteMap>(readVotes(this.config.feedbackVotesStorageKey));
+  private readonly tags = signal<TagMap>(readJson<TagMap>(this.config.feedbackTagsStorageKey, {}));
 
   getScore(mealId: number): number {
     const mealVotes = this.votes()[mealId] ?? {};
@@ -60,7 +59,7 @@ export class RecipeFeedbackService {
         }
       };
 
-      writeJson(VOTES_KEY, next);
+      writeJson(this.config.feedbackVotesStorageKey, next);
       return next;
     });
   }
@@ -79,7 +78,7 @@ export class RecipeFeedbackService {
       return;
     }
 
-    const normalized = normalizeTag(value);
+    const normalized = normalizeTag(value, this.config.feedbackTagMaxLength);
     if (!normalized) {
       return;
     }
@@ -87,7 +86,7 @@ export class RecipeFeedbackService {
     this.tags.update((current) => {
       const tags = uniqueTags([...(current[mealId] ?? []), normalized]);
       const next = { ...current, [mealId]: tags };
-      writeJson(TAGS_KEY, next);
+      writeJson(this.config.feedbackTagsStorageKey, next);
       return next;
     });
   }
@@ -101,7 +100,7 @@ export class RecipeFeedbackService {
       const existing = current[mealId] ?? [];
       const nextTags = existing.filter((tag) => tag !== value);
       const next = { ...current, [mealId]: nextTags };
-      writeJson(TAGS_KEY, next);
+      writeJson(this.config.feedbackTagsStorageKey, next);
       return next;
     });
   }
@@ -109,13 +108,13 @@ export class RecipeFeedbackService {
   clearAll(): void {
     this.votes.set({});
     this.tags.set({});
-    writeJson(VOTES_KEY, {});
-    writeJson(TAGS_KEY, {});
+    writeJson(this.config.feedbackVotesStorageKey, {});
+    writeJson(this.config.feedbackTagsStorageKey, {});
   }
 }
 
-function normalizeTag(value: string): string {
-  return value.trim().slice(0, 24);
+function normalizeTag(value: string, maxLength: number): string {
+  return value.trim().slice(0, maxLength);
 }
 
 function uniqueTags(tags: string[]): string[] {
@@ -143,8 +142,8 @@ function writeJson<T>(key: string, value: T): void {
   }
 }
 
-function readVotes(): VoteMap {
-  const parsed = readJson<unknown>(VOTES_KEY, {});
+function readVotes(storageKey: string): VoteMap {
+  const parsed = readJson<unknown>(storageKey, {});
   if (!isObject(parsed)) {
     return {};
   }

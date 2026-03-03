@@ -46,28 +46,28 @@ export class SettingsComponent {
 
   protected readonly firstNameControl = new FormControl(this.auth.currentUser()?.firstName ?? '', {
     nonNullable: true,
-    validators: [Validators.required, Validators.minLength(2), Validators.maxLength(80)]
+    validators: [Validators.required, Validators.minLength(this.config.authMinNameLength), Validators.maxLength(this.config.authMaxNameLength)]
   });
   protected readonly lastNameControl = new FormControl(this.auth.currentUser()?.lastName ?? '', {
     nonNullable: true,
-    validators: [Validators.required, Validators.minLength(2), Validators.maxLength(80)]
+    validators: [Validators.required, Validators.minLength(this.config.authMinNameLength), Validators.maxLength(this.config.authMaxNameLength)]
   });
   protected readonly phoneControl = new FormControl(this.auth.currentUser()?.phone ?? '', {
     nonNullable: true,
-    validators: [Validators.required, Validators.pattern(/^[+]?[-0-9\s()]{6,}$/), Validators.maxLength(20)]
+    validators: [Validators.required, Validators.pattern(this.config.authPhonePattern), Validators.maxLength(this.config.authMaxPhoneLength)]
   });
-  protected readonly ageControl = new FormControl(this.auth.currentUser()?.age ?? 18, {
+  protected readonly ageControl = new FormControl(this.auth.currentUser()?.age ?? this.config.authDefaultAge, {
     nonNullable: true,
-    validators: [Validators.required, Validators.min(13), Validators.max(120)]
+    validators: [Validators.required, Validators.min(this.config.authMinAge), Validators.max(this.config.authMaxAge)]
   });
 
   protected readonly currentPasswordControl = new FormControl('', {
     nonNullable: true,
-    validators: [Validators.required, Validators.minLength(6), Validators.maxLength(120)]
+    validators: [Validators.required, Validators.minLength(this.config.authMinPasswordLength), Validators.maxLength(this.config.authMaxPasswordLength)]
   });
   protected readonly newPasswordControl = new FormControl('', {
     nonNullable: true,
-    validators: [Validators.required, Validators.minLength(6), Validators.maxLength(120)]
+    validators: [Validators.required, Validators.minLength(this.config.authMinPasswordLength), Validators.maxLength(this.config.authMaxPasswordLength)]
   });
 
   constructor() {

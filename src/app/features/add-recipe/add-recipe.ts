@@ -41,31 +41,31 @@ export class AddRecipeComponent {
 
   protected readonly titleControl = new FormControl('', {
     nonNullable: true,
-    validators: [Validators.required, Validators.minLength(2), Validators.maxLength(80)]
+    validators: [Validators.required, Validators.minLength(this.config.authMinNameLength), Validators.maxLength(this.config.recipeTitleMaxLength)]
   });
   protected readonly cuisineControl = new FormControl('', {
     nonNullable: true,
-    validators: [Validators.required, Validators.minLength(2), Validators.maxLength(40)]
+    validators: [Validators.required, Validators.minLength(this.config.authMinNameLength), Validators.maxLength(this.config.recipeFacetMaxLength)]
   });
   protected readonly categoryControl = new FormControl('', {
     nonNullable: true,
-    validators: [Validators.required, Validators.minLength(2), Validators.maxLength(40)]
+    validators: [Validators.required, Validators.minLength(this.config.authMinNameLength), Validators.maxLength(this.config.recipeFacetMaxLength)]
   });
   protected readonly instructionsControl = new FormControl('', {
     nonNullable: true,
-    validators: [Validators.required, Validators.minLength(10), Validators.maxLength(5000)]
+    validators: [Validators.required, Validators.minLength(this.config.recipeInstructionsMinLength), Validators.maxLength(this.config.recipeInstructionsMaxLength)]
   });
   protected readonly sourceUrlControl = new FormControl('', {
     nonNullable: true,
-    validators: [Validators.maxLength(300), Validators.pattern(/^$|https?:\/\/.+/i)]
+    validators: [Validators.maxLength(this.config.recipeUrlMaxLength), Validators.pattern(/^$|https?:\/\/.+/i)]
   });
   protected readonly youtubeUrlControl = new FormControl('', {
     nonNullable: true,
-    validators: [Validators.maxLength(300), Validators.pattern(/^$|https?:\/\/.+/i)]
+    validators: [Validators.maxLength(this.config.recipeUrlMaxLength), Validators.pattern(/^$|https?:\/\/.+/i)]
   });
   protected readonly tagsControl = new FormControl('', {
     nonNullable: true,
-    validators: [Validators.maxLength(200)]
+    validators: [Validators.maxLength(this.config.recipeTagsInputMaxLength)]
   });
 
   protected readonly imagePreview = signal(this.config.localRecipePlaceholderImage);

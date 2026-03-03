@@ -23,14 +23,43 @@ export class ConfigurationService {
   readonly authSessionStore = 'session';
   readonly authSessionKey = 'current';
   readonly authSessionCacheKey = 'food-explorer.current-user';
+  readonly authMaxEmailLength = 120;
   readonly authMinPasswordLength = 6;
+  readonly authMaxPasswordLength = 120;
   readonly authPasswordAlgorithm: StoredUser['passwordVersion'] = 'pbkdf2-sha256';
   readonly authPasswordIterations = 210_000;
+  readonly authMinNameLength = 2;
+  readonly authMaxNameLength = 80;
   readonly authMinAge = 13;
   readonly authMaxAge = 120;
+  readonly authDefaultAge = 18;
+  readonly authDefaultFirstName = 'User';
+  readonly authDefaultLastName = '';
+  readonly authDefaultPhone = '000000000';
+  readonly authPhonePattern = /^[+]?[-0-9\s()]{6,}$/;
   readonly authMaxPhoneLength = 20;
   readonly authMaxAvatarSizeBytes = 2 * 1024 * 1024;
   readonly authDefaultAvatar = 'https://placehold.co/120x120?text=User';
+
+  readonly feedbackVotesStorageKey = 'foodExplorerVotes';
+  readonly feedbackTagsStorageKey = 'foodExplorerTags';
+  readonly feedbackTagMinLength = 2;
+  readonly feedbackTagMaxLength = 24;
+
+  readonly recipeTitleMaxLength = 80;
+  readonly recipeFacetMaxLength = 40;
+  readonly recipeInstructionsMinLength = 10;
+  readonly recipeInstructionsMaxLength = 5000;
+  readonly recipeUrlMaxLength = 300;
+  readonly recipeTagsInputMaxLength = 200;
+
+  readonly uiSearchMinLength = 2;
+  readonly uiPageSizeOptions = [10, 12, 15, 20, 25] as const;
+  readonly uiSmallViewportMaxWidth = 740;
+  readonly uiMediumViewportMaxWidth = 1500;
+  readonly uiSmallViewportPageSize = 10;
+  readonly uiMediumViewportPageSize = 12;
+  readonly uiLargeViewportPageSize = 10;
 
   readonly defaultPageSize = 10;
   readonly minPageSize = 1;

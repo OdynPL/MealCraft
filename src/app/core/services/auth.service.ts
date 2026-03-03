@@ -195,15 +195,15 @@ export class AuthService {
   }
 
   private validateProfileData(firstName: string, lastName: string, phone: string, age: number): string | null {
-    if (firstName.trim().length < 2) {
-      return 'First name must have at least 2 characters.';
+    if (firstName.trim().length < this.config.authMinNameLength) {
+      return `First name must have at least ${this.config.authMinNameLength} characters.`;
     }
 
-    if (lastName.trim().length < 2) {
-      return 'Last name must have at least 2 characters.';
+    if (lastName.trim().length < this.config.authMinNameLength) {
+      return `Last name must have at least ${this.config.authMinNameLength} characters.`;
     }
 
-    if (!isValidPhone(phone, this.config.authMaxPhoneLength)) {
+    if (!isValidPhone(phone, this.config.authPhonePattern, this.config.authMaxPhoneLength)) {
       return 'Invalid phone number.';
     }
 
@@ -223,7 +223,7 @@ export class AuthService {
       const db = await this.openDb();
       const user = await this.runTransaction<AuthUser | null>(db, this.config.authSessionStore, 'readonly', (store, done, fail) => {
         const request = store.get(this.config.authSessionKey);
-        request.onsuccess = () => done(normalizeAuthUser(request.result));
+        request.onsuccess = () => done(normalizeAuthUser(request.result, this.config));
         request.onerror = () => fail(request.error);
       });
 
@@ -244,7 +244,7 @@ export class AuthService {
       const request = store.getAll();
       request.onsuccess = () => {
         const result = ((request.result as unknown[]) ?? [])
-          .map((item) => normalizeStoredUser(item, this.config.authPasswordAlgorithm))
+          .map((item) => normalizeStoredUser(item, this.config.authPasswordAlgorithm, this.config))
           .filter((item): item is StoredUser => item !== null);
         done(result);
       };
@@ -293,7 +293,7 @@ export class AuthService {
       }
 
       const value = JSON.parse(raw);
-      return normalizeAuthUser(value);
+      return normalizeAuthUser(value, this.config);
     } catch {
       return null;
     }
@@ -352,7 +352,8 @@ export class AuthService {
 
 function normalizeStoredUser(
   value: unknown,
-  passwordAlgorithm: StoredUser['passwordVersion']
+  passwordAlgorithm: StoredUser['passwordVersion'],
+  config: ConfigurationService
 ): StoredUser | null {
   if (!isObject(value)) {
     return null;
@@ -372,9 +373,9 @@ function normalizeStoredUser(
     : passwordVersionRaw === 'legacy'
       ? 'legacy'
       : undefined;
-  const firstName = String(value['firstName'] ?? '').trim() || 'User';
-  const lastName = String(value['lastName'] ?? '').trim() || '';
-  const phone = String(value['phone'] ?? '').trim() || '000000000';
+  const firstName = String(value['firstName'] ?? '').trim() || config.authDefaultFirstName;
+  const lastName = String(value['lastName'] ?? '').trim() || config.authDefaultLastName;
+  const phone = String(value['phone'] ?? '').trim() || config.authDefaultPhone;
   const age = Number(value['age']);
   const avatar = normalizeOptional(value['avatar']);
   const createdAt = normalizeDate(value['createdAt']);
@@ -393,22 +394,22 @@ function normalizeStoredUser(
     firstName,
     lastName,
     phone,
-    age: Number.isFinite(age) && age > 0 ? age : 18,
+    age: Number.isFinite(age) && age > 0 ? age : config.authDefaultAge,
     avatar,
     createdAt
   };
 }
 
-function normalizeAuthUser(value: unknown): AuthUser | null {
+function normalizeAuthUser(value: unknown, config: ConfigurationService): AuthUser | null {
   if (!isObject(value)) {
     return null;
   }
 
   const id = Number(value['id']);
   const email = String(value['email'] ?? '').trim().toLowerCase();
-  const firstName = String(value['firstName'] ?? '').trim() || 'User';
-  const lastName = String(value['lastName'] ?? '').trim() || '';
-  const phone = String(value['phone'] ?? '').trim() || '000000000';
+  const firstName = String(value['firstName'] ?? '').trim() || config.authDefaultFirstName;
+  const lastName = String(value['lastName'] ?? '').trim() || config.authDefaultLastName;
+  const phone = String(value['phone'] ?? '').trim() || config.authDefaultPhone;
   const age = Number(value['age']);
   const avatar = normalizeOptional(value['avatar']);
   const createdAt = normalizeDate(value['createdAt']);
@@ -423,7 +424,7 @@ function normalizeAuthUser(value: unknown): AuthUser | null {
     firstName,
     lastName,
     phone,
-    age: Number.isFinite(age) && age > 0 ? age : 18,
+    age: Number.isFinite(age) && age > 0 ? age : config.authDefaultAge,
     avatar,
     createdAt
   };
@@ -437,9 +438,9 @@ function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-function isValidPhone(value: string, maxLength: number): boolean {
+function isValidPhone(value: string, pattern: RegExp, maxLength: number): boolean {
   const normalized = value.trim();
-  return /^[+]?[-0-9\s()]{6,}$/.test(normalized) && normalized.length <= maxLength;
+  return pattern.test(normalized) && normalized.length <= maxLength;
 }
 
 function toHash(value: string): string {

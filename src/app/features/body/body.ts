@@ -15,6 +15,7 @@ import { distinctUntilChanged, firstValueFrom, fromEvent, map, startWith } from 
 
 import { Food, FoodSortBy, SortDirection } from '../../core/models';
 import { AuthService } from '../../core/services/auth.service';
+import { ConfigurationService } from '../../core/services/configuration.service';
 import { RecipeFeedbackService } from '../../core/services/recipe-feedback.service';
 import { FoodStore } from '../../core/stores/food.store';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog';
@@ -45,6 +46,7 @@ export class BodyComponent {
   private readonly route = inject(ActivatedRoute);
 
   private readonly auth = inject(AuthService);
+  private readonly config = inject(ConfigurationService);
   protected readonly store = inject(FoodStore);
   protected readonly feedback = inject(RecipeFeedbackService);
 
@@ -55,11 +57,14 @@ export class BodyComponent {
   protected readonly categoryControl = new FormControl('', { nonNullable: true });
   protected readonly searchControl = new FormControl('', {
     nonNullable: true,
-    validators: [Validators.minLength(2), Validators.maxLength(60)]
+    validators: [Validators.minLength(this.config.uiSearchMinLength), Validators.maxLength(this.config.queryLimit)]
   });
-  protected readonly sortControl = new FormControl('id:desc', { nonNullable: true });
+  protected readonly sortControl = new FormControl(
+    `${this.config.defaultSortBy}:${this.config.defaultSortDirection}`,
+    { nonNullable: true }
+  );
 
-  protected readonly pageSizeOptions = [10, 12, 15, 20, 25];
+  protected readonly pageSizeOptions = [...this.config.uiPageSizeOptions];
   protected readonly isLoggedIn = computed(() => this.auth.isLoggedIn());
   protected readonly cuisines = computed(() => this.store.cuisines());
   protected readonly categories = computed(() => this.store.categories());
@@ -87,7 +92,7 @@ export class BodyComponent {
     fromEvent(globalThis, 'resize')
       .pipe(
         startWith(null),
-        map(() => recommendedPageSizeForWidth(globalThis.innerWidth)),
+        map(() => recommendedPageSizeForWidth(globalThis.innerWidth, this.config)),
         distinctUntilChanged(),
         takeUntilDestroyed(this.destroyRef)
       )
@@ -289,7 +294,7 @@ export class BodyComponent {
     }
 
     if (page !== this.store.pageIndex() || pageSize !== this.store.pageSize()) {
-      this.store.setPage(Math.max(page, 0), Math.max(pageSize, 1));
+      this.store.setPage(Math.max(page, 0), Math.max(pageSize, this.config.minPageSize));
     }
 
     this.lastSyncedUrlState = JSON.stringify(this.buildQueryParams());
@@ -320,7 +325,7 @@ export class BodyComponent {
     if (this.store.pageIndex() > 0) {
       queryParams['page'] = this.store.pageIndex();
     }
-    if (this.store.pageSize() !== 10) {
+    if (this.store.pageSize() !== this.config.defaultPageSize) {
       queryParams['pageSize'] = this.store.pageSize();
     }
 
@@ -360,14 +365,14 @@ function parseBoolean(value: string | null): boolean {
   return value === '1' || value === 'true';
 }
 
-function recommendedPageSizeForWidth(width: number): number {
-  if (width <= 740) {
-    return 10;
+function recommendedPageSizeForWidth(width: number, config: ConfigurationService): number {
+  if (width <= config.uiSmallViewportMaxWidth) {
+    return config.uiSmallViewportPageSize;
   }
 
-  if (width <= 1500) {
-    return 12;
+  if (width <= config.uiMediumViewportMaxWidth) {
+    return config.uiMediumViewportPageSize;
   }
 
-  return 10;
+  return config.uiLargeViewportPageSize;
 }
