@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, WritableSignal, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -22,6 +23,7 @@ import { FoodStore } from '../../core/stores/food.store';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
+    MatAutocompleteModule,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
@@ -40,6 +42,8 @@ export class AddRecipeComponent {
   private readonly router = inject(Router);
   private readonly notifications = inject(NotificationService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly cuisineOptionsState = signal<string[]>([...this.config.knownCuisines]);
+  private readonly categoryOptionsState = signal<string[]>([...this.config.knownCategories]);
 
   protected readonly titleControl = new FormControl('', {
     nonNullable: true,
@@ -47,11 +51,21 @@ export class AddRecipeComponent {
   });
   protected readonly cuisineControl = new FormControl('', {
     nonNullable: true,
-    validators: [Validators.required, Validators.minLength(this.config.authMinNameLength), Validators.maxLength(this.config.recipeFacetMaxLength)]
+    validators: [
+      Validators.required,
+      Validators.minLength(this.config.authMinNameLength),
+      Validators.maxLength(this.config.recipeFacetMaxLength),
+      (control) => this.validateFromOptions(control, this.cuisineOptionsState())
+    ]
   });
   protected readonly categoryControl = new FormControl('', {
     nonNullable: true,
-    validators: [Validators.required, Validators.minLength(this.config.authMinNameLength), Validators.maxLength(this.config.recipeFacetMaxLength)]
+    validators: [
+      Validators.required,
+      Validators.minLength(this.config.authMinNameLength),
+      Validators.maxLength(this.config.recipeFacetMaxLength),
+      (control) => this.validateFromOptions(control, this.categoryOptionsState())
+    ]
   });
   protected readonly instructionsControl = new FormControl('', {
     nonNullable: true,
@@ -74,8 +88,12 @@ export class AddRecipeComponent {
   protected readonly imageError = signal<string | null>(null);
   protected readonly validationError = signal<string | null>(null);
   protected readonly submitError = signal<string | null>(null);
+  protected readonly cuisineOptions = computed(() => this.cuisineOptionsState());
+  protected readonly categoryOptions = computed(() => this.categoryOptionsState());
   protected readonly recipeId = signal<number | null>(null);
   protected readonly loadedRecipe = signal<FoodDetail | null>(null);
+  protected readonly filteredCuisineOptions = computed(() => filterOptions(this.cuisineOptions(), this.cuisineControl.value));
+  protected readonly filteredCategoryOptions = computed(() => filterOptions(this.categoryOptions(), this.categoryControl.value));
   protected readonly isEditMode = computed(() => this.recipeId() !== null);
   protected readonly isLoggedIn = computed(() => this.auth.isLoggedIn());
   protected readonly canEditRecipe = computed(() => {
@@ -99,6 +117,15 @@ export class AddRecipeComponent {
   private uploadedImage: string | undefined;
 
   constructor() {
+    this.api.getFacets()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(({ cuisines, categories }) => {
+        this.cuisineOptionsState.set(mergeOptionSets(this.config.knownCuisines, cuisines));
+        this.categoryOptionsState.set(mergeOptionSets(this.config.knownCategories, categories));
+        this.cuisineControl.updateValueAndValidity({ emitEvent: false });
+        this.categoryControl.updateValueAndValidity({ emitEvent: false });
+      });
+
     this.route.paramMap
       .pipe(
         switchMap((params) => {
@@ -121,6 +148,8 @@ export class AddRecipeComponent {
         }
 
         this.titleControl.setValue(recipe.title);
+        this.includeCurrentFacetValue(this.cuisineOptionsState, recipe.cuisine);
+        this.includeCurrentFacetValue(this.categoryOptionsState, recipe.category);
         this.cuisineControl.setValue(recipe.cuisine);
         this.categoryControl.setValue(recipe.category);
         this.instructionsControl.setValue(recipe.instructions);
@@ -221,8 +250,8 @@ export class AddRecipeComponent {
 
     const draft = {
       title: this.titleControl.value.trim(),
-      cuisine: this.cuisineControl.value.trim(),
-      category: this.categoryControl.value.trim(),
+      cuisine: this.canonicalFacetValue(this.cuisineOptions(), this.cuisineControl.value),
+      category: this.canonicalFacetValue(this.categoryOptions(), this.categoryControl.value),
       instructions: this.instructionsControl.value.trim(),
       image: this.uploadedImage,
       sourceUrl: normalizeOptional(this.sourceUrlControl.value),
@@ -269,9 +298,15 @@ export class AddRecipeComponent {
     if (this.cuisineControl.hasError('required') || this.cuisineControl.hasError('minlength') || this.cuisineControl.hasError('maxlength')) {
       return 'Enter a valid cuisine.';
     }
+    if (this.cuisineControl.hasError('invalidOption')) {
+      return 'Select cuisine from the list.';
+    }
 
     if (this.categoryControl.hasError('required') || this.categoryControl.hasError('minlength') || this.categoryControl.hasError('maxlength')) {
       return 'Enter a valid category.';
+    }
+    if (this.categoryControl.hasError('invalidOption')) {
+      return 'Select category from the list.';
     }
 
     if (this.instructionsControl.hasError('required')) {
@@ -298,9 +333,54 @@ export class AddRecipeComponent {
 
     return 'Please fix validation errors and try again.';
   }
+
+  private validateFromOptions(control: AbstractControl<string>, options: readonly string[]): ValidationErrors | null {
+    const value = control.value.trim();
+    if (!value) {
+      return null;
+    }
+
+    const normalizedValue = value.toLowerCase();
+    const allowed = options.some((option) => option.toLowerCase() === normalizedValue);
+
+    return allowed ? null : { invalidOption: true };
+  }
+
+  private canonicalFacetValue(options: string[], rawValue: string): string {
+    const normalizedValue = rawValue.trim().toLowerCase();
+    const matched = options.find((option) => option.toLowerCase() === normalizedValue);
+    return matched ?? rawValue.trim();
+  }
+
+  private includeCurrentFacetValue(target: WritableSignal<string[]>, value: string): void {
+    const normalized = value.trim();
+    if (!normalized) {
+      return;
+    }
+
+    const next = mergeOptionSets(target(), [normalized]);
+    target.set(next);
+  }
 }
 
 function normalizeOptional(value: string): string | undefined {
   const normalized = value.trim();
   return normalized.length > 0 ? normalized : undefined;
+}
+
+function filterOptions(options: string[], query: string): string[] {
+  const normalizedQuery = query.trim().toLowerCase();
+  if (!normalizedQuery) {
+    return options;
+  }
+
+  return options.filter((option) => option.toLowerCase().includes(normalizedQuery));
+}
+
+function mergeOptionSets(base: readonly string[], extras: readonly string[]): string[] {
+  const normalized = [...base, ...extras]
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+
+  return [...new Set(normalized)].sort((a, b) => a.localeCompare(b));
 }

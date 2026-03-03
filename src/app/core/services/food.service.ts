@@ -35,8 +35,18 @@ export class FoodService {
         const localFacets = this.localRecipes.getFacetValues();
 
         return {
-          cuisines: uniqueSortedValues([...remoteFacets.cuisines, ...localFacets.cuisines, ...dummyFacets.cuisines]),
-          categories: uniqueSortedValues([...remoteFacets.categories, ...localFacets.categories, ...dummyFacets.categories])
+          cuisines: uniqueSortedValues([
+            ...this.config.knownCuisines,
+            ...remoteFacets.cuisines,
+            ...localFacets.cuisines,
+            ...dummyFacets.cuisines
+          ]),
+          categories: uniqueSortedValues([
+            ...this.config.knownCategories,
+            ...remoteFacets.categories,
+            ...localFacets.categories,
+            ...dummyFacets.categories
+          ])
         };
       })
     );

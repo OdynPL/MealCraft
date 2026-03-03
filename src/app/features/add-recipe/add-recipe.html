@@ -28,23 +28,39 @@
 
           <mat-form-field appearance="outline">
             <mat-label>Cuisine</mat-label>
-            <input matInput [formControl]="cuisineControl" maxlength="40" />
+            <input matInput [formControl]="cuisineControl" [matAutocomplete]="cuisineAuto" maxlength="40" />
+            <mat-autocomplete #cuisineAuto="matAutocomplete" autoActiveFirstOption>
+              @for (cuisine of filteredCuisineOptions(); track cuisine) {
+                <mat-option [value]="cuisine">{{ cuisine }}</mat-option>
+              }
+            </mat-autocomplete>
             @if (cuisineControl.hasError('required')) {
               <mat-error>Cuisine is required.</mat-error>
             }
             @if (cuisineControl.hasError('minlength')) {
               <mat-error>Minimum 2 characters.</mat-error>
             }
+            @if (cuisineControl.hasError('invalidOption')) {
+              <mat-error>Select cuisine from list.</mat-error>
+            }
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>Category</mat-label>
-            <input matInput [formControl]="categoryControl" maxlength="40" />
+            <input matInput [formControl]="categoryControl" [matAutocomplete]="categoryAuto" maxlength="40" />
+            <mat-autocomplete #categoryAuto="matAutocomplete" autoActiveFirstOption>
+              @for (category of filteredCategoryOptions(); track category) {
+                <mat-option [value]="category">{{ category }}</mat-option>
+              }
+            </mat-autocomplete>
             @if (categoryControl.hasError('required')) {
               <mat-error>Category is required.</mat-error>
             }
             @if (categoryControl.hasError('minlength')) {
               <mat-error>Minimum 2 characters.</mat-error>
+            }
+            @if (categoryControl.hasError('invalidOption')) {
+              <mat-error>Select category from list.</mat-error>
             }
           </mat-form-field>
 
