@@ -1,9 +1,4 @@
 import { Routes } from '@angular/router';
-import { BodyComponent } from './features/body/body';
-import { AddRecipeComponent } from './features/add-recipe/add-recipe';
-import { AuthComponent } from './features/auth/auth';
-import { MealDetailsComponent } from './features/meal-details/meal-details';
-import { SettingsComponent } from './features/settings/settings';
 import { authGuard } from './core/guards/auth.guard';
 import { guestOnlyGuard } from './core/guards/guest-only.guard';
 
@@ -15,42 +10,42 @@ export const routes: Routes = [
   },
   {
     path: 'home',
-    component: BodyComponent,
+    loadComponent: () => import('./features/body/body').then((module) => module.BodyComponent),
   },
   {
     path: 'meals',
-    component: BodyComponent,
+    loadComponent: () => import('./features/body/body').then((module) => module.BodyComponent),
   },
   {
     path: 'meals/new',
-    component: AddRecipeComponent,
+    loadComponent: () => import('./features/add-recipe/add-recipe').then((module) => module.AddRecipeComponent),
     canActivate: [authGuard]
   },
   {
     path: 'login',
-    component: AuthComponent,
+    loadComponent: () => import('./features/auth/auth').then((module) => module.AuthComponent),
     canActivate: [guestOnlyGuard],
     data: { mode: 'login' }
   },
   {
     path: 'register',
-    component: AuthComponent,
+    loadComponent: () => import('./features/auth/auth').then((module) => module.AuthComponent),
     canActivate: [guestOnlyGuard],
     data: { mode: 'register' }
   },
   {
     path: 'settings',
-    component: SettingsComponent,
+    loadComponent: () => import('./features/settings/settings').then((module) => module.SettingsComponent),
     canActivate: [authGuard]
   },
   {
     path: 'meals/:id/edit',
-    component: AddRecipeComponent,
+    loadComponent: () => import('./features/add-recipe/add-recipe').then((module) => module.AddRecipeComponent),
     canActivate: [authGuard]
   },
   {
     path: 'meals/:id',
-    component: MealDetailsComponent,
+    loadComponent: () => import('./features/meal-details/meal-details').then((module) => module.MealDetailsComponent),
   },
   {
     path: '**',
