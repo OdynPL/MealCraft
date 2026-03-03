@@ -9,7 +9,9 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:ci": "ng test --watch=false",
-    "test:ci:coverage": "ng test --watch=false --coverage"
+    "test:ci:coverage": "ng test --watch=false --coverage",
+    "sync:photos": "node scripts/sync-real-photos.mjs --concurrency=6",
+    "sync:photos:force": "node scripts/sync-real-photos.mjs --force --concurrency=6"
   },
   "prettier": {
     "printWidth": 100,

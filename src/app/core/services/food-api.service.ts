@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { catchError, forkJoin, map, Observable, of, throwError } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of, shareReplay, switchMap, throwError } from 'rxjs';
 
 import {
   MealDbAreaResponseDto,
@@ -10,7 +10,6 @@ import {
   MealDbMealDto,
   MealDbSearchResponseDto
 } from '../dto';
-import exampleRecipesData from '../data/example-recipes.json';
 import { AuthUser, Food, FoodCategoryCount, FoodDetail, FoodFacets, FoodPage, FoodQuery, FoodSortBy, SortDirection } from '../models';
 import { ConfigurationService } from './configuration.service';
 import { AuthService } from './auth.service';
@@ -22,8 +21,6 @@ const ALLOWED_DIRECTIONS: readonly SortDirection[] = ['asc', 'desc'];
 const API_AUTHOR = 'TheMealDB';
 const DUMMY_AUTHOR = 'MealCraft Examples';
 const DUMMY_BASE_ID = 900_000;
-const DUMMY_COUNT = 1000;
-const DUMMY_IMAGE_COUNT = 120;
 
 @Injectable({ providedIn: 'root' })
 export class FoodApiService {
@@ -32,6 +29,9 @@ export class FoodApiService {
   private readonly auth = inject(AuthService);
   private readonly localRecipes = inject(LocalRecipeService);
   private readonly feedback = inject(RecipeFeedbackService);
+  private exampleRecipes$: Observable<readonly ExampleRecipeSeed[]> | null = null;
+  private dummyFoods$: Observable<readonly Food[]> | null = null;
+  private dummyDetails$: Observable<Map<number, FoodDetail>> | null = null;
 
   getFacets(): Observable<FoodFacets> {
     const cuisines$ = this.mealDbGet<MealDbAreaResponseDto>(
@@ -52,10 +52,11 @@ export class FoodApiService {
       catchError(() => of([]))
     );
 
-    return forkJoin({ cuisines: cuisines$, categories: categories$ }).pipe(
-      map(({ cuisines, categories }) => {
+    const dummyFacets$ = this.getDummyFacets();
+
+    return forkJoin({ cuisines: cuisines$, categories: categories$, dummyFacets: dummyFacets$ }).pipe(
+      map(({ cuisines, categories, dummyFacets }) => {
         const localFacets = this.localRecipes.getFacetValues();
-        const dummyFacets = getDummyFacets();
 
         return {
           cuisines: uniqueSortedValues([...cuisines, ...localFacets.cuisines, ...dummyFacets.cuisines]),
@@ -78,25 +79,30 @@ export class FoodApiService {
     }
 
     const localOverride = snapshot.overrides.find((item) => item.id === id);
-    const dummyDetail = DUMMY_DETAILS.get(id);
 
-    if (dummyDetail) {
-      return of(localOverride ? this.mergeDetail(dummyDetail, localOverride) : dummyDetail);
-    }
+    return this.getDummyDetails().pipe(
+      switchMap((dummyDetails) => {
+        const dummyDetail = dummyDetails.get(id);
 
-    return this.mealDbGet<MealDbDetailResponseDto>(
-      this.config.lookupEndpoint,
-      new HttpParams().set('i', String(id))
-    )
-      .pipe(map((res) => {
-        const meal = res.meals?.[0];
-        if (!meal) {
-          return localOverride ?? null;
+        if (dummyDetail) {
+          return of(localOverride ? this.mergeDetail(dummyDetail, localOverride) : dummyDetail);
         }
 
-        const apiDetail = this.toFoodDetail(meal);
-        return localOverride ? this.mergeDetail(apiDetail, localOverride) : apiDetail;
-      }));
+        return this.mealDbGet<MealDbDetailResponseDto>(
+          this.config.lookupEndpoint,
+          new HttpParams().set('i', String(id))
+        )
+          .pipe(map((res) => {
+            const meal = res.meals?.[0];
+            if (!meal) {
+              return localOverride ?? null;
+            }
+
+            const apiDetail = this.toFoodDetail(meal);
+            return localOverride ? this.mergeDetail(apiDetail, localOverride) : apiDetail;
+          }));
+      })
+    );
   }
 
   search(query: FoodQuery): Observable<FoodPage> {
@@ -120,7 +126,9 @@ export class FoodApiService {
         catchError(() => of({ meals: [] } as MealDbSearchResponseDto)),
         map((res) => res.meals ?? []),
         map((meals) => meals.map((item) => this.toFood(item))),
-        map((apiItems) => this.applyLocalMutations([...apiItems, ...DUMMY_FOODS])),
+        switchMap((apiItems) => this.getDummyFoods().pipe(
+          map((dummyFoods) => this.applyLocalMutations([...apiItems, ...dummyFoods]))
+        )),
         map((items) => filterFoods(items, searchText, cuisine, category, mineOnly, currentUser)),
         map((items) => ({
           allItems: items,
@@ -286,6 +294,44 @@ export class FoodApiService {
       catchError(() => this.requestWithProxyFallback<T>(proxyUrls, index + 1))
     );
   }
+
+  private getExampleRecipes(): Observable<readonly ExampleRecipeSeed[]> {
+    if (!this.exampleRecipes$) {
+      this.exampleRecipes$ = this.http.get<unknown>('data/example-recipes.json').pipe(
+        map((source) => normalizeExampleRecipeSource(source)),
+        catchError(() => of([] as ExampleRecipeSeed[])),
+        shareReplay(1)
+      );
+    }
+
+    return this.exampleRecipes$;
+  }
+
+  private getDummyFoods(): Observable<readonly Food[]> {
+    if (!this.dummyFoods$) {
+      this.dummyFoods$ = this.getExampleRecipes().pipe(
+        map((recipes) => buildDummyFoods(recipes)),
+        shareReplay(1)
+      );
+    }
+
+    return this.dummyFoods$;
+  }
+
+  private getDummyDetails(): Observable<Map<number, FoodDetail>> {
+    if (!this.dummyDetails$) {
+      this.dummyDetails$ = this.getExampleRecipes().pipe(
+        map((recipes) => buildDummyDetails(recipes)),
+        shareReplay(1)
+      );
+    }
+
+    return this.dummyDetails$;
+  }
+
+  private getDummyFacets(): Observable<{ cuisines: string[]; categories: string[] }> {
+    return this.getDummyFoods().pipe(map((foods) => getDummyFacets(foods)));
+  }
 }
 
 function buildUrlWithQuery(url: string, params?: HttpParams): string {
@@ -428,96 +474,11 @@ function uniqueSortedValues(items: string[]): string[] {
 
 interface ExampleRecipeSeed {
   title: string;
+  image: string;
   cuisine: string;
   category: string;
   tags: string[];
   instructions: string;
-}
-
-const TITLE_SUFFIXES = [
-  'Family Style',
-  'Weeknight Edition',
-  'Chef Choice',
-  'Home Kitchen',
-  'Sunday Special',
-  'Balanced Plate',
-  'Meal Prep Version',
-  'Light & Fresh'
-] as const;
-
-const TECHNIQUES = [
-  'pan-sear',
-  'oven-bake',
-  'slow-simmer',
-  'stir-fry',
-  'roast',
-  'steam-finish'
-] as const;
-
-const SIDE_SUGGESTIONS = [
-  'Serve with steamed rice.',
-  'Serve with roasted potatoes.',
-  'Serve with warm flatbread.',
-  'Serve with a crisp salad.',
-  'Serve with buttered pasta.',
-  'Serve with grilled vegetables.'
-] as const;
-
-const EXAMPLE_RECIPES: readonly ExampleRecipeSeed[] = buildExampleRecipes(exampleRecipesData, DUMMY_COUNT);
-const DUMMY_FOODS = buildDummyFoods();
-const DUMMY_DETAILS = buildDummyDetails();
-
-function buildExampleRecipes(source: unknown, targetCount: number): ExampleRecipeSeed[] {
-  const base = normalizeExampleRecipeSource(source);
-  const baseLength = base.length;
-
-  if (baseLength === 0 || targetCount <= 0) {
-    return [];
-  }
-
-  const recipes: ExampleRecipeSeed[] = [];
-  const fallbackTemplate: ExampleRecipeSeed = {
-    title: 'Example recipe',
-    cuisine: 'International',
-    category: 'Miscellaneous',
-    tags: ['savory'],
-    instructions: 'Servings: 4 · Prep: 15 min · Cook: 25 min\nIngredients: 600 g main ingredient, aromatics, seasoning, and base sauce.\n1) Prep ingredients.\n2) Cook with your preferred technique.\n3) Simmer until tender.\n4) Serve hot.'
-  };
-
-  for (let index = 0; index < targetCount; index += 1) {
-    const template = base[index % baseLength] ?? fallbackTemplate;
-    const variant = Math.floor(index / baseLength) + 1;
-    const technique = TECHNIQUES[index % TECHNIQUES.length];
-    const suffix = TITLE_SUFFIXES[(index + variant) % TITLE_SUFFIXES.length];
-    const servings = seededInt(index + 17, 2, 6);
-    const prepMinutes = seededInt(index + 41, 10, 28);
-    const cookMinutes = seededInt(index + 83, 16, 110);
-    const proteinAmount = seededInt(index + 131, 350, 950);
-    const aromaticAmount = seededInt(index + 173, 1, 4);
-    const sauceAmount = seededInt(index + 197, 120, 360);
-    const mainIngredient = mainIngredientForCategory(template.category ?? fallbackTemplate.category);
-    const rawTags = Array.isArray(template.tags) ? template.tags : [];
-    const templateTags = rawTags.length > 0 ? rawTags : fallbackTemplate.tags;
-    const accentTag = templateTags[index % templateTags.length] ?? 'savory';
-    const sideSuggestion = SIDE_SUGGESTIONS[(index + 2) % SIDE_SUGGESTIONS.length];
-
-    recipes.push({
-      title: `${template.title} ${suffix} ${variant}`,
-      cuisine: template.cuisine,
-      category: template.category,
-      tags: [...new Set([...templateTags, technique, 'example'])],
-      instructions: [
-        `Servings: ${servings} · Prep: ${prepMinutes} min · Cook: ${cookMinutes} min`,
-        `Ingredients: ${proteinAmount} g ${mainIngredient}, ${aromaticAmount} garlic cloves, ${sauceAmount} ml base sauce, 1 onion, salt, pepper, olive oil.`,
-        `1) Prepare ingredients and season ${mainIngredient} with salt, pepper, and ${accentTag}.`,
-        `2) Use ${technique} approach to build flavor and cook the base for 6-10 minutes.`,
-        `3) Add sauce and simmer gently until texture is rich and ingredients are tender.`,
-        `4) Taste, adjust seasoning, and finish with fresh herbs. ${sideSuggestion}`
-      ].join('\n')
-    });
-  }
-
-  return recipes;
 }
 
 function normalizeExampleRecipeSource(source: unknown): ExampleRecipeSeed[] {
@@ -529,6 +490,7 @@ function normalizeExampleRecipeSource(source: unknown): ExampleRecipeSeed[] {
     const candidate = (item && typeof item === 'object') ? item as Record<string, unknown> : {};
 
     const title = normalizeString(candidate['title']) || `Example recipe ${index + 1}`;
+    const image = normalizeString(candidate['image']) || `https://loremflickr.com/640/420/food?lock=${index + 1}`;
     const cuisine = normalizeString(candidate['cuisine']) || 'International';
     const category = normalizeString(candidate['category']) || 'Miscellaneous';
     const instructions = normalizeString(candidate['instructions'])
@@ -539,6 +501,7 @@ function normalizeExampleRecipeSource(source: unknown): ExampleRecipeSeed[] {
 
     return {
       title,
+      image,
       cuisine,
       category,
       tags,
@@ -556,47 +519,14 @@ function normalizeString(value: unknown): string | null {
   return normalized.length > 0 ? normalized : null;
 }
 
-function mainIngredientForCategory(category: string): string {
-  switch (category.toLowerCase()) {
-    case 'chicken':
-      return 'chicken thigh fillet';
-    case 'beef':
-      return 'beef chuck';
-    case 'seafood':
-      return 'white fish fillet';
-    case 'vegetarian':
-      return 'firm tofu';
-    case 'dessert':
-      return 'seasonal fruit';
-    case 'soup':
-      return 'mixed vegetables';
-    case 'pasta':
-      return 'durum pasta';
-    case 'rice':
-      return 'arborio rice';
-    case 'egg':
-      return 'free-range eggs';
-    case 'noodles':
-      return 'wheat noodles';
-    default:
-      return 'main ingredient';
-  }
-}
-
-function seededInt(seed: number, min: number, max: number): number {
-  const raw = Math.abs(Math.sin(seed * 12.9898) * 43758.5453);
-  const normalized = raw - Math.floor(raw);
-  return min + Math.floor(normalized * (max - min + 1));
-}
-
-function buildDummyFoods(): Food[] {
-  return EXAMPLE_RECIPES.map((recipe, index) => {
+function buildDummyFoods(recipes: readonly ExampleRecipeSeed[]): Food[] {
+  return recipes.map((recipe, index) => {
     const id = DUMMY_BASE_ID + index + 1;
 
     return {
       id,
       title: recipe.title,
-      image: buildDummyImagePath(index),
+      image: recipe.image,
       imageType: 'jpg',
       sourceUrl: undefined,
       cuisine: recipe.cuisine,
@@ -608,9 +538,9 @@ function buildDummyFoods(): Food[] {
   });
 }
 
-function buildDummyDetails(): Map<number, FoodDetail> {
+function buildDummyDetails(recipes: readonly ExampleRecipeSeed[]): Map<number, FoodDetail> {
   return new Map<number, FoodDetail>(
-    EXAMPLE_RECIPES.map((recipe, index) => {
+    recipes.map((recipe, index) => {
       const id = DUMMY_BASE_ID + index + 1;
 
       return [
@@ -618,7 +548,7 @@ function buildDummyDetails(): Map<number, FoodDetail> {
         {
           id,
           title: recipe.title,
-          image: buildDummyImagePath(index),
+          image: recipe.image,
           category: recipe.category,
           cuisine: recipe.cuisine,
           instructions: recipe.instructions,
@@ -633,15 +563,12 @@ function buildDummyDetails(): Map<number, FoodDetail> {
   );
 }
 
-function buildDummyImagePath(index: number): string {
-  const normalized = ((index % DUMMY_IMAGE_COUNT) + DUMMY_IMAGE_COUNT) % DUMMY_IMAGE_COUNT;
-  const imageNumber = String(normalized + 1).padStart(3, '0');
-  return `/assets/dummy-recipes/food-${imageNumber}.jpg`;
-}
-
-function getDummyFacets(): { cuisines: string[]; categories: string[] } {
+function getDummyFacets(foods: readonly Food[]): { cuisines: string[]; categories: string[] } {
   return {
-    cuisines: uniqueSortedValues(DUMMY_FOODS.map((item) => item.cuisine)),
-    categories: uniqueSortedValues(DUMMY_FOODS.map((item) => item.category))
+    cuisines: uniqueSortedValues(foods.map((item) => item.cuisine)),
+    categories: uniqueSortedValues(foods.map((item) => item.category))
   };
 }
+
+
+
