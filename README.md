@@ -24,17 +24,15 @@ Important: these credentials are intended for local/dev usage only. Change them 
 
 ### 2026-03-03
 
-- Added role-aware Settings split into **User Settings** and **Admin Settings**.
-- Moved **Dummy products** toggle to Admin Settings and restricted it to admin visibility.
-- Removed **Delete all & reload** action from Home view.
-- Added admin action **Reset all data & reload**:
-	- clears app cache,
-	- clears local recipes / votes / tags,
-	- clears auth/session local storage,
-	- deletes auth IndexedDB,
-	- reloads app to bootstrap fresh seed and data.
-- Expanded tests for Settings admin behavior and reset flow.
-- Added dedicated tests for `AdminDataResetService`, including `onsuccess`, `onblocked`, and `onerror` IndexedDB delete paths.
+From start to finish, we evolved MealCraft from a basic recipe browser into a complete, role-aware recipe platform with stronger UX, security, and maintainability.
+
+The most important delivered features:
+
+- Unified recipe experience: API recipes + dummy recipes + local user recipes in one grid, with filters, sorting, tags, voting, and mine-only mode.
+- Full local recipe management: add/edit/delete own recipes, ownership rules, and consistent author/metadata handling.
+- Authentication upgrade: register/login with persistent session handling, remember-me behavior, account lock protection, and seeded admin account.
+- Admin capabilities: dedicated Admin Settings, admin-only Dummy Products control, and full **Reset all data & reload** recovery action.
+- Architecture and quality improvements: lazy-loaded routes, service/store refactors, improved settings UX, and broad automated test coverage for critical flows.
 
 ## What we are adding next (planned)
 
