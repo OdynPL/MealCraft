@@ -1,12 +1,7 @@
-import { Component, computed, inject } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatToolbarModule } from '@angular/material/toolbar';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
-import { NotificationService } from '../../core/services/notification.service';
 import { FoodStore } from '../../core/stores/food.store';
 
 @Component({
@@ -14,11 +9,7 @@ import { FoodStore } from '../../core/stores/food.store';
   standalone: true,
   imports: [
     RouterLink,
-    RouterLinkActive,
-    MatToolbarModule,
-    MatButtonModule,
-    MatMenuModule,
-    MatIconModule
+    RouterLinkActive
   ],
   templateUrl: './header.html',
   styleUrl: './header.scss',
@@ -27,7 +18,7 @@ export class HeaderComponent {
   private readonly auth = inject(AuthService);
   private readonly store = inject(FoodStore);
   private readonly router = inject(Router);
-  private readonly notifications = inject(NotificationService);
+  protected readonly mobileMenuOpen = signal(false);
 
   protected readonly isLoggedIn = computed(() => this.auth.isLoggedIn());
   protected readonly userFullName = computed(() => this.auth.fullName());
@@ -36,12 +27,21 @@ export class HeaderComponent {
 
   protected resetState(): void {
     this.store.reset();
+    this.mobileMenuOpen.set(false);
+  }
+
+  protected toggleMobileMenu(): void {
+    this.mobileMenuOpen.update((open) => !open);
+  }
+
+  protected closeMobileMenu(): void {
+    this.mobileMenuOpen.set(false);
   }
 
   protected async logout(): Promise<void> {
     await this.auth.logout();
     this.store.reset();
-    this.notifications.info('Logged out.');
+    this.mobileMenuOpen.set(false);
     await this.router.navigate(['/home']);
   }
 

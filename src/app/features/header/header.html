@@ -1,4 +1,4 @@
-<mat-toolbar color="primary" class="header-toolbar">
+<header class="header-toolbar">
   <a class="logo" routerLink="/home" (click)="resetState()" aria-label="MealCraft home">
     <span class="logo-mark" aria-hidden="true">
       <img src="brand-icon.svg" alt="" />
@@ -12,13 +12,13 @@
   <span class="spacer"></span>
 
   <nav class="desktop-nav" aria-label="Main navigation">
-    <button mat-button routerLink="/home" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }" (click)="resetState()">
+    <a routerLink="/home" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }" (click)="resetState()">
       Home
-    </button>
+    </a>
 
     @if (isLoggedIn()) {
-      <button mat-button routerLink="/meals/new" routerLinkActive="active-link">Add recipe</button>
-      <button mat-button routerLink="/settings" routerLinkActive="active-link">Settings</button>
+      <a routerLink="/meals/new" routerLinkActive="active-link" (click)="closeMobileMenu()">Add recipe</a>
+      <a routerLink="/settings" routerLinkActive="active-link" (click)="closeMobileMenu()">Settings</a>
       <span class="user-profile" aria-label="Logged user profile">
         <span class="avatar" aria-hidden="true">
           @if (userAvatar()) {
@@ -29,51 +29,36 @@
         </span>
         <span class="user-name">{{ userFullName() }}</span>
       </span>
-      <button mat-button type="button" (click)="logout()">Logout</button>
+      <button type="button" (click)="logout()">Logout</button>
     } @else {
-      <button mat-button routerLink="/login" routerLinkActive="active-link">Login</button>
-      <button mat-button routerLink="/register" routerLinkActive="active-link">Register</button>
+      <a routerLink="/login" routerLinkActive="active-link" (click)="closeMobileMenu()">Login</a>
+      <a routerLink="/register" routerLinkActive="active-link" (click)="closeMobileMenu()">Register</a>
     }
   </nav>
 
   <button
-    mat-icon-button
     type="button"
     class="mobile-menu-trigger"
-    [matMenuTriggerFor]="mobileMenu"
+    [class.mobile-menu-trigger-open]="mobileMenuOpen()"
+    (click)="toggleMobileMenu()"
+    [attr.aria-expanded]="mobileMenuOpen()"
     aria-label="Open navigation menu"
   >
-    <mat-icon>menu</mat-icon>
+    ☰
   </button>
-</mat-toolbar>
+</header>
 
-<mat-menu #mobileMenu="matMenu" xPosition="before" panelClass="app-mobile-menu">
-  <button mat-menu-item routerLink="/home" (click)="resetState()">
-    <mat-icon>home</mat-icon>
-    <span>Home</span>
-  </button>
+@if (mobileMenuOpen()) {
+  <nav class="mobile-nav" aria-label="Mobile navigation">
+    <a routerLink="/home" (click)="resetState()">Home</a>
 
-  @if (isLoggedIn()) {
-    <button mat-menu-item routerLink="/meals/new">
-      <mat-icon>add_circle</mat-icon>
-      <span>Add recipe</span>
-    </button>
-    <button mat-menu-item routerLink="/settings">
-      <mat-icon>settings</mat-icon>
-      <span>Settings</span>
-    </button>
-    <button mat-menu-item type="button" (click)="logout()">
-      <mat-icon>logout</mat-icon>
-      <span>Logout</span>
-    </button>
-  } @else {
-    <button mat-menu-item routerLink="/login">
-      <mat-icon>login</mat-icon>
-      <span>Login</span>
-    </button>
-    <button mat-menu-item routerLink="/register">
-      <mat-icon>person_add</mat-icon>
-      <span>Register</span>
-    </button>
-  }
-</mat-menu>
+    @if (isLoggedIn()) {
+      <a routerLink="/meals/new" (click)="closeMobileMenu()">Add recipe</a>
+      <a routerLink="/settings" (click)="closeMobileMenu()">Settings</a>
+      <button type="button" (click)="logout()">Logout</button>
+    } @else {
+      <a routerLink="/login" (click)="closeMobileMenu()">Login</a>
+      <a routerLink="/register" (click)="closeMobileMenu()">Register</a>
+    }
+  </nav>
+}

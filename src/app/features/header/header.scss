@@ -61,30 +61,79 @@
   gap: 0.35rem;
 }
 
+.desktop-nav a,
 .desktop-nav button {
+  appearance: none;
+  text-decoration: none;
+  color: inherit;
+  background: transparent;
   font-weight: 500;
-  text-transform: none;
+  font-size: 0.95rem;
+  font-family: inherit;
+  cursor: pointer;
   border-radius: 999px;
   min-height: 38px;
-  padding-inline: 0.85rem;
+  padding: 0.5rem 0.85rem;
   border: 1px solid transparent;
   transition: background-color 140ms ease, border-color 140ms ease, transform 140ms ease;
 }
 
+.desktop-nav a:hover,
 .desktop-nav button:hover {
   background: color-mix(in srgb, white 20%, transparent);
   border-color: color-mix(in srgb, white 36%, transparent);
 }
 
+.desktop-nav a:active,
 .desktop-nav button:active {
   transform: translateY(1px);
 }
 
 .mobile-menu-trigger {
   display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  font-size: 1.25rem;
+  color: inherit;
+  cursor: pointer;
   border: 1px solid color-mix(in srgb, white 38%, transparent);
   background: color-mix(in srgb, white 16%, transparent);
   border-radius: 12px;
+}
+
+.mobile-menu-trigger-open {
+  background: color-mix(in srgb, white 30%, transparent);
+}
+
+.mobile-nav {
+  display: none;
+  margin: 0 0.75rem 0.35rem;
+  padding: 0.45rem;
+  border-radius: 12px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-low);
+}
+
+.mobile-nav a,
+.mobile-nav button {
+  appearance: none;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+  padding: 0.6rem 0.65rem;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.mobile-nav a:hover,
+.mobile-nav button:hover {
+  background: var(--mat-sys-surface-container-high);
 }
 
 .active-link {
@@ -176,6 +225,10 @@
   .mobile-menu-trigger {
     display: inline-flex;
   }
+
+  .mobile-nav {
+    display: grid;
+  }
 }
 
 @media (max-width: 560px) {
@@ -183,6 +236,7 @@
     padding: 0.4rem 0.45rem;
   }
 
+  .desktop-nav a,
   .desktop-nav button {
     padding-inline: 0.62rem;
     min-width: auto;
@@ -222,6 +276,7 @@
     gap: 0.2rem;
   }
 
+  .desktop-nav a,
   .desktop-nav button {
     min-height: 34px;
     font-size: 0.83rem;
