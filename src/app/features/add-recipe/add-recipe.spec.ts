@@ -75,6 +75,15 @@ describe('AddRecipeComponent', () => {
           provide: FoodService,
           useValue: {
             getFacets: () => of({ cuisines: [], categories: [] }),
+            search: () => of({
+              items: [],
+              totalResults: 0,
+              pageIndex: 0,
+              pageSize: 24,
+              categoryCounts: [],
+              tagCounts: [],
+              hasOwnRecipes: false
+            }),
             getMealDetails: () => of(editRecipe)
           }
         },

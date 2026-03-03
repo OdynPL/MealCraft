@@ -15,6 +15,14 @@ class MockAuthService {
   setCurrentUser(user: AuthUser | null): void {
     this.user = user;
   }
+
+  fullName(): string {
+    if (!this.user) {
+      return '';
+    }
+
+    return `${this.user.firstName} ${this.user.lastName}`.trim();
+  }
 }
 
 describe('LocalRecipeService', () => {

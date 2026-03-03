@@ -30,24 +30,9 @@
 
                 <div class="tags" aria-label="Meal tags">
                   @for (tag of tags(); track tag) {
-                    <span class="tag-pill">
-                      {{ tag }}
-                      @if (canManageTags()) {
-                        <button type="button" class="tag-remove" (click)="removeTag(tag)" aria-label="Remove tag">×</button>
-                      }
-                    </span>
+                    <span class="tag-pill">{{ tag }}</span>
                   }
                 </div>
-
-                @if (canManageTags()) {
-                  <section class="tag-form app-section-panel">
-                    <mat-form-field appearance="outline" floatLabel="always">
-                      <mat-label>Add tag</mat-label>
-                      <input matInput [formControl]="tagInput" placeholder="e.g. spicy" />
-                    </mat-form-field>
-                    <button mat-flat-button color="primary" type="button" (click)="addTag()">Add tag</button>
-                  </section>
-                }
 
                 @if (hasMultipleInstructionSteps()) {
                   <ol class="instructions">

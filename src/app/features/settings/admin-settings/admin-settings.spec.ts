@@ -25,6 +25,8 @@ class MockAuthService {
     emailVerified: true,
     createdAt: new Date('2026-01-01').toISOString()
   });
+
+  fullName = vi.fn().mockReturnValue('System Admin');
 }
 
 class MockAppPreferencesService {
