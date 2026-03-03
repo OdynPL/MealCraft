@@ -41,6 +41,9 @@ yarn-error.log
 testem.log
 /typings
 __screenshots__/
+# Ignore all dependency-graph reports except component-tree.svg
+reports/dependency-graph/*
+!reports/dependency-graph/component-tree.svg
 
 # Env files
 .env
