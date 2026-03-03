@@ -196,6 +196,8 @@ export class ConfigurationService {
   readonly feedbackTagsStorageKey = 'foodExplorerTags';
   readonly feedbackTagMinLength = 2;
   readonly feedbackTagMaxLength = 24;
+  readonly activityLogStorageKey = 'foodExplorerActivityLog';
+  readonly activityLogMaxEntries = 500;
 
   readonly recipeTitleMaxLength = 80;
   readonly recipeFacetMaxLength = 40;

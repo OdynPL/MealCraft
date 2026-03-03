@@ -19,6 +19,17 @@
             <mat-icon aria-hidden="true">group</mat-icon>
             User Management
           </button>
+
+          <button
+            mat-stroked-button
+            type="button"
+            class="menu-button"
+            [class.menu-button-active]="activeMenu() === 'activity'"
+            (click)="setActiveMenu('activity')"
+          >
+            <mat-icon aria-hidden="true">history</mat-icon>
+            Activity Log
+          </button>
         </nav>
       </mat-card>
 
@@ -30,6 +41,8 @@
         <div class="admin-content">
         @if (activeMenu() === 'users') {
           <app-user-management />
+        } @else if (activeMenu() === 'activity') {
+          <app-activity-log />
         }
         </div>
       </mat-card>

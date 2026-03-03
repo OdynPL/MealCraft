@@ -210,6 +210,7 @@ export class AuthComponent {
 
   protected forgotPassword(): void {
     this.error.set('Password reset is not available yet. Create a new account or change password in Settings after login.');
+    this.notifications.info('Password reset is not available yet.');
   }
 
   private hasInvalidAuthForm(registerMode: boolean): boolean {

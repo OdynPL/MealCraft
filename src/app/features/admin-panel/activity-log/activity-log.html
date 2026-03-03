@@ -1,0 +1,93 @@
+<section class="activity-log" aria-label="System activity log">
+  <h3>Activity Log</h3>
+
+  <div class="activity-controls" aria-label="Activity log filters">
+    <mat-form-field appearance="outline" class="activity-control activity-search">
+      <mat-label>Search</mat-label>
+      <input matInput type="text" [value]="searchTerm()" (input)="onSearch($event)" placeholder="Action, actor, target, details" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="activity-control">
+      <mat-label>Area</mat-label>
+      <mat-select [value]="areaFilter()" (valueChange)="setAreaFilter($event)">
+        <mat-option value="all">All</mat-option>
+        <mat-option value="auth">Auth</mat-option>
+        <mat-option value="recipes">Recipes</mat-option>
+        <mat-option value="settings">Settings</mat-option>
+        <mat-option value="admin">Admin</mat-option>
+        <mat-option value="system">System</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="activity-control">
+      <mat-label>Status</mat-label>
+      <mat-select [value]="statusFilter()" (valueChange)="setStatusFilter($event)">
+        <mat-option value="all">All</mat-option>
+        <mat-option value="success">Success</mat-option>
+        <mat-option value="info">Info</mat-option>
+        <mat-option value="warning">Warning</mat-option>
+        <mat-option value="error">Error</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="activity-control activity-size">
+      <mat-label>Rows</mat-label>
+      <mat-select [value]="pageSize()" (valueChange)="setPageSize($event)">
+        @for (size of pageSizeOptions; track size) {
+          <mat-option [value]="size">{{ size }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <div class="activity-actions">
+      <button mat-flat-button type="button" class="export-log-button" (click)="exportCsv()" [disabled]="filteredEntries().length === 0">
+        Export CSV
+      </button>
+      <button mat-stroked-button type="button" class="clean-log-button" (click)="clearLog()" [disabled]="entries().length === 0">
+        Clean Log
+      </button>
+    </div>
+  </div>
+
+  @if (filteredEntries().length === 0) {
+    <p class="activity-state">No activity found.</p>
+  } @else {
+    <div class="activity-table-wrapper">
+      <table class="activity-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Area</th>
+            <th>Status</th>
+            <th>Actor</th>
+            <th>Action</th>
+            <th>Target</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (entry of pagedEntries(); track entry.id) {
+            <tr>
+              <td>{{ formatDate(entry.timestamp) }}</td>
+              <td><span class="log-chip">{{ entry.area }}</span></td>
+              <td><span class="log-chip" [class]="'log-status-' + entry.status">{{ entry.status }}</span></td>
+              <td>{{ actorLabel(entry) }}</td>
+              <td>{{ entry.action }}</td>
+              <td>{{ entry.target ?? '—' }}</td>
+              <td>{{ entry.details ?? '—' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="activity-pagination" aria-label="Activity log pagination">
+      <span class="pagination-info">{{ pageFrom() }}-{{ pageTo() }} of {{ totalItems() }}</span>
+      <div class="pagination-actions">
+        <button mat-stroked-button type="button" [disabled]="pageIndex() <= 0" (click)="prevPage()">Prev</button>
+        <span class="pagination-page">Page {{ pageIndex() + 1 }} / {{ totalPages() }}</span>
+        <button mat-stroked-button type="button" [disabled]="pageIndex() >= totalPages() - 1" (click)="nextPage()">Next</button>
+      </div>
+    </div>
+  }
+</section>

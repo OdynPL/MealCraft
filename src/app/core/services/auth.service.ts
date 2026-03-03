@@ -1,11 +1,13 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 
 import { AdminUserUpdatePayload, AuthResult, AuthUser, RegisterPayload, StoredUser, UpdateProfilePayload } from '../models/auth';
+import { ActivityLogService } from './activity-log.service';
 import { ConfigurationService } from './configuration.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly config = inject(ConfigurationService);
+  private readonly activityLog = inject(ActivityLogService);
   private readonly userState = signal<AuthUser | null>(this.readSessionCache());
   private readonly bootstrapReady: Promise<void>;
 
@@ -80,6 +82,20 @@ export class AuthService {
     await this.putUser(storedUser);
     await this.saveSession(toAuthUser(storedUser));
 
+    this.activityLog.record({
+      area: 'auth',
+      action: 'register',
+      status: 'success',
+      actor: {
+        id: storedUser.id,
+        email: storedUser.email,
+        name: `${storedUser.firstName} ${storedUser.lastName}`.trim(),
+        role: storedUser.role
+      },
+      target: storedUser.email,
+      details: 'New account registered and session started.'
+    });
+
     return { success: true };
   }
 
@@ -96,10 +112,24 @@ export class AuthService {
     const user = users.find((item) => item.email === normalizedEmail);
 
     if (!user) {
+      this.activityLog.record({
+        area: 'auth',
+        action: 'login',
+        status: 'warning',
+        target: normalizedEmail,
+        details: 'Login failed: user not found.'
+      });
       return { success: false, error: 'Invalid email or password.' };
     }
 
     if (user.isAccountLocked) {
+      this.activityLog.record({
+        area: 'auth',
+        action: 'login',
+        status: 'warning',
+        target: user.email,
+        details: 'Login blocked: account is locked.'
+      });
       return { success: false, error: 'Account is locked. Contact administrator.' };
     }
 
@@ -122,8 +152,23 @@ export class AuthService {
       });
 
       if (shouldLock) {
+        this.activityLog.record({
+          area: 'auth',
+          action: 'login',
+          status: 'warning',
+          target: user.email,
+          details: 'Account locked due to too many failed login attempts.'
+        });
         return { success: false, error: 'Account is locked due to too many failed login attempts.' };
       }
+
+      this.activityLog.record({
+        area: 'auth',
+        action: 'login',
+        status: 'warning',
+        target: user.email,
+        details: 'Login failed: invalid password.'
+      });
 
       return { success: false, error: 'Invalid email or password.' };
     }
@@ -141,6 +186,19 @@ export class AuthService {
     await this.putUser(refreshedUser);
 
     await this.saveSession(toAuthUser(refreshedUser), rememberMe);
+    this.activityLog.record({
+      area: 'auth',
+      action: 'login',
+      status: 'success',
+      actor: {
+        id: refreshedUser.id,
+        email: refreshedUser.email,
+        name: `${refreshedUser.firstName} ${refreshedUser.lastName}`.trim(),
+        role: refreshedUser.role
+      },
+      target: refreshedUser.email,
+      details: rememberMe ? 'Login successful with remember me.' : 'Login successful.'
+    });
     return { success: true };
   }
 
@@ -174,6 +232,14 @@ export class AuthService {
 
     await this.putUser(updatedUser);
     await this.saveSession(toAuthUser(updatedUser));
+    this.activityLog.record({
+      area: 'settings',
+      action: 'profile-update',
+      status: 'success',
+      actor: this.actorFromUser(updatedUser),
+      target: updatedUser.email,
+      details: 'Profile data updated.'
+    });
     return { success: true };
   }
 
@@ -219,12 +285,32 @@ export class AuthService {
     };
 
     await this.putUser(users[index]);
+    this.activityLog.record({
+      area: 'settings',
+      action: 'password-change',
+      status: 'success',
+      actor: this.actorFromUser(users[index]),
+      target: users[index].email,
+      details: 'Password changed successfully.'
+    });
     return { success: true };
   }
 
   async logout(): Promise<void> {
+    const user = this.userState();
     this.userState.set(null);
     this.writeSessionCache(null);
+
+    if (user) {
+      this.activityLog.record({
+        area: 'auth',
+        action: 'logout',
+        status: 'info',
+        actor: this.actorFromUser(user),
+        target: user.email,
+        details: 'User logged out.'
+      });
+    }
 
     if (typeof indexedDB === 'undefined') {
       return;
@@ -300,6 +386,15 @@ export class AuthService {
 
     await this.putUser(updatedUser);
 
+    this.activityLog.record({
+      area: 'admin',
+      action: 'user-update',
+      status: 'success',
+      actor: this.actorFromUser(currentUser),
+      target: updatedUser.email,
+      details: 'Admin updated user profile/role.'
+    });
+
     if (updatedUser.id === currentUser.id) {
       await this.saveSession(toAuthUser(updatedUser));
     }
@@ -344,6 +439,15 @@ export class AuthService {
 
     await this.putUser(updatedUser);
 
+    this.activityLog.record({
+      area: 'admin',
+      action: shouldLock ? 'user-ban' : 'user-unban',
+      status: 'success',
+      actor: this.actorFromUser(currentUser),
+      target: updatedUser.email,
+      details: shouldLock ? 'Admin banned user account.' : 'Admin unbanned user account.'
+    });
+
     if (updatedUser.id === currentUser.id && shouldLock) {
       await this.logout();
     }
@@ -375,7 +479,24 @@ export class AuthService {
     }
 
     await this.deleteUser(userId);
+    this.activityLog.record({
+      area: 'admin',
+      action: 'user-remove',
+      status: 'success',
+      actor: this.actorFromUser(currentUser),
+      target: targetUser.email,
+      details: 'Admin removed user account.'
+    });
     return { success: true };
+  }
+
+  private actorFromUser(user: Pick<AuthUser, 'id' | 'email' | 'firstName' | 'lastName' | 'role'>) {
+    return {
+      id: user.id,
+      email: user.email,
+      name: `${user.firstName} ${user.lastName}`.trim(),
+      role: user.role
+    };
   }
 
   private validateProfileData(firstName: string, lastName: string, phone: string, age: number): string | null {

@@ -8,6 +8,7 @@ import { firstValueFrom } from 'rxjs';
 import { AdminDataResetService } from '../../../core/services/admin-data-reset.service';
 import { AppPreferencesService } from '../../../core/services/app-preferences.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { ActivityLogService } from '../../../core/services/activity-log.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { FoodStore } from '../../../core/stores/food.store';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog';
@@ -29,6 +30,7 @@ export class AdminSettingsComponent {
   private readonly adminDataReset = inject(AdminDataResetService);
   private readonly preferences = inject(AppPreferencesService);
   private readonly notifications = inject(NotificationService);
+  private readonly activityLog = inject(ActivityLogService);
   private readonly store = inject(FoodStore);
   private readonly dialog = inject(MatDialog);
 
@@ -43,6 +45,19 @@ export class AdminSettingsComponent {
 
     this.preferences.setIncludeDummyProducts(enabled);
     this.store.reset();
+
+    this.activityLog.record({
+      area: 'admin',
+      action: enabled ? 'dummy-products-enable' : 'dummy-products-disable',
+      status: 'info',
+      actor: {
+        id: this.auth.currentUser()?.id,
+        email: this.auth.currentUser()?.email,
+        name: this.auth.fullName(),
+        role: this.auth.currentUser()?.role
+      },
+      details: enabled ? 'Dummy products enabled by admin.' : 'Dummy products disabled by admin.'
+    });
 
     this.notifications.info(enabled
       ? 'Dummy products enabled.'
@@ -71,6 +86,19 @@ export class AdminSettingsComponent {
     this.adminResetInProgress.set(true);
 
     try {
+      this.activityLog.record({
+        area: 'system',
+        action: 'data-reset-start',
+        status: 'warning',
+        actor: {
+          id: this.auth.currentUser()?.id,
+          email: this.auth.currentUser()?.email,
+          name: this.auth.fullName(),
+          role: this.auth.currentUser()?.role
+        },
+        details: 'Admin started full application data reset.'
+      });
+
       await this.adminDataReset.resetAllData();
       this.notifications.success('Application data has been reset. Reloading...');
 

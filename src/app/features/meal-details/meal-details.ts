@@ -141,7 +141,6 @@ export class MealDetailsComponent {
     }
 
     if (!this.feedback.canVote(mealId)) {
-      this.notifications.info('You have already voted for this recipe.');
       return;
     }
 
@@ -156,7 +155,6 @@ export class MealDetailsComponent {
     }
 
     if (!this.feedback.canVote(mealId)) {
-      this.notifications.info('You have already voted for this recipe.');
       return;
     }
 

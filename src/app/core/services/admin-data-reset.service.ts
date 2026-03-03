@@ -31,6 +31,7 @@ export class AdminDataResetService {
       this.config.dummyProductsEnabledStorageKey,
       this.config.feedbackVotesStorageKey,
       this.config.feedbackTagsStorageKey,
+      this.config.activityLogStorageKey,
       this.config.authSessionCacheKey,
       this.config.authUsersCacheKey,
       this.config.authRememberedEmailKey

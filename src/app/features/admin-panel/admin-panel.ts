@@ -5,15 +5,17 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 
 import { AuthService } from '../../core/services/auth.service';
+import { ActivityLogComponent } from './activity-log/activity-log';
 import { UserManagementComponent } from './user-management/user-management';
 
-type AdminMenuKey = 'users';
+type AdminMenuKey = 'users' | 'activity';
 
 @Component({
   selector: 'app-admin-panel',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     UserManagementComponent,
+    ActivityLogComponent,
     MatCardModule,
     MatButtonModule,
     MatIconModule

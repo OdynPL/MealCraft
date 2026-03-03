@@ -14,6 +14,7 @@ import { distinctUntilChanged, firstValueFrom, fromEvent, map, startWith } from 
 
 import { Food, FoodSortBy, SortDirection } from '../../core/models';
 import { AuthService } from '../../core/services/auth.service';
+import { ActivityLogService } from '../../core/services/activity-log.service';
 import { ConfigurationService } from '../../core/services/configuration.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { RecipeFeedbackService } from '../../core/services/recipe-feedback.service';
@@ -47,6 +48,7 @@ export class BodyComponent {
   private readonly route = inject(ActivatedRoute);
 
   private readonly auth = inject(AuthService);
+  private readonly activityLog = inject(ActivityLogService);
   private readonly config = inject(ConfigurationService);
   private readonly notifications = inject(NotificationService);
   protected readonly store = inject(FoodStore);
@@ -184,11 +186,21 @@ export class BodyComponent {
   }
 
   protected upvote(mealId: number): void {
+    if (!this.feedback.canVote(mealId)) {
+      return;
+    }
+
     this.feedback.upvote(mealId);
+    this.notifications.success('Vote added.');
   }
 
   protected downvote(mealId: number): void {
+    if (!this.feedback.canVote(mealId)) {
+      return;
+    }
+
     this.feedback.downvote(mealId);
+    this.notifications.success('Vote added.');
   }
 
   protected score(mealId: number): number {
@@ -222,6 +234,18 @@ export class BodyComponent {
 
   protected refresh(): void {
     this.store.reset();
+    this.activityLog.record({
+      area: 'recipes',
+      action: 'recipes-refresh',
+      status: 'info',
+      actor: {
+        id: this.auth.currentUser()?.id,
+        email: this.auth.currentUser()?.email,
+        name: this.auth.fullName(),
+        role: this.auth.currentUser()?.role
+      },
+      details: 'Recipe list manually refreshed.'
+    });
     this.notifications.info('Recipes refreshed.');
     this.lastSyncedUrlState = JSON.stringify({});
     void this.router.navigate(['/home'], { queryParams: {} });

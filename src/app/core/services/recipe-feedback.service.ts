@@ -1,6 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 
 import { Food } from '../models';
+import { ActivityLogService } from './activity-log.service';
 import { AuthService } from './auth.service';
 import { ConfigurationService } from './configuration.service';
 import { LocalRecipeService } from './local-recipe.service';
@@ -14,6 +15,7 @@ export class RecipeFeedbackService {
   private readonly auth = inject(AuthService);
   private readonly config = inject(ConfigurationService);
   private readonly localRecipes = inject(LocalRecipeService);
+  private readonly activityLog = inject(ActivityLogService);
   private readonly votes = signal<VoteMap>(readVotes(this.config.feedbackVotesStorageKey));
   private readonly tags = signal<TagMap>(readJson<TagMap>(this.config.feedbackTagsStorageKey, {}));
 
@@ -41,7 +43,12 @@ export class RecipeFeedbackService {
 
   private vote(mealId: number, vote: VoteValue): void {
     const userId = this.auth.currentUser()?.id;
+    const user = this.auth.currentUser();
     if (!userId) {
+      return;
+    }
+
+    if (this.votes()[mealId]?.[userId] !== undefined) {
       return;
     }
 
@@ -61,6 +68,20 @@ export class RecipeFeedbackService {
 
       writeJson(this.config.feedbackVotesStorageKey, next);
       return next;
+    });
+
+    this.activityLog.record({
+      area: 'recipes',
+      action: vote === 1 ? 'recipe-upvote' : 'recipe-downvote',
+      status: 'success',
+      actor: {
+        id: user?.id,
+        email: user?.email,
+        name: user ? `${user.firstName} ${user.lastName}`.trim() : undefined,
+        role: user?.role
+      },
+      target: `Recipe #${mealId}`,
+      details: vote === 1 ? 'Upvote added.' : 'Downvote added.'
     });
   }
 
@@ -89,6 +110,21 @@ export class RecipeFeedbackService {
       writeJson(this.config.feedbackTagsStorageKey, next);
       return next;
     });
+
+    const user = this.auth.currentUser();
+    this.activityLog.record({
+      area: 'recipes',
+      action: 'tag-add',
+      status: 'success',
+      actor: {
+        id: user?.id,
+        email: user?.email,
+        name: user ? `${user.firstName} ${user.lastName}`.trim() : undefined,
+        role: user?.role
+      },
+      target: `Recipe #${mealId}`,
+      details: `Tag added: ${normalized}`
+    });
   }
 
   removeTag(mealId: number, value: string): void {
@@ -102,6 +138,21 @@ export class RecipeFeedbackService {
       const next = { ...current, [mealId]: nextTags };
       writeJson(this.config.feedbackTagsStorageKey, next);
       return next;
+    });
+
+    const user = this.auth.currentUser();
+    this.activityLog.record({
+      area: 'recipes',
+      action: 'tag-remove',
+      status: 'success',
+      actor: {
+        id: user?.id,
+        email: user?.email,
+        name: user ? `${user.firstName} ${user.lastName}`.trim() : undefined,
+        role: user?.role
+      },
+      target: `Recipe #${mealId}`,
+      details: `Tag removed: ${value}`
     });
   }
 

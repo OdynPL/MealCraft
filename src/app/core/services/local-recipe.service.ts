@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 
 import { FoodDetail } from '../models';
 import { LocalRecipeDraft, LocalRecipeFacets, LocalRecipeSnapshot, LocalRecipeState } from '../models/local-recipe';
+import { ActivityLogService } from './activity-log.service';
 import { AuthService } from './auth.service';
 import { ConfigurationService } from './configuration.service';
 
@@ -9,6 +10,7 @@ import { ConfigurationService } from './configuration.service';
 export class LocalRecipeService {
   private readonly config = inject(ConfigurationService);
   private readonly auth = inject(AuthService);
+  private readonly activityLog = inject(ActivityLogService);
 
   getAllCustom(): FoodDetail[] {
     return this.readState().custom;
@@ -110,6 +112,20 @@ export class LocalRecipeService {
     this.unmarkDeletedForCurrentUser(state, recipe.id);
     this.writeState(state);
 
+    this.activityLog.record({
+      area: 'recipes',
+      action: 'recipe-create',
+      status: 'success',
+      actor: {
+        id: currentUser.id,
+        email: currentUser.email,
+        name: `${currentUser.firstName} ${currentUser.lastName}`.trim(),
+        role: currentUser.role
+      },
+      target: `${recipe.title} (#${recipe.id})`,
+      details: 'Recipe created.'
+    });
+
     return recipe;
   }
 
@@ -138,6 +154,21 @@ export class LocalRecipeService {
         ...state.custom.slice(customIndex + 1)
       ];
       this.writeState(state);
+
+      this.activityLog.record({
+        area: 'recipes',
+        action: 'recipe-update',
+        status: 'success',
+        actor: {
+          id: currentUser.id,
+          email: currentUser.email,
+          name: `${currentUser.firstName} ${currentUser.lastName}`.trim(),
+          role: currentUser.role
+        },
+        target: `${updated.title} (#${updated.id})`,
+        details: 'Recipe updated.'
+      });
+
       return updated;
     }
 
@@ -161,6 +192,21 @@ export class LocalRecipeService {
 
     this.unmarkDeletedForCurrentUser(state, id);
     this.writeState(state);
+
+    this.activityLog.record({
+      area: 'recipes',
+      action: 'recipe-update',
+      status: 'success',
+      actor: {
+        id: currentUser.id,
+        email: currentUser.email,
+        name: `${currentUser.firstName} ${currentUser.lastName}`.trim(),
+        role: currentUser.role
+      },
+      target: `${updated.title} (#${updated.id})`,
+      details: 'Recipe updated.'
+    });
+
     return updated;
   }
 
@@ -181,6 +227,20 @@ export class LocalRecipeService {
     }
 
     this.writeState(state);
+
+    this.activityLog.record({
+      area: 'recipes',
+      action: 'recipe-delete',
+      status: 'success',
+      actor: {
+        id: userId,
+        email: this.auth.currentUser()?.email,
+        name: this.auth.fullName(),
+        role: this.auth.currentUser()?.role
+      },
+      target: `Recipe #${id}`,
+      details: 'Recipe deleted or hidden for current user.'
+    });
   }
 
   clearForCurrentUser(apiRecipeIds: number[]): void {

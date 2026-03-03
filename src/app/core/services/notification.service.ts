@@ -24,6 +24,8 @@ export class NotificationService {
     toast.className = `app-toast ${panelClass}`;
     toast.textContent = message;
     toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', panelClass === 'snackbar-error' ? 'assertive' : 'polite');
+    toast.setAttribute('aria-atomic', 'true');
     container.appendChild(toast);
 
     requestAnimationFrame(() => {

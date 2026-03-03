@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { FoodStore } from '../../core/stores/food.store';
 
 @Component({
@@ -18,6 +19,7 @@ export class HeaderComponent {
   private readonly auth = inject(AuthService);
   private readonly store = inject(FoodStore);
   private readonly router = inject(Router);
+  private readonly notifications = inject(NotificationService);
   protected readonly mobileMenuOpen = signal(false);
 
   protected readonly isLoggedIn = computed(() => this.auth.isLoggedIn());
@@ -43,6 +45,7 @@ export class HeaderComponent {
     await this.auth.logout();
     this.store.reset();
     this.mobileMenuOpen.set(false);
+    this.notifications.info('You have been logged out.');
     await this.router.navigate(['/home']);
   }
 

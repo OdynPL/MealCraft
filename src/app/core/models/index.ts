@@ -7,3 +7,4 @@ export * from './food-facets';
 export * from './food-detail';
 export * from './auth';
 export * from './local-recipe';
+export * from './activity-log';
