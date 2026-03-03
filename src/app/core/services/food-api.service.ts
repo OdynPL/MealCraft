@@ -10,6 +10,7 @@ import {
   MealDbMealDto,
   MealDbSearchResponseDto
 } from '../dto';
+import exampleRecipesData from '../data/example-recipes.json';
 import { AuthUser, Food, FoodCategoryCount, FoodDetail, FoodFacets, FoodPage, FoodQuery, FoodSortBy, SortDirection } from '../models';
 import { ConfigurationService } from './configuration.service';
 import { AuthService } from './auth.service';
@@ -19,23 +20,10 @@ import { RecipeFeedbackService } from './recipe-feedback.service';
 const ALLOWED_SORTS: readonly FoodSortBy[] = ['name', 'id', 'tags', 'votes'];
 const ALLOWED_DIRECTIONS: readonly SortDirection[] = ['asc', 'desc'];
 const API_AUTHOR = 'TheMealDB';
-const DUMMY_AUTHOR = 'MealCraft Dummy';
-const DUMMY_COUNT = 100;
+const DUMMY_AUTHOR = 'MealCraft Examples';
 const DUMMY_BASE_ID = 900_000;
-const DUMMY_CUISINES = ['Italian', 'Mexican', 'Polish', 'French', 'Indian'];
-const DUMMY_CATEGORIES = ['Pasta', 'Soup', 'Beef', 'Dessert', 'Seafood'];
-const DUMMY_PLACEHOLDER_COLORS = [
-  { bg: 'f97316', fg: 'ffffff' },
-  { bg: '0ea5e9', fg: 'ffffff' },
-  { bg: '22c55e', fg: '0f172a' },
-  { bg: 'a855f7', fg: 'ffffff' },
-  { bg: 'ef4444', fg: 'ffffff' },
-  { bg: 'eab308', fg: '0f172a' },
-  { bg: '14b8a6', fg: '0f172a' },
-  { bg: '3b82f6', fg: 'ffffff' }
-] as const;
-const DUMMY_FOODS = buildDummyFoods();
-const DUMMY_DETAILS = new Map<number, FoodDetail>(DUMMY_FOODS.map((item) => [item.id, toDummyDetail(item)]));
+const DUMMY_COUNT = 1000;
+const DUMMY_IMAGE_COUNT = 120;
 
 @Injectable({ providedIn: 'root' })
 export class FoodApiService {
@@ -438,46 +426,217 @@ function uniqueSortedValues(items: string[]): string[] {
   return [...new Set(values)].sort((a, b) => a.localeCompare(b));
 }
 
-function buildDummyFoods(): Food[] {
-  const foods: Food[] = [];
+interface ExampleRecipeSeed {
+  title: string;
+  cuisine: string;
+  category: string;
+  tags: string[];
+  instructions: string;
+}
 
-  for (let index = 0; index < DUMMY_COUNT; index += 1) {
-    const cuisine = DUMMY_CUISINES[index % DUMMY_CUISINES.length];
-    const category = DUMMY_CATEGORIES[index % DUMMY_CATEGORIES.length];
-    const colorSet = DUMMY_PLACEHOLDER_COLORS[index % DUMMY_PLACEHOLDER_COLORS.length];
-    const id = DUMMY_BASE_ID + index + 1;
+const TITLE_SUFFIXES = [
+  'Family Style',
+  'Weeknight Edition',
+  'Chef Choice',
+  'Home Kitchen',
+  'Sunday Special',
+  'Balanced Plate',
+  'Meal Prep Version',
+  'Light & Fresh'
+] as const;
 
-    foods.push({
-      id,
-      title: `Dummy Recipe ${index + 1}`,
-      image: `https://placehold.co/600x400/${colorSet.bg}/${colorSet.fg}?text=Dummy+${index + 1}`,
-      imageType: 'jpg',
-      sourceUrl: undefined,
-      cuisine,
-      category,
-      tags: ['dummy', cuisine, category],
-      author: DUMMY_AUTHOR,
-      createdAt: new Date(0).toISOString()
+const TECHNIQUES = [
+  'pan-sear',
+  'oven-bake',
+  'slow-simmer',
+  'stir-fry',
+  'roast',
+  'steam-finish'
+] as const;
+
+const SIDE_SUGGESTIONS = [
+  'Serve with steamed rice.',
+  'Serve with roasted potatoes.',
+  'Serve with warm flatbread.',
+  'Serve with a crisp salad.',
+  'Serve with buttered pasta.',
+  'Serve with grilled vegetables.'
+] as const;
+
+const EXAMPLE_RECIPES: readonly ExampleRecipeSeed[] = buildExampleRecipes(exampleRecipesData, DUMMY_COUNT);
+const DUMMY_FOODS = buildDummyFoods();
+const DUMMY_DETAILS = buildDummyDetails();
+
+function buildExampleRecipes(source: unknown, targetCount: number): ExampleRecipeSeed[] {
+  const base = normalizeExampleRecipeSource(source);
+  const baseLength = base.length;
+
+  if (baseLength === 0 || targetCount <= 0) {
+    return [];
+  }
+
+  const recipes: ExampleRecipeSeed[] = [];
+  const fallbackTemplate: ExampleRecipeSeed = {
+    title: 'Example recipe',
+    cuisine: 'International',
+    category: 'Miscellaneous',
+    tags: ['savory'],
+    instructions: 'Servings: 4 · Prep: 15 min · Cook: 25 min\nIngredients: 600 g main ingredient, aromatics, seasoning, and base sauce.\n1) Prep ingredients.\n2) Cook with your preferred technique.\n3) Simmer until tender.\n4) Serve hot.'
+  };
+
+  for (let index = 0; index < targetCount; index += 1) {
+    const template = base[index % baseLength] ?? fallbackTemplate;
+    const variant = Math.floor(index / baseLength) + 1;
+    const technique = TECHNIQUES[index % TECHNIQUES.length];
+    const suffix = TITLE_SUFFIXES[(index + variant) % TITLE_SUFFIXES.length];
+    const servings = seededInt(index + 17, 2, 6);
+    const prepMinutes = seededInt(index + 41, 10, 28);
+    const cookMinutes = seededInt(index + 83, 16, 110);
+    const proteinAmount = seededInt(index + 131, 350, 950);
+    const aromaticAmount = seededInt(index + 173, 1, 4);
+    const sauceAmount = seededInt(index + 197, 120, 360);
+    const mainIngredient = mainIngredientForCategory(template.category ?? fallbackTemplate.category);
+    const rawTags = Array.isArray(template.tags) ? template.tags : [];
+    const templateTags = rawTags.length > 0 ? rawTags : fallbackTemplate.tags;
+    const accentTag = templateTags[index % templateTags.length] ?? 'savory';
+    const sideSuggestion = SIDE_SUGGESTIONS[(index + 2) % SIDE_SUGGESTIONS.length];
+
+    recipes.push({
+      title: `${template.title} ${suffix} ${variant}`,
+      cuisine: template.cuisine,
+      category: template.category,
+      tags: [...new Set([...templateTags, technique, 'example'])],
+      instructions: [
+        `Servings: ${servings} · Prep: ${prepMinutes} min · Cook: ${cookMinutes} min`,
+        `Ingredients: ${proteinAmount} g ${mainIngredient}, ${aromaticAmount} garlic cloves, ${sauceAmount} ml base sauce, 1 onion, salt, pepper, olive oil.`,
+        `1) Prepare ingredients and season ${mainIngredient} with salt, pepper, and ${accentTag}.`,
+        `2) Use ${technique} approach to build flavor and cook the base for 6-10 minutes.`,
+        `3) Add sauce and simmer gently until texture is rich and ingredients are tender.`,
+        `4) Taste, adjust seasoning, and finish with fresh herbs. ${sideSuggestion}`
+      ].join('\n')
     });
   }
 
-  return foods;
+  return recipes;
 }
 
-function toDummyDetail(food: Food): FoodDetail {
-  return {
-    id: food.id,
-    title: food.title,
-    image: food.image,
-    category: food.category,
-    cuisine: food.cuisine,
-    instructions: `This is a fallback dummy recipe for ${food.title}. Combine ingredients, season to taste, and cook until done.`,
-    sourceUrl: undefined,
-    youtubeUrl: undefined,
-    tags: food.tags,
-    author: food.author,
-    createdAt: food.createdAt
-  };
+function normalizeExampleRecipeSource(source: unknown): ExampleRecipeSeed[] {
+  if (!Array.isArray(source)) {
+    return [];
+  }
+
+  return source.map((item, index) => {
+    const candidate = (item && typeof item === 'object') ? item as Record<string, unknown> : {};
+
+    const title = normalizeString(candidate['title']) || `Example recipe ${index + 1}`;
+    const cuisine = normalizeString(candidate['cuisine']) || 'International';
+    const category = normalizeString(candidate['category']) || 'Miscellaneous';
+    const instructions = normalizeString(candidate['instructions'])
+      || `Servings: 4 · Prep: 15 min · Cook: 25 min\nIngredients: 600 g main ingredient, aromatics, seasoning, and base sauce.\n1) Prep ingredients.\n2) Cook with your preferred technique.\n3) Simmer until tender.\n4) Serve hot.`;
+    const tags = Array.isArray(candidate['tags'])
+      ? candidate['tags'].map((value) => normalizeString(value)).filter((value): value is string => !!value)
+      : [];
+
+    return {
+      title,
+      cuisine,
+      category,
+      tags,
+      instructions
+    };
+  });
+}
+
+function normalizeString(value: unknown): string | null {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
+function mainIngredientForCategory(category: string): string {
+  switch (category.toLowerCase()) {
+    case 'chicken':
+      return 'chicken thigh fillet';
+    case 'beef':
+      return 'beef chuck';
+    case 'seafood':
+      return 'white fish fillet';
+    case 'vegetarian':
+      return 'firm tofu';
+    case 'dessert':
+      return 'seasonal fruit';
+    case 'soup':
+      return 'mixed vegetables';
+    case 'pasta':
+      return 'durum pasta';
+    case 'rice':
+      return 'arborio rice';
+    case 'egg':
+      return 'free-range eggs';
+    case 'noodles':
+      return 'wheat noodles';
+    default:
+      return 'main ingredient';
+  }
+}
+
+function seededInt(seed: number, min: number, max: number): number {
+  const raw = Math.abs(Math.sin(seed * 12.9898) * 43758.5453);
+  const normalized = raw - Math.floor(raw);
+  return min + Math.floor(normalized * (max - min + 1));
+}
+
+function buildDummyFoods(): Food[] {
+  return EXAMPLE_RECIPES.map((recipe, index) => {
+    const id = DUMMY_BASE_ID + index + 1;
+
+    return {
+      id,
+      title: recipe.title,
+      image: buildDummyImagePath(index),
+      imageType: 'jpg',
+      sourceUrl: undefined,
+      cuisine: recipe.cuisine,
+      category: recipe.category,
+      tags: [...new Set(['example', ...recipe.tags, recipe.cuisine, recipe.category])],
+      author: DUMMY_AUTHOR,
+      createdAt: new Date(0).toISOString()
+    };
+  });
+}
+
+function buildDummyDetails(): Map<number, FoodDetail> {
+  return new Map<number, FoodDetail>(
+    EXAMPLE_RECIPES.map((recipe, index) => {
+      const id = DUMMY_BASE_ID + index + 1;
+
+      return [
+        id,
+        {
+          id,
+          title: recipe.title,
+          image: buildDummyImagePath(index),
+          category: recipe.category,
+          cuisine: recipe.cuisine,
+          instructions: recipe.instructions,
+          sourceUrl: undefined,
+          youtubeUrl: undefined,
+          tags: [...new Set(['example', ...recipe.tags, recipe.cuisine, recipe.category])],
+          author: DUMMY_AUTHOR,
+          createdAt: new Date(0).toISOString()
+        }
+      ];
+    })
+  );
+}
+
+function buildDummyImagePath(index: number): string {
+  const normalized = ((index % DUMMY_IMAGE_COUNT) + DUMMY_IMAGE_COUNT) % DUMMY_IMAGE_COUNT;
+  const imageNumber = String(normalized + 1).padStart(3, '0');
+  return `/assets/dummy-recipes/food-${imageNumber}.jpg`;
 }
 
 function getDummyFacets(): { cuisines: string[]; categories: string[] } {
