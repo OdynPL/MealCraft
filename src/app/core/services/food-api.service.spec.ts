@@ -82,6 +82,17 @@ describe('FoodApiService', () => {
   let service: FoodApiService;
   let httpMock: HttpTestingController;
 
+  const dummyRecipes = [
+    {
+      title: 'Dummy Recipe 1',
+      image: 'assets/recipes/recipe-0001.svg',
+      cuisine: 'Italian',
+      category: 'Pasta',
+      tags: ['example'],
+      instructions: 'Cook and serve.'
+    }
+  ];
+
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
@@ -134,6 +145,9 @@ describe('FoodApiService', () => {
       ]
     });
 
+    const dummyReq = httpMock.expectOne('data/example-recipes.json');
+    dummyReq.flush(dummyRecipes);
+
     expect(resultTitles).toContain('Owned Local');
     expect(resultTitles).toContain('Legacy Local');
     expect(resultTitles).not.toContain('Foreign Local');
@@ -171,6 +185,9 @@ describe('FoodApiService', () => {
       ]
     });
 
+    const dummyReq = httpMock.expectOne('data/example-recipes.json');
+    dummyReq.flush(dummyRecipes);
+
     expect(resultTitles).toContain('Owned Local');
     expect(resultTitles).toContain('Legacy Local');
     expect(resultTitles).toContain('Foreign Local');
@@ -199,6 +216,9 @@ describe('FoodApiService', () => {
       status: 500,
       statusText: 'Server Error'
     });
+
+    const dummyReq = httpMock.expectOne('data/example-recipes.json');
+    dummyReq.flush(dummyRecipes);
 
     expect(resultTitles.length).toBeGreaterThan(0);
     expect(resultTitles.some((title) => title.startsWith('Dummy Recipe'))).toBe(true);

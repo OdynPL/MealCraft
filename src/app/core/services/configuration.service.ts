@@ -14,6 +14,7 @@ export class ConfigurationService {
     && typeof globalThis.location !== 'undefined'
     && globalThis.location.hostname.endsWith('github.io');
   readonly localRecipeStorageKey = 'food-app.local-recipes';
+  readonly dummyProductsEnabledStorageKey = 'food-app.dummy-products-enabled';
   readonly localRecipePlaceholderImage = 'https://placehold.co/600x400?text=Recipe+Image';
   readonly maxUploadedImageSizeBytes = 2 * 1024 * 1024;
 

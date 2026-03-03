@@ -6,11 +6,14 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { firstValueFrom } from 'rxjs';
 
 import { AuthService } from '../../core/services/auth.service';
+import { AppPreferencesService } from '../../core/services/app-preferences.service';
 import { ConfigurationService } from '../../core/services/configuration.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { FoodStore } from '../../core/stores/food.store';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog';
 
 @Component({
@@ -23,6 +26,7 @@ import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dial
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSlideToggleModule,
     MatButtonModule
   ],
   templateUrl: './settings.html',
@@ -30,8 +34,10 @@ import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dial
 })
 export class SettingsComponent {
   private readonly auth = inject(AuthService);
+  private readonly preferences = inject(AppPreferencesService);
   private readonly config = inject(ConfigurationService);
   private readonly notifications = inject(NotificationService);
+  private readonly store = inject(FoodStore);
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
 
@@ -47,6 +53,7 @@ export class SettingsComponent {
   private avatarValue = this.auth.currentUser()?.avatar;
 
   protected readonly fullName = computed(() => this.auth.fullName());
+  protected readonly includeDummyProducts = computed(() => this.preferences.includeDummyProducts());
 
   protected readonly firstNameControl = new FormControl(this.auth.currentUser()?.firstName ?? '', {
     nonNullable: true,
@@ -154,6 +161,15 @@ export class SettingsComponent {
   protected onProfileFormSubmit(event: Event): void {
     event.preventDefault();
     void this.saveProfile();
+  }
+
+  protected onIncludeDummyProductsChange(enabled: boolean): void {
+    this.preferences.setIncludeDummyProducts(enabled);
+    this.store.reset();
+
+    this.notifications.info(enabled
+      ? 'Dummy products enabled.'
+      : 'Dummy products disabled.');
   }
 
   protected onPasswordFormSubmit(event: Event): void {

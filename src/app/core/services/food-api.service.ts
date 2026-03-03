@@ -15,6 +15,7 @@ import { ConfigurationService } from './configuration.service';
 import { AuthService } from './auth.service';
 import { LocalRecipeService } from './local-recipe.service';
 import { RecipeFeedbackService } from './recipe-feedback.service';
+import { AppPreferencesService } from './app-preferences.service';
 
 const ALLOWED_SORTS: readonly FoodSortBy[] = ['name', 'id', 'tags', 'votes'];
 const ALLOWED_DIRECTIONS: readonly SortDirection[] = ['asc', 'desc'];
@@ -29,6 +30,7 @@ export class FoodApiService {
   private readonly auth = inject(AuthService);
   private readonly localRecipes = inject(LocalRecipeService);
   private readonly feedback = inject(RecipeFeedbackService);
+  private readonly preferences = inject(AppPreferencesService);
   private exampleRecipes$: Observable<readonly ExampleRecipeSeed[]> | null = null;
   private dummyFoods$: Observable<readonly Food[]> | null = null;
   private dummyDetails$: Observable<Map<number, FoodDetail>> | null = null;
@@ -52,7 +54,9 @@ export class FoodApiService {
       catchError(() => of([]))
     );
 
-    const dummyFacets$ = this.getDummyFacets();
+    const dummyFacets$ = this.preferences.includeDummyProducts()
+      ? this.getDummyFacets()
+      : of({ cuisines: [], categories: [] });
 
     return forkJoin({ cuisines: cuisines$, categories: categories$, dummyFacets: dummyFacets$ }).pipe(
       map(({ cuisines, categories, dummyFacets }) => {
@@ -79,6 +83,22 @@ export class FoodApiService {
     }
 
     const localOverride = snapshot.overrides.find((item) => item.id === id);
+
+    if (!this.preferences.includeDummyProducts()) {
+      return this.mealDbGet<MealDbDetailResponseDto>(
+        this.config.lookupEndpoint,
+        new HttpParams().set('i', String(id))
+      )
+        .pipe(map((res) => {
+          const meal = res.meals?.[0];
+          if (!meal) {
+            return localOverride ?? null;
+          }
+
+          const apiDetail = this.toFoodDetail(meal);
+          return localOverride ? this.mergeDetail(apiDetail, localOverride) : apiDetail;
+        }));
+    }
 
     return this.getDummyDetails().pipe(
       switchMap((dummyDetails) => {
@@ -126,9 +146,15 @@ export class FoodApiService {
         catchError(() => of({ meals: [] } as MealDbSearchResponseDto)),
         map((res) => res.meals ?? []),
         map((meals) => meals.map((item) => this.toFood(item))),
-        switchMap((apiItems) => this.getDummyFoods().pipe(
-          map((dummyFoods) => this.applyLocalMutations([...apiItems, ...dummyFoods]))
-        )),
+        switchMap((apiItems) => {
+          if (!this.preferences.includeDummyProducts()) {
+            return of(this.applyLocalMutations(apiItems));
+          }
+
+          return this.getDummyFoods().pipe(
+            map((dummyFoods) => this.applyLocalMutations([...apiItems, ...dummyFoods]))
+          );
+        }),
         map((items) => filterFoods(items, searchText, cuisine, category, mineOnly, currentUser)),
         map((items) => ({
           allItems: items,

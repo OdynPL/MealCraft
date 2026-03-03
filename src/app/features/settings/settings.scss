@@ -40,6 +40,11 @@
   font-size: 1.02rem;
 }
 
+.settings-hint {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+}
+
 .avatar-upload {
   display: flex;
   align-items: center;
