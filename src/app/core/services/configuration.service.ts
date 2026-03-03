@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 
 import { FoodSortBy, SortDirection } from '../models';
+import { StoredUser } from '../models/auth';
 
 @Injectable({ providedIn: 'root' })
 export class ConfigurationService {
@@ -23,6 +24,8 @@ export class ConfigurationService {
   readonly authSessionKey = 'current';
   readonly authSessionCacheKey = 'food-explorer.current-user';
   readonly authMinPasswordLength = 6;
+  readonly authPasswordAlgorithm: StoredUser['passwordVersion'] = 'pbkdf2-sha256';
+  readonly authPasswordIterations = 210_000;
   readonly authMinAge = 13;
   readonly authMaxAge = 120;
   readonly authMaxPhoneLength = 20;

@@ -2,6 +2,9 @@ export interface StoredUser {
   id: number;
   email: string;
   passwordHash: string;
+  passwordSalt?: string;
+  passwordIterations?: number;
+  passwordVersion?: 'legacy' | 'pbkdf2-sha256';
   firstName: string;
   lastName: string;
   phone: string;

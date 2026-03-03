@@ -50,7 +50,11 @@ export class AuthService {
     const storedUser: StoredUser = {
       id: Date.now(),
       email: normalizedEmail,
-      passwordHash: toHash(payload.password),
+      ...(await createPasswordRecord(
+        payload.password,
+        this.config.authPasswordAlgorithm,
+        this.config.authPasswordIterations
+      )),
       firstName: payload.firstName.trim(),
       lastName: payload.lastName.trim(),
       phone: payload.phone.trim(),
@@ -75,11 +79,25 @@ export class AuthService {
     const users = await this.getAllUsers();
     const user = users.find((item) => item.email === normalizedEmail);
 
-    if (!user || user.passwordHash !== toHash(password)) {
+    if (!user) {
       return { success: false, error: 'Invalid email or password.' };
     }
 
-    await this.saveSession(toAuthUser(user));
+    const verification = await verifyPassword(
+      user,
+      password,
+      this.config.authPasswordAlgorithm,
+      this.config.authPasswordIterations
+    );
+    if (!verification.valid) {
+      return { success: false, error: 'Invalid email or password.' };
+    }
+
+    if (verification.upgradedUser) {
+      await this.putUser(verification.upgradedUser);
+    }
+
+    await this.saveSession(toAuthUser(verification.upgradedUser ?? user));
     return { success: true };
   }
 
@@ -135,13 +153,25 @@ export class AuthService {
       return { success: false, error: 'User not found.' };
     }
 
-    if (users[index].passwordHash !== toHash(currentPassword)) {
+    const verification = await verifyPassword(
+      users[index],
+      currentPassword,
+      this.config.authPasswordAlgorithm,
+      this.config.authPasswordIterations
+    );
+    if (!verification.valid) {
       return { success: false, error: 'Current password is incorrect.' };
     }
 
+    const nextPassword = await createPasswordRecord(
+      newPassword,
+      this.config.authPasswordAlgorithm,
+      this.config.authPasswordIterations
+    );
+
     users[index] = {
       ...users[index],
-      passwordHash: toHash(newPassword)
+      ...nextPassword
     };
 
     await this.putUser(users[index]);
@@ -214,7 +244,7 @@ export class AuthService {
       const request = store.getAll();
       request.onsuccess = () => {
         const result = ((request.result as unknown[]) ?? [])
-          .map((item) => normalizeStoredUser(item))
+          .map((item) => normalizeStoredUser(item, this.config.authPasswordAlgorithm))
           .filter((item): item is StoredUser => item !== null);
         done(result);
       };
@@ -320,7 +350,10 @@ export class AuthService {
   }
 }
 
-function normalizeStoredUser(value: unknown): StoredUser | null {
+function normalizeStoredUser(
+  value: unknown,
+  passwordAlgorithm: StoredUser['passwordVersion']
+): StoredUser | null {
   if (!isObject(value)) {
     return null;
   }
@@ -328,6 +361,17 @@ function normalizeStoredUser(value: unknown): StoredUser | null {
   const id = Number(value['id']);
   const email = String(value['email'] ?? '').trim().toLowerCase();
   const passwordHash = String(value['passwordHash'] ?? '').trim();
+  const passwordSalt = normalizeOptional(value['passwordSalt']);
+  const passwordIterationsRaw = Number(value['passwordIterations']);
+  const passwordIterations = Number.isFinite(passwordIterationsRaw) && passwordIterationsRaw > 0
+    ? passwordIterationsRaw
+    : undefined;
+  const passwordVersionRaw = String(value['passwordVersion'] ?? '').trim().toLowerCase();
+  const passwordVersion: StoredUser['passwordVersion'] = passwordVersionRaw === passwordAlgorithm
+    ? passwordAlgorithm
+    : passwordVersionRaw === 'legacy'
+      ? 'legacy'
+      : undefined;
   const firstName = String(value['firstName'] ?? '').trim() || 'User';
   const lastName = String(value['lastName'] ?? '').trim() || '';
   const phone = String(value['phone'] ?? '').trim() || '000000000';
@@ -343,6 +387,9 @@ function normalizeStoredUser(value: unknown): StoredUser | null {
     id,
     email,
     passwordHash,
+    passwordSalt,
+    passwordIterations,
+    passwordVersion,
     firstName,
     lastName,
     phone,
@@ -397,6 +444,133 @@ function isValidPhone(value: string, maxLength: number): boolean {
 
 function toHash(value: string): string {
   return btoa(unescape(encodeURIComponent(value)));
+}
+
+async function createPasswordRecord(
+  password: string,
+  passwordAlgorithm: StoredUser['passwordVersion'],
+  passwordIterations: number
+): Promise<Pick<StoredUser, 'passwordHash' | 'passwordSalt' | 'passwordIterations' | 'passwordVersion'>> {
+  const saltBytes = randomBytes(16);
+  const derived = await derivePasswordHash(password, saltBytes, passwordIterations);
+
+  return {
+    passwordHash: bytesToBase64(derived),
+    passwordSalt: bytesToBase64(saltBytes),
+    passwordIterations,
+    passwordVersion: passwordAlgorithm
+  };
+}
+
+async function verifyPassword(
+  user: StoredUser,
+  password: string,
+  passwordAlgorithm: StoredUser['passwordVersion'],
+  passwordIterations: number
+): Promise<{ valid: boolean; upgradedUser?: StoredUser }> {
+  if (isPbkdf2User(user, passwordAlgorithm)) {
+    const saltBytes = base64ToBytes(user.passwordSalt);
+    if (!saltBytes) {
+      return { valid: false };
+    }
+
+    const derived = await derivePasswordHash(password, saltBytes, user.passwordIterations);
+    const valid = bytesToBase64(derived) === user.passwordHash;
+    return { valid };
+  }
+
+  const validLegacy = user.passwordHash === toHash(password);
+  if (!validLegacy) {
+    return { valid: false };
+  }
+
+  const nextPassword = await createPasswordRecord(password, passwordAlgorithm, passwordIterations);
+  return {
+    valid: true,
+    upgradedUser: {
+      ...user,
+      ...nextPassword
+    }
+  };
+}
+
+function isPbkdf2User(
+  user: StoredUser,
+  passwordAlgorithm: StoredUser['passwordVersion']
+): user is StoredUser & {
+  passwordSalt: string;
+  passwordIterations: number;
+  passwordVersion: 'pbkdf2-sha256';
+} {
+  return user.passwordVersion === passwordAlgorithm
+    && typeof user.passwordSalt === 'string'
+    && user.passwordSalt.trim().length > 0
+    && Number.isFinite(user.passwordIterations)
+    && (user.passwordIterations ?? 0) > 0;
+}
+
+async function derivePasswordHash(password: string, salt: Uint8Array, iterations: number): Promise<Uint8Array> {
+  if (!globalThis.crypto?.subtle) {
+    throw new Error('Web Crypto API is not available.');
+  }
+
+  const keyMaterial = await globalThis.crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(password),
+    'PBKDF2',
+    false,
+    ['deriveBits']
+  );
+
+  const derivedBits = await globalThis.crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      salt: salt as BufferSource,
+      iterations,
+      hash: 'SHA-256'
+    },
+    keyMaterial,
+    256
+  );
+
+  return new Uint8Array(derivedBits);
+}
+
+function randomBytes(length: number): Uint8Array {
+  if (!globalThis.crypto?.getRandomValues) {
+    throw new Error('Web Crypto API is not available.');
+  }
+
+  const array = new Uint8Array(length);
+  globalThis.crypto.getRandomValues(array);
+  return array;
+}
+
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = '';
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+
+  return btoa(binary);
+}
+
+function base64ToBytes(value: string | undefined): Uint8Array | null {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    const binary = atob(value);
+    const bytes = new Uint8Array(binary.length);
+    for (let index = 0; index < binary.length; index += 1) {
+      bytes[index] = binary.charCodeAt(index);
+    }
+
+    return bytes;
+  } catch {
+    return null;
+  }
 }
 
 function toAuthUser(user: StoredUser): AuthUser {
