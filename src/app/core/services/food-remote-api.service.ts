@@ -105,16 +105,17 @@ export class FoodRemoteApiService {
 
   private mealDbGet<T>(endpoint: string, params?: HttpParams): Observable<T> {
     const baseUrl = `${this.config.mealDbBaseUrl}${endpoint}`;
-
-    if (!this.config.useMealDbCorsProxy) {
-      return this.http.get<T>(baseUrl, params ? { params } : undefined);
-    }
-
     const urlWithQuery = buildUrlWithQuery(baseUrl, params);
     const proxiedUrls = this.config.mealDbCorsProxyCandidates
       .map((proxyBaseUrl) => `${proxyBaseUrl}${encodeURIComponent(urlWithQuery)}`);
 
-    return this.requestWithProxyFallback<T>(proxiedUrls, 0);
+    if (this.config.useMealDbCorsProxy) {
+      return this.requestWithProxyFallback<T>(proxiedUrls, 0);
+    }
+
+    return this.http.get<T>(baseUrl, params ? { params } : undefined).pipe(
+      catchError(() => this.requestWithProxyFallback<T>(proxiedUrls, 0))
+    );
   }
 
   private requestWithProxyFallback<T>(proxyUrls: readonly string[], index: number): Observable<T> {

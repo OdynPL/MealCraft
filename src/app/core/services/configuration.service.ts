@@ -95,12 +95,17 @@ export class ConfigurationService {
 
   readonly mealDbBaseUrl = 'https://www.themealdb.com/api/json/v1/1';
   readonly mealDbCorsProxyCandidates = [
-    'https://api.allorigins.win/raw?url=',
-    'https://corsproxy.io/?'
+    'https://api.codetabs.com/v1/proxy?quest=',
+    'https://corsproxy.io/?',
+    'https://api.allorigins.win/raw?url='
   ] as const;
   readonly useMealDbCorsProxy = typeof globalThis !== 'undefined'
     && typeof globalThis.location !== 'undefined'
-    && globalThis.location.hostname.endsWith('github.io');
+    && (
+      globalThis.location.hostname.endsWith('github.io')
+      || globalThis.location.hostname === 'localhost'
+      || globalThis.location.hostname === '127.0.0.1'
+    );
   readonly localRecipeStorageKey = 'food-app.local-recipes';
   readonly dummyProductsEnabledStorageKey = 'food-app.dummy-products-enabled';
   readonly localRecipePlaceholderImage = 'https://placehold.co/600x400?text=Recipe+Image';

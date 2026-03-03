@@ -8,6 +8,7 @@ import { FoodRemoteApiService } from './food-remote-api.service';
 describe('FoodRemoteApiService', () => {
   let service: FoodRemoteApiService;
   let httpMock: HttpTestingController;
+  let config: ConfigurationService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -21,6 +22,7 @@ describe('FoodRemoteApiService', () => {
 
     service = TestBed.inject(FoodRemoteApiService);
     httpMock = TestBed.inject(HttpTestingController);
+    config = TestBed.inject(ConfigurationService);
   });
 
   afterEach(() => {
@@ -34,7 +36,7 @@ describe('FoodRemoteApiService', () => {
       resultTitles = items.map((item) => item.title);
     });
 
-    const req = httpMock.expectOne((request) => request.url.includes('/search.php'));
+    const req = httpMock.expectOne((request) => decodeURIComponent(request.url).includes('/search.php'));
     req.flush({
       meals: [
         {
@@ -58,7 +60,7 @@ describe('FoodRemoteApiService', () => {
       detailTitle = detail?.title ?? null;
     });
 
-    const req = httpMock.expectOne((request) => request.url.includes('/lookup.php'));
+    const req = httpMock.expectOne((request) => decodeURIComponent(request.url).includes('/lookup.php'));
     req.flush({
       meals: [
         {
@@ -76,5 +78,38 @@ describe('FoodRemoteApiService', () => {
     });
 
     expect(detailTitle).toBe('Spicy Arrabiata Penne');
+  });
+
+  it('should fallback to cors proxy when direct request fails', () => {
+    let resultCount = 0;
+
+    Object.defineProperty(config, 'useMealDbCorsProxy', { value: false, configurable: true });
+
+    service.searchMeals('arr').subscribe((items) => {
+      resultCount = items.length;
+    });
+
+    const directReq = httpMock.expectOne((request) =>
+      request.url.includes('www.themealdb.com/api/json/v1/1/search.php')
+    );
+    directReq.error(new ProgressEvent('error'), { status: 0, statusText: 'Unknown Error' });
+
+    const proxyReq = httpMock.expectOne((request) =>
+      request.url.startsWith('https://api.codetabs.com/v1/proxy?quest=')
+    );
+    proxyReq.flush({
+      meals: [
+        {
+          idMeal: '52771',
+          strMeal: 'Spicy Arrabiata Penne',
+          strMealThumb: 'https://www.themealdb.com/images/media/meals/ustsqw1468250014.jpg',
+          strArea: 'Italian',
+          strCategory: 'Vegetarian',
+          strSource: null
+        }
+      ]
+    });
+
+    expect(resultCount).toBe(1);
   });
 });
