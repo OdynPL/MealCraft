@@ -4,14 +4,14 @@
   </mat-card-header>
   <mat-card-content>
     <section class="comments-list">
-      @if (commentsService.comments().filter(c => c.mealId === mealId).length > 0) {
-        @for (comment of commentsService.comments().filter(c => c.mealId === mealId); track comment.id) {
+      @if (hasMealComments()) {
+        @for (comment of mealComments(); track comment.id) {
           <div class="comment-item">
             <span class="avatar" aria-hidden="true">
               @if (comment.avatar) {
                 <img [src]="comment.avatar" alt="User avatar" />
               } @else {
-                <span class="avatar-fallback">{{ comment.author.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase() }}</span>
+                <span class="avatar-fallback">{{ getAuthorInitials(comment.author) }}</span>
               }
             </span>
             <div class="comment-main">
@@ -37,8 +37,12 @@
                   <mat-form-field appearance="outline" floatLabel="always" class="add-comment-field" style="width:100%;">
                     <mat-label>Edit comment</mat-label>
                     <textarea matInput [formControl]="editControl" rows="2" maxlength="1000" placeholder="Edit your comment..."></textarea>
-                    <mat-error *ngIf="editControl.hasError('required')">Comment cannot be empty.</mat-error>
-                    <mat-error *ngIf="editControl.hasError('maxlength')">Maximum 1000 characters.</mat-error>
+                    @if (editControl.hasError('required')) {
+                      <mat-error>Comment cannot be empty.</mat-error>
+                    }
+                    @if (editControl.hasError('maxlength')) {
+                      <mat-error>Maximum 1000 characters.</mat-error>
+                    }
                   </mat-form-field>
                 } @else {
                     <span [innerHTML]="formatComment(comment.content)"></span>
@@ -52,15 +56,22 @@
       }
     </section>
     <!-- DEBUG: Usuń poniższy blok w produkcji -->
-    <div class="add-comment-form" *ngIf="isLoggedIn()">
-      <mat-form-field appearance="outline" floatLabel="always" class="add-comment-field">
-        <mat-label>Add a comment</mat-label>
-        <textarea matInput [formControl]="commentControl" rows="2" maxlength="1000" placeholder="Write your comment..."></textarea>
-        <mat-error *ngIf="commentControl.hasError('required')">Comment cannot be empty.</mat-error>
-        <mat-error *ngIf="commentControl.hasError('maxlength')">Maximum 1000 characters.</mat-error>
-      </mat-form-field>
-      <button mat-flat-button color="primary" type="button" [disabled]="commentControl.invalid" (click)="addComment()" class="add-comment-btn">Add</button>
-    </div>
-    <div class="login-info" *ngIf="!isLoggedIn()">You must be logged in to comment.</div>
+    @if (isLoggedIn()) {
+      <div class="add-comment-form">
+        <mat-form-field appearance="outline" floatLabel="always" class="add-comment-field">
+          <mat-label>Add a comment</mat-label>
+          <textarea matInput [formControl]="commentControl" rows="2" maxlength="1000" placeholder="Write your comment..."></textarea>
+          @if (commentControl.hasError('required')) {
+            <mat-error>Comment cannot be empty.</mat-error>
+          }
+          @if (commentControl.hasError('maxlength')) {
+            <mat-error>Maximum 1000 characters.</mat-error>
+          }
+        </mat-form-field>
+        <button mat-flat-button color="primary" type="button" [disabled]="commentControl.invalid" (click)="addComment()" class="add-comment-btn">Add</button>
+      </div>
+    } @else {
+      <div class="login-info">You must be logged in to comment.</div>
+    }
   </mat-card-content>
 </mat-card>

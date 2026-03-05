@@ -1,5 +1,5 @@
 
-import { Injectable, inject, signal, computed } from '@angular/core';
+import { Injectable, signal, computed } from '@angular/core';
 
 export interface MealComment {
   id: number;
@@ -17,7 +17,7 @@ export class MealCommentsService {
   private readonly _comments = signal<MealComment[]>(this.readAll());
   readonly comments = computed(() => this._comments());
 
-  constructor() {}
+
 
   private readAll(): MealComment[] {
     if (typeof localStorage === 'undefined') {
@@ -40,15 +40,20 @@ export class MealCommentsService {
     }
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(comments));
-    } catch {}
+    } catch {
+      // intentionally ignore write errors
+    }
   }
 
-  private isValidComment(obj: any): obj is MealComment {
-    return obj && typeof obj === 'object' &&
-      typeof obj.mealId === 'number' &&
-      typeof obj.author === 'string' &&
-      typeof obj.content === 'string' &&
-      typeof obj.createdAt === 'string';
+  private isValidComment(obj: unknown): obj is MealComment {
+    if (!obj || typeof obj !== 'object') return false;
+    const c = obj as Partial<MealComment>;
+    return (
+      typeof c.mealId === 'number' &&
+      typeof c.author === 'string' &&
+      typeof c.content === 'string' &&
+      typeof c.createdAt === 'string'
+    );
   }
 
   private nextId(comments: MealComment[]): number {
