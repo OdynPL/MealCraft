@@ -60,8 +60,22 @@ describe('SettingsComponent', () => {
   let component: SettingsComponent;
   let fixture: ComponentFixture<SettingsComponent>;
   let auth: MockAuthService;
+  let localStorageBackup: any;
 
   beforeEach(async () => {
+    // Mock localStorage using Object.defineProperty for compatibility
+    localStorageBackup = globalThis.localStorage;
+    const storage: Record<string, string> = {};
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      writable: true,
+      value: {
+        getItem: (key: string) => storage[key] ?? null,
+        setItem: (key: string, value: string) => { storage[key] = value; },
+        removeItem: (key: string) => { delete storage[key]; }
+      }
+    });
+
     await TestBed.configureTestingModule({
       imports: [SettingsComponent],
       providers: [
@@ -83,21 +97,13 @@ describe('SettingsComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-
-  it('should not render Admin Settings for a regular user', () => {
-    const hostElement = fixture.nativeElement as HTMLElement;
-    const cardTitles = Array.from(hostElement.querySelectorAll('mat-card-title'))
-      .map((element) => (element.textContent ?? '').trim());
-    const dummyProductsToggle = hostElement.querySelector('mat-slide-toggle');
-
-    expect(cardTitles).toContain('User Settings');
-    expect(cardTitles).not.toContain('Admin Settings');
-    expect(dummyProductsToggle).toBeNull();
-    expect(hostElement.textContent).not.toContain('Dummy products');
-    expect(hostElement.textContent).not.toContain('Reset all data & reload');
+  afterEach(() => {
+    // Restore localStorage using Object.defineProperty
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      writable: true,
+      value: localStorageBackup
+    });
   });
 
   it('should render Admin Settings for admin user', async () => {

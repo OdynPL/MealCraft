@@ -1,4 +1,31 @@
+
 @use '../shared-settings' as shared;
+// Stylowanie listy błędnych przepisów importu
+.import-failed-list {
+  margin-top: 1em;
+  background: #fff3f3;
+  border: 1px solid #e57373;
+  border-radius: 6px;
+  padding: 1em 1.5em;
+  h4 {
+    margin-top: 0;
+    color: #b71c1c;
+    font-size: 1.1em;
+    font-weight: 600;
+  }
+  ul {
+    margin: 0.2em 0 0.2em 1.2em;
+    padding: 0;
+    list-style: disc inside;
+  }
+  li {
+    margin-bottom: 0.2em;
+    font-size: 0.98em;
+  }
+  b {
+    color: #b71c1c;
+  }
+}
 
 :host {
   display: block;
@@ -97,6 +124,26 @@
   content: '⚠';
   font-size: 0.9rem;
   line-height: 1;
+  font-weight: 600;
+}
+
+.import-export-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.app-status-error {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--mat-sys-error);
+  font-size: 0.86rem;
+  font-weight: 500;
+}
+.app-status-error::before {
+  content: '⚠';
+  font-size: 0.9rem;
   font-weight: 600;
 }
 

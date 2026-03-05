@@ -6,11 +6,14 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { firstValueFrom } from 'rxjs';
-
 import { AuthService } from '../../../core/services/auth.service';
 import { ConfigurationService } from '../../../core/services/configuration.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { LocalRecipeService } from '../../../core/services/local-recipe.service';
+
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog';
+import { RecipeExportService } from '../../../core/services/recipe-export.service';
+import { RecipeImportService } from '../../../core/services/recipe-import.service';
 
 @Component({
   selector: 'app-user-settings',
@@ -31,7 +34,13 @@ export class UserSettingsComponent {
   private readonly config = inject(ConfigurationService);
   private readonly notifications = inject(NotificationService);
   private readonly dialog = inject(MatDialog);
+  private readonly localRecipes = inject(LocalRecipeService);
+  private readonly recipeExport = inject(RecipeExportService);
+  private readonly recipeImport = inject(RecipeImportService);
 
+  protected readonly importExportMessage = signal<string | null>(null);
+  protected readonly importExportError = signal<string | null>(null);
+  protected readonly importFailedRecipes = signal<{ index: number; title?: string; reasons: string[] }[] | null>(null);
   protected readonly profileMessage = signal<string | null>(null);
   protected readonly passwordMessage = signal<string | null>(null);
   protected readonly profileValidationError = signal<string | null>(null);
@@ -39,12 +48,9 @@ export class UserSettingsComponent {
   protected readonly profileError = signal<string | null>(null);
   protected readonly passwordError = signal<string | null>(null);
   protected readonly avatarError = signal<string | null>(null);
-
   protected readonly avatarPreview = signal(this.auth.currentUser()?.avatar ?? this.config.authDefaultAvatar);
   private avatarValue = this.auth.currentUser()?.avatar;
-
   protected readonly fullName = computed(() => this.auth.fullName());
-
   protected readonly firstNameControl = new FormControl(this.auth.currentUser()?.firstName ?? '', {
     nonNullable: true,
     validators: [Validators.required, Validators.minLength(this.config.authMinNameLength), Validators.maxLength(this.config.authMaxNameLength)]
@@ -61,6 +67,76 @@ export class UserSettingsComponent {
     nonNullable: true,
     validators: [Validators.required, Validators.min(this.config.authMinAge), Validators.max(this.config.authMaxAge)]
   });
+
+  protected readonly ownRecipeCount = computed(() => {
+    const user = this.auth.currentUser();
+    if (!user) return 0;
+    return this.localRecipes.getAllCustom().filter(r => r.ownerId === user.id).length;
+  });
+
+  exportRecipes(): void {
+    this.importExportMessage.set(null);
+    this.importExportError.set(null);
+    const result = this.recipeExport.exportUserRecipes();
+    if (result.error) {
+      this.importExportError.set(result.error);
+      return;
+    }
+    const url = URL.createObjectURL(result.blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = result.filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 0);
+    this.importExportMessage.set(`Exported ${result.count} recipe(s) to ${result.filename}.`);
+  }
+
+  onImportRecipes(event: Event): void {
+    this.importExportMessage.set(null);
+    this.importExportError.set(null);
+    this.importFailedRecipes.set(null);
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) {
+      this.importExportError.set('No file selected.');
+      return;
+    }
+    if (file.type !== 'application/json') {
+      this.importExportError.set('Please select a valid JSON file.');
+      input.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = String(reader.result ?? '').trim();
+      const result = this.recipeImport.validateAndImport(text);
+      if (result.errors.length > 0) {
+        this.importExportError.set(result.errors.join(' '));
+        this.importFailedRecipes.set(result.failedRecipes && result.failedRecipes.length > 0 ? result.failedRecipes : null);
+      } else if (result.imported > 0) {
+        this.importExportMessage.set(`Successfully imported ${result.imported} recipe(s). Skipped: ${result.skipped}.`);
+        this.importFailedRecipes.set(result.failedRecipes && result.failedRecipes.length > 0 ? result.failedRecipes : null);
+      } else {
+        this.importExportError.set('No valid recipes found in file.');
+        this.importFailedRecipes.set(result.failedRecipes && result.failedRecipes.length > 0 ? result.failedRecipes : null);
+      }
+      input.value = '';
+    };
+    reader.onerror = () => {
+      this.importExportError.set('Failed to read file.');
+      this.importFailedRecipes.set(null);
+      input.value = '';
+    };
+    reader.readAsText(file);
+  }
+
+  triggerImportFile(): void {
+    document.getElementById('import-recipes-input')?.click();
+  }
 
   protected readonly currentPasswordControl = new FormControl('', {
     nonNullable: true,

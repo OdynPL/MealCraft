@@ -193,7 +193,7 @@ describe('AddRecipeComponent', () => {
 
     await (component as any).submit();
 
-    expect((component as any).validationError()).toContain('Recipe name is required');
+    expect((component as any).validationError()).toContain('Nazwa przepisu jest wymagana.');
     expect(recipes.add).not.toHaveBeenCalled();
   });
 

@@ -98,5 +98,44 @@
         <button mat-stroked-button color="primary" type="submit">Change password</button>
       </div>
     </form>
+    <!-- Import & Export Recipes Section -->
+    <section class="settings-section import-export-section">
+      <h3>Import &amp; Export Recipes</h3>
+      <div class="import-export-actions">
+        <button mat-stroked-button color="primary" type="button" (click)="exportRecipes()">Export My Recipes</button>
+        <label class="import-label">
+          <input id="import-recipes-input" type="file" accept="application/json" (change)="onImportRecipes($event)" hidden />
+          <button mat-stroked-button color="accent" type="button" (click)="triggerImportFile()">Import Recipes</button>
+        </label>
+      </div>
+      <div class="own-recipe-count">
+        You have <b>{{ ownRecipeCount() }}</b> recipes to be exported.
+      </div>
+      @if (importExportMessage(); as importExportMessage) {
+        <p class="app-status-ok">{{ importExportMessage }}</p>
+      }
+      @if (importExportError(); as importExportError) {
+        <p class="app-status-error">{{ importExportError }}</p>
+      }
+      @if (importFailedRecipes(); as failedRecipes) {
+        @if (failedRecipes.length > 0) {
+          <div class="import-failed-list">
+            <h4>Recipes with errors:</h4>
+            <ul>
+              @for (rec of failedRecipes; track rec.index) {
+                <li>
+                  <b>{{ rec.title || '(no title)' }}</b>:
+                  <ul>
+                    @for (reason of rec.reasons; track reason) {
+                      <li>{{ reason }}</li>
+                    }
+                  </ul>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      }
+    </section>
   </mat-card-content>
 </mat-card>

@@ -323,46 +323,46 @@ export class AddRecipeComponent {
 
   private firstValidationError(): string {
     if (this.titleControl.hasError('required')) {
-      return 'Recipe name is required.';
+      return 'Nazwa przepisu jest wymagana.';
     }
     if (this.titleControl.hasError('minlength')) {
-      return `Recipe name must be at least ${this.config.authMinNameLength} characters.`;
+      return `Nazwa przepisu musi mieć co najmniej ${this.config.authMinNameLength} znaków.`;
     }
     if (this.titleControl.hasError('maxlength')) {
-      return `Recipe name must be at most ${this.config.recipeTitleMaxLength} characters.`;
+      return `Nazwa przepisu może mieć maksymalnie ${this.config.recipeTitleMaxLength} znaków.`;
     }
 
     if (this.cuisineControl.hasError('required') || this.cuisineControl.hasError('minlength') || this.cuisineControl.hasError('maxlength')) {
-      return 'Enter a valid cuisine.';
+      return 'Podaj poprawną kuchnię.';
     }
 
     if (this.categoryControl.hasError('required') || this.categoryControl.hasError('minlength') || this.categoryControl.hasError('maxlength')) {
-      return 'Enter a valid category.';
+      return 'Podaj poprawną kategorię.';
     }
 
     if (this.instructionsControl.hasError('required')) {
-      return 'Instructions are required.';
+      return 'Instrukcje są wymagane.';
     }
     if (this.instructionsControl.hasError('minlength')) {
-      return `Instructions must be at least ${this.config.recipeInstructionsMinLength} characters.`;
+      return `Instrukcje muszą mieć co najmniej ${this.config.recipeInstructionsMinLength} znaków.`;
     }
     if (this.instructionsControl.hasError('maxlength')) {
-      return `Instructions must be at most ${this.config.recipeInstructionsMaxLength} characters.`;
+      return `Instrukcje mogą mieć maksymalnie ${this.config.recipeInstructionsMaxLength} znaków.`;
     }
 
     if (this.sourceUrlControl.hasError('pattern') || this.youtubeUrlControl.hasError('pattern')) {
-      return 'Source/YouTube URL must start with http:// or https://.';
+      return 'Adres URL źródła/YouTube musi zaczynać się od http:// lub https://.';
     }
 
     if (this.tagsControl.hasError('tagsMaxLength')) {
-      return `Tags must be at most ${this.config.recipeTagsInputMaxLength} characters.`;
+      return `Tagi mogą mieć maksymalnie ${this.config.recipeTagsInputMaxLength} znaków.`;
     }
 
     if (this.imageError()) {
-      return this.imageError() ?? 'Image is invalid.';
+      return this.imageError() ?? 'Obrazek jest nieprawidłowy.';
     }
 
-    return 'Please fix validation errors and try again.';
+    return 'Popraw błędy walidacji i spróbuj ponownie.';
   }
 
   private canonicalFacetValue(options: string[], rawValue: string): string {
