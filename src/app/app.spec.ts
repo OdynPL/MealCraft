@@ -6,6 +6,17 @@ import { App } from './app';
 
 describe('App', () => {
   beforeEach(async () => {
+    // Mock localStorage for tests
+    let storageData: Record<string, string> = {};
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      value: {
+        getItem: (key: string) => storageData[key] ?? null,
+        setItem: (key: string, value: string) => { storageData[key] = value; },
+        removeItem: (key: string) => { delete storageData[key]; },
+        clear: () => { storageData = {}; }
+      }
+    });
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [
