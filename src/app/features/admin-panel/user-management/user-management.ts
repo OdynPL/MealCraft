@@ -17,6 +17,7 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
 import { EditUserDialogComponent } from './edit-user-dialog/edit-user-dialog';
 import { RoleLabelPipe } from './role-label.pipe';
 import { YesNoColorPipe } from './yes-no-color.pipe';
+import { ActivityLogService } from '../../../core/services/activity-log.service';
 
 @Component({
   selector: 'app-user-management',
@@ -41,6 +42,7 @@ export class UserManagementComponent {
   private readonly localRecipes = inject(LocalRecipeService);
   private readonly notifications = inject(NotificationService);
   private readonly dialog = inject(MatDialog);
+  private readonly activityLog = inject(ActivityLogService);
 
   protected readonly users = signal<AuthUser[]>([]);
   protected readonly recipeCountByUser = signal<Record<number, number>>({});
@@ -210,29 +212,31 @@ export class UserManagementComponent {
     if (this.isBusy(user.id) || !this.canEditUser(user)) {
       return;
     }
-
     const payload = await firstValueFrom(this.dialog.open(EditUserDialogComponent, {
       data: { user },
       panelClass: 'app-confirm-dialog',
       width: 'min(560px, calc(100vw - 2rem))',
       disableClose: true
     }).afterClosed());
-
     if (!payload) {
       return;
     }
-
     this.actionUserId.set(user.id);
-
     try {
       const result = await this.auth.updateUserForAdmin(user.id, payload);
-
       if (!result.success) {
         this.notifications.error(result.error ?? 'Unable to update user.');
         return;
       }
-
       this.notifications.success('User updated.');
+      this.activityLog.record({
+        area: 'admin',
+        action: 'user-edit',
+        status: 'success',
+        actor: { id: this.currentUserId() ?? 0, name: 'Admin' },
+        target: `${user.email} (#${user.id})`,
+        details: 'User edited by admin.'
+      });
       await this.loadUsers();
     } finally {
       this.actionUserId.set(null);
@@ -243,7 +247,6 @@ export class UserManagementComponent {
     if (this.isBusy(user.id) || !this.canBanUser(user)) {
       return;
     }
-
     const shouldLock = !user.isAccountLocked;
     const confirmed = await firstValueFrom(this.dialog.open(ConfirmDialogComponent, {
       data: {
@@ -256,21 +259,25 @@ export class UserManagementComponent {
       },
       panelClass: 'app-confirm-dialog'
     }).afterClosed());
-
     if (!confirmed) {
       return;
     }
-
     this.actionUserId.set(user.id);
-
     try {
       const result = await this.auth.setUserLockForAdmin(user.id, shouldLock);
       if (!result.success) {
         this.notifications.error(result.error ?? 'Unable to update lock status.');
         return;
       }
-
       this.notifications.success(shouldLock ? 'User banned.' : 'User unbanned.');
+      this.activityLog.record({
+        area: 'admin',
+        action: shouldLock ? 'user-ban' : 'user-unban',
+        status: 'success',
+        actor: { id: this.currentUserId() ?? 0, name: 'Admin' },
+        target: `${user.email} (#${user.id})`,
+        details: shouldLock ? 'User banned by admin.' : 'User unbanned by admin.'
+      });
       await this.loadUsers();
     } finally {
       this.actionUserId.set(null);
@@ -281,7 +288,6 @@ export class UserManagementComponent {
     if (this.isBusy(user.id) || !this.canRemoveUser(user)) {
       return;
     }
-
     const confirmed = await firstValueFrom(this.dialog.open(ConfirmDialogComponent, {
       data: {
         title: 'Remove user',
@@ -291,21 +297,25 @@ export class UserManagementComponent {
       },
       panelClass: 'app-confirm-dialog'
     }).afterClosed());
-
     if (!confirmed) {
       return;
     }
-
     this.actionUserId.set(user.id);
-
     try {
       const result = await this.auth.removeUserForAdmin(user.id);
       if (!result.success) {
         this.notifications.error(result.error ?? 'Unable to remove user.');
         return;
       }
-
       this.notifications.success('User removed.');
+      this.activityLog.record({
+        area: 'admin',
+        action: 'user-remove',
+        status: 'success',
+        actor: { id: this.currentUserId() ?? 0, name: 'Admin' },
+        target: `${user.email} (#${user.id})`,
+        details: 'User removed by admin.'
+      });
       await this.loadUsers();
     } finally {
       this.actionUserId.set(null);

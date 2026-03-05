@@ -10,6 +10,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ConfigurationService } from '../../../core/services/configuration.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { LocalRecipeService } from '../../../core/services/local-recipe.service';
+import { ActivityLogService } from '../../../core/services/activity-log.service';
 
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog';
 import { RecipeExportService } from '../../../core/services/recipe-export.service';
@@ -37,6 +38,7 @@ export class UserSettingsComponent implements OnInit {
   private readonly localRecipes = inject(LocalRecipeService);
   private readonly recipeExport = inject(RecipeExportService);
   private readonly recipeImport = inject(RecipeImportService);
+  private readonly activityLog = inject(ActivityLogService);
 
   protected readonly importExportMessage = signal<string | null>(null);
   protected readonly importExportError = signal<string | null>(null);
@@ -85,6 +87,13 @@ export class UserSettingsComponent implements OnInit {
     const result = this.recipeExport.exportUserRecipes();
     if (result.error) {
       this.importExportError.set(result.error);
+      this.activityLog.record({
+        area: 'settings',
+        action: 'export-fail',
+        status: 'error',
+        actor: { id: this.auth.currentUser()?.id ?? 0, name: this.auth.fullName() },
+        details: result.error
+      });
       return;
     }
     const url = URL.createObjectURL(result.blob);
@@ -98,6 +107,13 @@ export class UserSettingsComponent implements OnInit {
       URL.revokeObjectURL(url);
     }, 0);
     this.importExportMessage.set(`Exported ${result.count} recipe(s) to ${result.filename}.`);
+    this.activityLog.record({
+      area: 'settings',
+      action: 'export',
+      status: 'success',
+      actor: { id: this.auth.currentUser()?.id ?? 0, name: this.auth.fullName() },
+      details: `Exported ${result.count} recipes to ${result.filename}`
+    });
     this.updateOwnRecipeCount();
   }
 
@@ -109,10 +125,24 @@ export class UserSettingsComponent implements OnInit {
     const file = input.files?.[0];
     if (!file) {
       this.importExportError.set('No file selected.');
+      this.activityLog.record({
+        area: 'settings',
+        action: 'import-fail',
+        status: 'error',
+        actor: { id: this.auth.currentUser()?.id ?? 0, name: this.auth.fullName() },
+        details: 'No file selected.'
+      });
       return;
     }
     if (file.type !== 'application/json') {
       this.importExportError.set('Please select a valid JSON file.');
+      this.activityLog.record({
+        area: 'settings',
+        action: 'import-fail',
+        status: 'error',
+        actor: { id: this.auth.currentUser()?.id ?? 0, name: this.auth.fullName() },
+        details: 'Invalid file type.'
+      });
       input.value = '';
       return;
     }
@@ -123,12 +153,33 @@ export class UserSettingsComponent implements OnInit {
       if (result.errors.length > 0) {
         this.importExportError.set(result.errors.join(' '));
         this.importFailedRecipes.set(result.failedRecipes && result.failedRecipes.length > 0 ? result.failedRecipes : null);
+        this.activityLog.record({
+          area: 'settings',
+          action: 'import-fail',
+          status: 'error',
+          actor: { id: this.auth.currentUser()?.id ?? 0, name: this.auth.fullName() },
+          details: result.errors.join(' ')
+        });
       } else if (result.imported > 0) {
         this.importExportMessage.set(`Successfully imported ${result.imported} recipe(s). Skipped: ${result.skipped}.`);
         this.importFailedRecipes.set(result.failedRecipes && result.failedRecipes.length > 0 ? result.failedRecipes : null);
+        this.activityLog.record({
+          area: 'settings',
+          action: 'import',
+          status: 'success',
+          actor: { id: this.auth.currentUser()?.id ?? 0, name: this.auth.fullName() },
+          details: `Imported ${result.imported} recipes. Skipped: ${result.skipped}`
+        });
       } else {
         this.importExportError.set('No valid recipes found in file.');
         this.importFailedRecipes.set(result.failedRecipes && result.failedRecipes.length > 0 ? result.failedRecipes : null);
+        this.activityLog.record({
+          area: 'settings',
+          action: 'import-fail',
+          status: 'error',
+          actor: { id: this.auth.currentUser()?.id ?? 0, name: this.auth.fullName() },
+          details: 'No valid recipes found in file.'
+        });
       }
       this.updateOwnRecipeCount();
       input.value = '';
@@ -136,6 +187,13 @@ export class UserSettingsComponent implements OnInit {
     reader.onerror = () => {
       this.importExportError.set('Failed to read file.');
       this.importFailedRecipes.set(null);
+      this.activityLog.record({
+        area: 'settings',
+        action: 'import-fail',
+        status: 'error',
+        actor: { id: this.auth.currentUser()?.id ?? 0, name: this.auth.fullName() },
+        details: 'Failed to read file.'
+      });
       input.value = '';
     };
     reader.readAsText(file);

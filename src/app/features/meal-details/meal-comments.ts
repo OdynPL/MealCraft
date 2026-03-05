@@ -1,4 +1,3 @@
-// ...existing code...
 import { ChangeDetectionStrategy, Component, Input, computed, inject, signal } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { CommonModule, DatePipe } from '@angular/common';
@@ -10,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../core/services/auth.service';
 import { MealCommentsService, MealComment } from '../../core/services/meal-comments.service';
+import { ActivityLogService } from '../../core/services/activity-log.service';
 
 @Component({
   selector: 'app-meal-comments',
@@ -62,6 +62,7 @@ export class MealCommentsComponent {
   protected readonly editingId = signal<number|null>(null);
   protected readonly editControl = new FormControl('', [Validators.required, Validators.maxLength(1000)]);
   protected readonly commentControl = new FormControl('', [Validators.required, Validators.maxLength(1000)]);
+  private readonly activityLog = inject(ActivityLogService);
 
   protected readonly isLoggedIn = computed(() => {
     try {
@@ -118,6 +119,14 @@ export class MealCommentsComponent {
     if (this.editControl.invalid) return;
     const updated: MealComment = { ...comment, content: this.editControl.value as string };
     this.commentsService.updateComment(updated);
+    this.activityLog.record({
+      area: 'recipes',
+      action: 'edit',
+      status: 'success',
+      actor: { name: updated.author },
+      target: `Comment #${updated.id} on meal #${updated.mealId}`,
+      details: 'Comment edited.'
+    });
     this.editingId.set(null);
     this.editControl.reset();
   }
@@ -125,6 +134,14 @@ export class MealCommentsComponent {
   protected deleteComment(comment: MealComment) {
     if (!comment.id) return;
     this.commentsService.deleteComment(comment.id);
+    this.activityLog.record({
+      area: 'recipes',
+      action: 'delete',
+      status: 'success',
+      actor: { name: comment.author },
+      target: `Comment #${comment.id} on meal #${comment.mealId}`,
+      details: 'Comment deleted.'
+    });
   }
 
   protected addComment() {
@@ -144,6 +161,14 @@ export class MealCommentsComponent {
       avatar: user?.avatar ?? undefined
     };
     this.commentsService.addComment(newComment);
+    this.activityLog.record({
+      area: 'recipes',
+      action: 'add',
+      status: 'success',
+      actor: { name: newComment.author },
+      target: `Meal #${newComment.mealId}`,
+      details: 'Comment added.'
+    });
     this.commentControl.reset();
   }
 }
