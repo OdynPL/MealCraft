@@ -1,0 +1,66 @@
+<mat-card class="comments-card app-form-shell" appearance="outlined">
+  <mat-card-header>
+    <mat-card-title>Comments</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <section class="comments-list">
+      @if (commentsService.comments().filter(c => c.mealId === mealId).length > 0) {
+        @for (comment of commentsService.comments().filter(c => c.mealId === mealId); track comment.id) {
+          <div class="comment-item">
+            <span class="avatar" aria-hidden="true">
+              @if (comment.avatar) {
+                <img [src]="comment.avatar" alt="User avatar" />
+              } @else {
+                <span class="avatar-fallback">{{ comment.author.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase() }}</span>
+              }
+            </span>
+            <div class="comment-main">
+              <div class="comment-header" style="display: flex; align-items: center; gap: 12px;">
+                <span class="comment-author">{{ comment.author }}</span>
+                <span class="comment-date" style="margin-left: auto; color: #888; font-size: 13px;">{{ comment.createdAt | date:'short' }}</span>
+                @if (canEditOrDelete(comment)) {
+                  @if (editingId() === comment.id) {
+                    <span class="comment-actions">
+                      <button mat-icon-button color="primary" type="button" (click)="saveEdit(comment)" [disabled]="editControl.invalid" title="Save" class="comment-action-btn"><mat-icon fontIcon="check" style="font-size:18px;"></mat-icon></button>
+                      <button mat-icon-button color="warn" type="button" (click)="cancelEdit()" title="Cancel" class="comment-action-btn"><mat-icon fontIcon="close" style="font-size:18px;"></mat-icon></button>
+                    </span>
+                  } @else {
+                    <span class="comment-actions">
+                      <button mat-icon-button color="primary" type="button" (click)="startEdit(comment)" title="Edit" class="comment-action-btn"><mat-icon fontIcon="edit" style="font-size:18px;"></mat-icon></button>
+                      <button mat-icon-button color="warn" type="button" (click)="deleteComment(comment)" title="Delete" class="comment-action-btn"><mat-icon fontIcon="delete" style="font-size:18px;"></mat-icon></button>
+                    </span>
+                  }
+                }
+              </div>
+              <div class="comment-content">
+                @if (editingId() === comment.id) {
+                  <mat-form-field appearance="outline" floatLabel="always" class="add-comment-field" style="width:100%;">
+                    <mat-label>Edit comment</mat-label>
+                    <textarea matInput [formControl]="editControl" rows="2" maxlength="1000" placeholder="Edit your comment..."></textarea>
+                    <mat-error *ngIf="editControl.hasError('required')">Comment cannot be empty.</mat-error>
+                    <mat-error *ngIf="editControl.hasError('maxlength')">Maximum 1000 characters.</mat-error>
+                  </mat-form-field>
+                } @else {
+                    <span [innerHTML]="formatComment(comment.content)"></span>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      } @else {
+        <p class="no-comments">No comments yet. Be the first to comment!</p>
+      }
+    </section>
+    <!-- DEBUG: Usuń poniższy blok w produkcji -->
+    <div class="add-comment-form" *ngIf="isLoggedIn()">
+      <mat-form-field appearance="outline" floatLabel="always" class="add-comment-field">
+        <mat-label>Add a comment</mat-label>
+        <textarea matInput [formControl]="commentControl" rows="2" maxlength="1000" placeholder="Write your comment..."></textarea>
+        <mat-error *ngIf="commentControl.hasError('required')">Comment cannot be empty.</mat-error>
+        <mat-error *ngIf="commentControl.hasError('maxlength')">Maximum 1000 characters.</mat-error>
+      </mat-form-field>
+      <button mat-flat-button color="primary" type="button" [disabled]="commentControl.invalid" (click)="addComment()" class="add-comment-btn">Add</button>
+    </div>
+    <div class="login-info" *ngIf="!isLoggedIn()">You must be logged in to comment.</div>
+  </mat-card-content>
+</mat-card>

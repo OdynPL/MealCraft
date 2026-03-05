@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
@@ -53,6 +54,7 @@ class MockMatDialog {
   });
 }
 
+
 describe('MealDetailsComponent', () => {
   let component: MealDetailsComponent;
   let fixture: ComponentFixture<MealDetailsComponent>;
@@ -60,6 +62,7 @@ describe('MealDetailsComponent', () => {
   let notifications: MockNotificationService;
   let store: MockFoodStore;
   let router: MockRouter;
+  let storageData: Record<string, string>;
 
   const meal = {
     id: 123,
@@ -137,7 +140,21 @@ describe('MealDetailsComponent', () => {
     fixture.detectChanges();
   }
 
+
   beforeEach(async () => {
+    storageData = {};
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      value: {
+        getItem: (key: string) => storageData[key] ?? null,
+        setItem: (key: string, value: string) => {
+          storageData[key] = value;
+        },
+        removeItem: (key: string) => {
+          delete storageData[key];
+        }
+      }
+    });
     TestBed.resetTestingModule();
   });
 

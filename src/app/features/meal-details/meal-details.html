@@ -11,7 +11,6 @@
             <div class="details-media">
               <img class="hero" [src]="meal.image" [alt]="meal.title" loading="lazy" decoding="async" />
             </div>
-
             <div class="details-content">
               <mat-card-content>
                 <h2>{{ meal.title }}</h2>
@@ -27,13 +26,11 @@
                     <mat-icon>thumb_up</mat-icon>
                   </button>
                 </div>
-
                 <div class="tags" aria-label="Meal tags">
                   @for (tag of tags(); track tag) {
                     <span class="tag-pill">{{ tag }}</span>
                   }
                 </div>
-
                 @if (hasMultipleInstructionSteps()) {
                   <ol class="instructions">
                     @for (step of instructionSteps(); track $index) {
@@ -44,7 +41,6 @@
                   <p class="instructions-single">{{ instructionSteps()[0] }}</p>
                 }
               </mat-card-content>
-
               <mat-card-actions class="details-actions">
                 @if (isLoggedIn()) {
                   @if (canEdit()) {
@@ -66,5 +62,9 @@
         </mat-card>
       }
     }
+  }
+
+  @if (item(); as meal) {
+    <app-meal-comments [mealId]="meal.id" />
   }
 </section>

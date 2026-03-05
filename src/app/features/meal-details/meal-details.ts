@@ -14,6 +14,7 @@ import { NotificationService } from '../../core/services/notification.service';
 import { RecipeFeedbackService } from '../../core/services/recipe-feedback.service';
 import { FoodStore } from '../../core/stores/food.store';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog';
+import { MealCommentsComponent } from './meal-comments';
 
 @Component({
   selector: 'app-meal-details',
@@ -24,7 +25,8 @@ import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dial
     MatButtonModule,
     MatCardModule,
     MatDialogModule,
-    MatIconModule
+    MatIconModule,
+    MealCommentsComponent
   ],
   templateUrl: './meal-details.html',
   styleUrl: './meal-details.scss'
