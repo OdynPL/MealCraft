@@ -1,0 +1,124 @@
+.mailbox-table .mailbox-actions {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+.mailbox-table button {
+  border-radius: 8px;
+  min-width: 38px;
+  height: 38px;
+  padding: 0 1.1em;
+  font-size: 1rem;
+  font-weight: 500;
+  border: none;
+  background: #e3e6ee;
+  color: #222;
+  transition: background 0.18s, color 0.18s;
+  cursor: pointer;
+  outline: none;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.mailbox-table button:hover:not(:disabled) {
+  background: #c7d0e6;
+  color: #1a237e;
+}
+.mailbox-table .remove-btn {
+  background: #fbe9e7;
+  color: #b71c1c;
+}
+.mailbox-table .remove-btn:hover:not(:disabled) {
+  background: #ffccbc;
+  color: #b71c1c;
+}
+.mailbox-wrapper.app-page-shell {
+  width: min(100vw, 100%);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+}
+.mailbox {
+  width: 100%;
+  max-width: 1200px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.11);
+  padding: 2.7rem 3.2rem;
+  margin: 2.5rem 0;
+}
+.mailbox h2 {
+  margin-bottom: 2.1rem;
+  font-size: 2.3rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.mailbox-dialog-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.18);
+  z-index: 1000;
+}
+.mailbox-dialog-window {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1001;
+  background: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.mailbox-dialog-window .close-btn {
+  margin-top: 1.2rem;
+  padding: 0.5rem 1.3rem;
+  border-radius: 6px;
+  border: none;
+  background: #e0e0e0;
+  color: #222;
+  font-size: 1.05rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+mailbox-dialog-window .close-btn:hover {
+  background: #bdbdbd;
+}
+.mailbox-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+.mailbox-table th, .mailbox-table td {
+  padding: 0.7rem 0.6rem;
+  border-bottom: 1px solid #eee;
+  vertical-align: top;
+}
+.mailbox-table th {
+  background: #f5f5f5;
+  text-align: left;
+  font-weight: 600;
+}
+.mailbox-table .icon-cell {
+  width: 36px;
+  text-align: center;
+}
+.mailbox-table .envelope-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mailbox-table .subject-cell {
+  min-width: 200px;
+}
+.mailbox-table .date {
+  color: #888;
+  white-space: nowrap;
+}
+.mailbox-table .body {
+  margin-top: 0.3rem;
+  font-weight: normal;
+  color: #444;
+}

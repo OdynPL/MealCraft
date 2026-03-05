@@ -4,6 +4,7 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { FoodStore } from '../../core/stores/food.store';
+import { MailBoxService } from '../mailbox/mailbox.service';
 
 @Component({
   selector: 'app-header',
@@ -20,6 +21,7 @@ export class HeaderComponent {
   private readonly store = inject(FoodStore);
   private readonly router = inject(Router);
   private readonly notifications = inject(NotificationService);
+  private readonly mailbox = inject(MailBoxService);
   protected readonly mobileMenuOpen = signal(false);
 
   protected readonly isLoggedIn = computed(() => this.auth.isLoggedIn());
@@ -27,6 +29,11 @@ export class HeaderComponent {
   protected readonly userFullName = computed(() => this.auth.fullName());
   protected readonly userAvatar = computed(() => this.auth.currentUser()?.avatar ?? '');
   protected readonly userInitials = computed(() => buildInitials(this.auth.currentUser()?.firstName, this.auth.currentUser()?.lastName));
+
+  protected hasUnreadMail(): boolean {
+    const id = this.auth.currentUser()?.id;
+    return this.mailbox.hasUnread(id !== undefined && id !== null ? String(id) : undefined);
+  }
 
   protected resetState(): void {
     this.store.reset();

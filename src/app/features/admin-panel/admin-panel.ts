@@ -7,8 +7,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../core/services/auth.service';
 import { ActivityLogComponent } from './activity-log/activity-log';
 import { UserManagementComponent } from './user-management/user-management';
+import { EmailNotificationsComponent } from './email-notifications/email-notifications';
 
-type AdminMenuKey = 'users' | 'activity';
+type AdminMenuKey = 'users' | 'activity' | 'email';
 
 @Component({
   selector: 'app-admin-panel',
@@ -18,7 +19,8 @@ type AdminMenuKey = 'users' | 'activity';
     ActivityLogComponent,
     MatCardModule,
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
+    EmailNotificationsComponent
   ],
   templateUrl: './admin-panel.html',
   styleUrl: './admin-panel.scss'

@@ -1,0 +1,26 @@
+<section class="email-notifications">
+  <h2>Email Notifications</h2>
+  <form (ngSubmit)="sendEmail()" #form="ngForm">
+    <label>
+      Recipient:
+      <select [(ngModel)]="recipientId" name="recipientId" required>
+        <option value="" disabled selected>Choose user</option>
+        @for (user of users(); track user.id) {
+          <option [value]="user.id">
+            {{ user.firstName }} {{ user.lastName }} ({{ user.email }})
+          </option>
+        }
+      </select>
+    </label>
+    <label>
+      Subject:
+      <input [(ngModel)]="subject" name="subject" required maxlength="100" />
+    </label>
+    <label>
+      Message:
+      <textarea [(ngModel)]="body" name="body" required rows="4"></textarea>
+    </label>
+    <button type="submit">Send</button>
+    <span class="info">{{ info() }}</span>
+  </form>
+</section>

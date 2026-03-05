@@ -1,0 +1,41 @@
+.email-notifications {
+  width: 100%;
+  margin: 0;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  padding: 2rem;
+}
+.email-notifications h2 {
+  margin-bottom: 1.5rem;
+}
+.email-notifications form label {
+  display: block;
+  margin-bottom: 1rem;
+}
+.email-notifications input,
+.email-notifications select,
+.email-notifications textarea {
+  width: 100%;
+  margin-top: 0.3rem;
+  padding: 0.5rem;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+.email-notifications button {
+  margin-top: 1rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 5px;
+  border: none;
+  background: #1976d2;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+.email-notifications .info {
+  display: block;
+  margin-top: 1rem;
+  color: #388e3c;
+  font-size: 0.98rem;
+}

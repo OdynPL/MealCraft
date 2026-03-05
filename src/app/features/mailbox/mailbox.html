@@ -1,0 +1,55 @@
+<div class="mailbox-wrapper app-page-shell">
+  <section class="mailbox">
+    <h2>Your Mailbox</h2>
+    @if (messages().length) {
+      <table class="mailbox-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Sender</th>
+            <th>Subject</th>
+            <th>Date</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (msg of messages(); track msg.id) {
+            <tr>
+              <td class="icon-cell">
+                <span class="envelope-icon">
+                  @if (!msg.read) {
+                    <!-- Closed envelope SVG, neutral modern -->
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4.5" width="19" height="15" rx="3" fill="#f3f3f3"/><path d="M3 6l9 7 9-7" stroke="#888" fill="none"/></svg>
+                  } @else {
+                    <!-- Open envelope SVG, neutral modern -->
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="7.5" width="19" height="12" rx="3" fill="#f8f8f8"/><path d="M3 8l9 7 9-7" stroke="#bbb" fill="none"/><path d="M3 8V6a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v2" stroke="#bbb" fill="none"/></svg>
+                  }
+                </span>
+              </td>
+              <td class="sender-cell">{{ msg.sender ?? '-' }}</td>
+              <td class="subject-cell">
+                <span>{{ msg.subject }}</span>
+              </td>
+              <td class="date">{{ msg.date | date:'short' }}</td>
+              <td>
+                <div class="mailbox-actions">
+                  <button (click)="openMessage(msg)">Read</button>
+                  <button class="remove-btn" (click)="removeMessage(msg)">Remove</button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    } @else {
+      <p>No messages.</p>
+    }
+    @if (showDialog()) {
+      <div class="mailbox-dialog-backdrop" tabindex="0" (click)="closeDialog()" (keyup.enter)="closeDialog()" aria-label="Close message dialog" role="button"></div>
+      <div class="mailbox-dialog-window">
+        <app-mailbox-message-dialog [message]="dialogMessage()" />
+        <button class="close-btn" (click)="closeDialog()" (keyup.enter)="closeDialog()" tabindex="0">Close</button>
+      </div>
+    }
+  </section>
+</div>

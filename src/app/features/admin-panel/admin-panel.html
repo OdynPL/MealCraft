@@ -30,6 +30,16 @@
             <mat-icon aria-hidden="true">history</mat-icon>
             Activity Log
           </button>
+          <button
+            mat-stroked-button
+            type="button"
+            class="menu-button"
+            [class.menu-button-active]="activeMenu() === 'email'"
+            (click)="setActiveMenu('email')"
+          >
+            <mat-icon aria-hidden="true">mail</mat-icon>
+            Email Notifications
+          </button>
         </nav>
       </mat-card>
 
@@ -43,6 +53,8 @@
           <app-user-management />
         } @else if (activeMenu() === 'activity') {
           <app-activity-log />
+        } @else if (activeMenu() === 'email') {
+          <app-email-notifications />
         }
         </div>
       </mat-card>

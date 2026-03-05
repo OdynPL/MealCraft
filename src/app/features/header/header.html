@@ -22,6 +22,12 @@
       @if (isAdmin()) {
         <a routerLink="/admin" routerLinkActive="active-link" (click)="closeMobileMenu()">Admin Panel</a>
       }
+      <a routerLink="/mailbox" routerLinkActive="active-link" (click)="closeMobileMenu()" class="mailbox-link">
+        Mail Box
+        @if (hasUnreadMail()) {
+          <span class="mailbox-unread"></span>
+        }
+      </a>
       <span class="user-profile" aria-label="Logged user profile">
         <span class="avatar" aria-hidden="true">
           @if (userAvatar()) {
@@ -61,6 +67,12 @@
       @if (isAdmin()) {
         <a routerLink="/admin" (click)="closeMobileMenu()">Admin Panel</a>
       }
+      <a routerLink="/mailbox" (click)="closeMobileMenu()" class="mailbox-link">
+        MailBox
+        @if (hasUnreadMail()) {
+          <span class="mailbox-unread"></span>
+        }
+      </a>
       <button type="button" (click)="logout()">Logout</button>
     } @else {
       <a routerLink="/login" (click)="closeMobileMenu()">Login</a>

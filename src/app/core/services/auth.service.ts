@@ -819,6 +819,12 @@ export class AuthService {
       transaction.onerror = () => reject(transaction.error ?? new Error('IndexedDB transaction failed.'));
     });
   }
+  /**
+   * Public method for fetching all users (for admin features).
+   */
+  public getAllUsersPublic(): Promise<StoredUser[]> {
+    return this.getAllUsers();
+  }
 }
 
 function normalizeStoredUser(

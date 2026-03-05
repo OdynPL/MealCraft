@@ -45,6 +45,11 @@ export const routes: Routes = [
     canActivate: [adminGuard]
   },
   {
+    path: 'mailbox',
+    loadComponent: () => import('./features/mailbox/mailbox').then((m) => m.MailBoxComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: 'meals/:id/edit',
     loadComponent: () => import('./features/add-recipe/add-recipe').then((module) => module.AddRecipeComponent),
     canActivate: [authGuard]

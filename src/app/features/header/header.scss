@@ -1,3 +1,15 @@
+.mailbox-link {
+  position: relative;
+}
+.mailbox-unread {
+  display: inline-block;
+  margin-left: 0.3em;
+  width: 8px;
+  height: 8px;
+  background: #e53935;
+  border-radius: 50%;
+  vertical-align: middle;
+}
 .header-toolbar {
   display: flex;
   align-items: center;

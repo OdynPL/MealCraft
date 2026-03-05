@@ -1,0 +1,27 @@
+.mailbox-message-dialog {
+  min-width: 320px;
+  max-width: 480px;
+  padding: 2rem 2.2rem 1.5rem 2.2rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.13);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.mailbox-message-dialog h3 {
+  margin: 0 0 0.7rem 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+.mailbox-message-date {
+  color: #888;
+  font-size: 0.98rem;
+  margin-bottom: 1.2rem;
+}
+.mailbox-message-body {
+  font-size: 1.08rem;
+  color: #333;
+  line-height: 1.6;
+  word-break: break-word;
+}
