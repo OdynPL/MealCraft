@@ -24,4 +24,11 @@ export class RecipeExportService {
     const blob = new Blob([bom + json], { type: 'application/json' });
     return { filename: 'my-recipes.json', blob, count: mine.length };
   }
+
+  exportSingleRecipe(recipe: import('../models/food-detail').FoodDetail): { filename: string; blob: Blob } {
+    const json = JSON.stringify([recipe], null, 2);
+    const bom = '\uFEFF';
+    const blob = new Blob([bom + json], { type: 'application/json' });
+    return { filename: `recipe-${recipe.id}.json`, blob };
+  }
 }

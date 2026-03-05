@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -29,7 +29,7 @@ import { RecipeImportService } from '../../../core/services/recipe-import.servic
   templateUrl: './user-settings.html',
   styleUrl: './user-settings.scss'
 })
-export class UserSettingsComponent {
+export class UserSettingsComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly config = inject(ConfigurationService);
   private readonly notifications = inject(NotificationService);
@@ -68,11 +68,16 @@ export class UserSettingsComponent {
     validators: [Validators.required, Validators.min(this.config.authMinAge), Validators.max(this.config.authMaxAge)]
   });
 
-  protected readonly ownRecipeCount = computed(() => {
+  protected readonly ownRecipeCount = signal(0);
+
+  private updateOwnRecipeCount() {
     const user = this.auth.currentUser();
-    if (!user) return 0;
-    return this.localRecipes.getAllCustom().filter(r => r.ownerId === user.id).length;
-  });
+    if (!user) {
+      this.ownRecipeCount.set(0);
+      return;
+    }
+    this.ownRecipeCount.set(this.localRecipes.getAllCustom().filter(r => r.ownerId === user.id).length);
+  }
 
   exportRecipes(): void {
     this.importExportMessage.set(null);
@@ -93,6 +98,7 @@ export class UserSettingsComponent {
       URL.revokeObjectURL(url);
     }, 0);
     this.importExportMessage.set(`Exported ${result.count} recipe(s) to ${result.filename}.`);
+    this.updateOwnRecipeCount();
   }
 
   onImportRecipes(event: Event): void {
@@ -124,6 +130,7 @@ export class UserSettingsComponent {
         this.importExportError.set('No valid recipes found in file.');
         this.importFailedRecipes.set(result.failedRecipes && result.failedRecipes.length > 0 ? result.failedRecipes : null);
       }
+      this.updateOwnRecipeCount();
       input.value = '';
     };
     reader.onerror = () => {
@@ -135,7 +142,11 @@ export class UserSettingsComponent {
   }
 
   triggerImportFile(): void {
+    this.updateOwnRecipeCount();
     document.getElementById('import-recipes-input')?.click();
+  }
+  ngOnInit(): void {
+    this.updateOwnRecipeCount();
   }
 
   protected readonly currentPasswordControl = new FormControl('', {

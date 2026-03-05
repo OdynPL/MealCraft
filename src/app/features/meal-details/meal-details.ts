@@ -15,6 +15,7 @@ import { RecipeFeedbackService } from '../../core/services/recipe-feedback.servi
 import { FoodStore } from '../../core/stores/food.store';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog';
 import { MealCommentsComponent } from './meal-comments';
+import { RecipeExportService } from '../../core/services/recipe-export.service';
 
 @Component({
   selector: 'app-meal-details',
@@ -41,6 +42,7 @@ export class MealDetailsComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly store = inject(FoodStore);
   private readonly feedback = inject(RecipeFeedbackService);
+  private readonly recipeExport = inject(RecipeExportService);
 
   protected readonly item = signal<FoodDetail | null>(null);
   protected readonly loading = signal(true);
@@ -184,6 +186,23 @@ export class MealDetailsComponent {
     this.store.deleteRecipe(mealId);
     this.notifications.success('Recipe deleted.');
     await this.router.navigate(['/home']);
+  }
+
+  protected exportCurrentRecipe(): void {
+    const meal = this.item();
+    if (!meal) return;
+    const { filename, blob } = this.recipeExport.exportSingleRecipe(meal);
+    // Create a download link and trigger it
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
   }
 
   protected formatDate(value: string): string {

@@ -50,6 +50,9 @@
                     <button mat-button color="warn" type="button" (click)="deleteRecipe()">Delete</button>
                   }
                 }
+                <button mat-button color="primary" type="button" (click)="exportCurrentRecipe()">
+                  <mat-icon>download</mat-icon> Export Recipe
+                </button>
                 @if (meal.sourceUrl) {
                   <a mat-button color="primary" [href]="meal.sourceUrl" target="_blank" rel="noopener noreferrer">Source</a>
                 }
