@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { LocalRecipeService } from './local-recipe.service';
 import { AuthService } from './auth.service';
 
-export interface RecipeImportResult {
+interface RecipeImportResult {
   imported: number;
   skipped: number;
   errors: string[];
