@@ -1,0 +1,20 @@
+<div class="mailbox-message-dialog">
+  <div class="mailbox-message-header-row">
+    <span class="mailbox-message-label">Subject:</span>
+    <span class="mailbox-message-subject" [title]="message?.subject">{{ ((message?.subject || '').length > 120 ? (message?.subject | slice:0:120) + '…' : message?.subject) }}</span>
+    <button class="mailbox-message-close" type="button" (click)="$event.stopPropagation(); $event.preventDefault(); handleCloseClick()" aria-label="Close dialog">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6 6L16 16M16 6L6 16" stroke="#888" stroke-width="2.2" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+  <div class="mailbox-message-meta-col">
+    <div><span class="mailbox-message-label">From:</span> <b>{{ message?.sender || 'Unknown' }}</b></div>
+    <div class="mailbox-message-date"><span class="mailbox-message-label">Date:</span> {{ message?.date | date:'short' }}</div>
+  </div>
+  <div class="mailbox-message-body-wrapper">
+    <div class="mailbox-message-body-scroll">
+      <div class="mailbox-message-body">{{ message?.body }}</div>
+    </div>
+  </div>
+</div>

@@ -45,10 +45,9 @@
       <p>No messages.</p>
     }
     @if (showDialog()) {
-      <div class="mailbox-dialog-backdrop" tabindex="0" (click)="closeDialog()" (keyup.enter)="closeDialog()" aria-label="Close message dialog" role="button"></div>
+      <div class="mailbox-dialog-backdrop" tabindex="0" aria-label="Close message dialog" role="button"></div>
       <div class="mailbox-dialog-window">
-        <app-mailbox-message-dialog [message]="dialogMessage()" />
-        <button class="close-btn" (click)="closeDialog()" (keyup.enter)="closeDialog()" tabindex="0">Close</button>
+        <app-mailbox-message-dialog [message]="dialogMessage()" (closed)="closeDialog()" />
       </div>
     }
   </section>
