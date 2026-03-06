@@ -9,6 +9,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { ConfigurationService } from '../../../core/services/configuration.service';
+import { ThemeService } from '../../../core/services/theme.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { LocalRecipeService } from '../../../core/services/local-recipe.service';
 import { ActivityLogService } from '../../../core/services/activity-log.service';
@@ -40,6 +41,7 @@ export class UserSettingsComponent implements OnInit {
     private readonly passwordValidation = inject(PasswordValidationService);
     private readonly avatarService = inject(AvatarService);
   private readonly auth = inject(AuthService);
+  private readonly themeService = inject(ThemeService);
   public readonly config = inject(ConfigurationService);
   private readonly notifications = inject(NotificationService);
   private readonly dialog = inject(MatDialog);
@@ -199,7 +201,7 @@ export class UserSettingsComponent implements OnInit {
   ngOnInit(): void {
     this.updateOwnRecipeCount();
     // Ensure theme is applied on init (in case user changes)
-    this.applyThemeToDocument(this.theme());
+    this.themeService.applyTheme(this.theme());
   }
 
   // Theme toggle state and message
@@ -207,31 +209,13 @@ export class UserSettingsComponent implements OnInit {
   protected readonly themeMessage = signal<string | null>(null);
 
   private getInitialTheme(): ThemeValue {
-    const allowed = this.config.themeOptions.map(o => o.value) as ThemeValue[];
     const user = this.auth.currentUser();
-    if (user) {
-      try {
-        const stored = (localStorage.getItem('food-explorer.user-theme-' + user.id) ?? '') as string;
-        if (allowed.includes(stored as ThemeValue)) {
-          this.applyThemeToDocument(stored as ThemeValue);
-          return stored as ThemeValue;
-        }
-      } catch { /* ignore */ }
-      const userTheme = (user.theme ?? '') as string;
-      if (allowed.includes(userTheme as ThemeValue)) {
-        this.applyThemeToDocument(userTheme as ThemeValue);
-        return userTheme as ThemeValue;
-      }
-    }
-    this.applyThemeToDocument('light');
-    return 'light';
+    const theme = this.themeService.resolveUserTheme(user);
+    this.themeService.applyTheme(theme);
+    return theme;
   }
 
-  private applyThemeToDocument(theme: ThemeValue) {
-    const allowed = this.config.themeOptions.map(o => o.value) as ThemeValue[];
-    document.body.classList.remove(...allowed.map(t => `theme-${t}`));
-    document.body.classList.add(`theme-${theme}`);
-  }
+  // Usunięte: applyThemeToDocument, całość obsługuje ThemeService
 
   protected readonly currentPasswordControl = new FormControl('', {
     nonNullable: true,
@@ -395,13 +379,12 @@ export class UserSettingsComponent implements OnInit {
     try {
       localStorage.setItem('food-explorer.user-theme-' + user.id, theme);
     } catch { /* ignore */ }
-    // TODO: Replace with public methods if possible in AuthService
     (this.auth as unknown as { writeUsersCache: (users: import('../../../core/models/auth').StoredUser[]) => void; writeSessionCache: (session: import('../../../core/models/auth').AuthUser | null) => void }).writeUsersCache(users);
     (this.auth as unknown as { writeUsersCache: (users: import('../../../core/models/auth').StoredUser[]) => void; writeSessionCache: (session: import('../../../core/models/auth').AuthUser | null) => void }).writeSessionCache({ ...user, theme });
     this.theme.set(theme);
     const label = this.config.themeOptions.find(o => o.value === theme)?.label ?? theme;
     this.themeMessage.set(`Theme changed to ${label}.`);
-    this.applyThemeToDocument(theme);
+    this.themeService.applyTheme(theme);
   }
 }
 

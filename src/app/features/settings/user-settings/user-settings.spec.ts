@@ -81,7 +81,7 @@ describe('UserSettingsComponent Theme Functionality', () => {
 
 
   it('should apply theme to document body', () => {
-    component['applyThemeToDocument']('purple');
+    component['themeService'].applyTheme('purple');
     expect(document.body.classList.contains('theme-purple')).toBeTruthy();
     expect(document.body.classList.contains('theme-light')).toBeFalsy();
   });
