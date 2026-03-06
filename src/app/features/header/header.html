@@ -1,7 +1,7 @@
 <header class="header-toolbar">
   <a class="logo" routerLink="/home" (click)="resetState()" aria-label="MealCraft home">
     <span class="logo-mark" aria-hidden="true">
-      <img src="brand-icon.svg" alt="" />
+      <img ngOptimizedImage src="brand-icon.svg" alt="" />
     </span>
     <span class="logo-text">
       <strong>MealCraft</strong>
@@ -31,7 +31,7 @@
       <span class="user-profile" aria-label="Logged user profile">
         <span class="avatar" aria-hidden="true">
           @if (userAvatar()) {
-            <img [src]="userAvatar()" alt="User avatar" />
+            <img ngOptimizedImage [src]="userAvatar()" alt="User avatar" />
           } @else {
             <span class="avatar-fallback">{{ userInitials() }}</span>
           }

@@ -118,7 +118,7 @@
             @if (avatarError(); as avatarError) {
               <p class="validation-banner" role="alert">{{ avatarError }}</p>
             }
-            <img class="avatar-preview" [src]="avatarPreview()" alt="Avatar preview" />
+            <img class="avatar-preview" ngOptimizedImage [src]="avatarPreview()" alt="Avatar preview" />
           </div>
         }
 

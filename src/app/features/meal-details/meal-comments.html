@@ -9,7 +9,7 @@
           <div class="comment-item">
             <span class="avatar" aria-hidden="true">
               @if (comment.avatar) {
-                <img [src]="comment.avatar" alt="User avatar" />
+                <img ngOptimizedImage [src]="comment.avatar" alt="User avatar" />
               } @else {
                 <span class="avatar-fallback">{{ getAuthorInitials(comment.author) }}</span>
               }
