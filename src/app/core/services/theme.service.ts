@@ -80,6 +80,31 @@ const THEME_PALETTES: Record<ThemeName, ThemePalette> = {
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
+      /**
+       * Applies the theme class to the document body, removing all previous theme classes.
+       */
+      public applyTheme(theme: ThemeName): void {
+        const allThemes = this.getAllPalettes().map(p => `theme-${p.name}`);
+        document.body.classList.remove(...allThemes);
+        document.body.classList.add(`theme-${theme}`);
+      }
+    /**
+     * Returns the valid theme for a user, checking localStorage and user.theme.
+     * @param user The user object (should have id and theme fields)
+     */
+    public resolveUserTheme(user: { id?: string | number; theme?: string } | null): ThemeName {
+      if (!user) return 'light';
+      try {
+        const userId = user.id != null ? String(user.id) : '';
+        const stored = (localStorage.getItem('food-explorer.user-theme-' + userId) ?? '') as string;
+        if (this.getAllPalettes().some(p => p.name === stored)) {
+          return stored as ThemeName;
+        } else if (this.getAllPalettes().some(p => p.name === user.theme)) {
+          return (user.theme ?? 'light') as ThemeName;
+        }
+      } catch { /* ignore */ }
+      return 'light';
+    }
   getPalette(theme: ThemeName): ThemePalette {
     return THEME_PALETTES[theme] || THEME_PALETTES['light'];
   }
