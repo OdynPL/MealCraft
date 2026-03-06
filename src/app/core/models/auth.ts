@@ -21,6 +21,7 @@ export interface StoredUser {
   updatedAt?: string;
   avatar?: string;
   createdAt: string;
+  theme?: 'light' | 'blue' | 'green' | 'red' | 'purple' | 'orange' | 'teal' | 'gray';
 }
 
 export interface AuthUser {
@@ -37,6 +38,7 @@ export interface AuthUser {
   lastLoginAt?: string;
   avatar?: string;
   createdAt: string;
+  theme?: 'light' | 'blue' | 'green' | 'red' | 'purple' | 'orange' | 'teal' | 'gray';
 }
 
 export interface RegisterPayload {

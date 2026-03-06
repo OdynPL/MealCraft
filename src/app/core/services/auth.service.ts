@@ -827,6 +827,8 @@ export class AuthService {
   }
 }
 
+import { ThemeService, ThemeName } from './theme.service';
+
 function normalizeStoredUser(
   value: unknown,
   passwordAlgorithm: StoredUser['passwordVersion'],
@@ -867,6 +869,11 @@ function normalizeStoredUser(
   const updatedAt = normalizeOptionalDate(value['updatedAt']);
   const avatar = normalizeOptional(value['avatar']);
   const createdAt = normalizeDate(value['createdAt']);
+  const themeService = new ThemeService();
+  let theme = String(value['theme'] ?? '').trim() as ThemeName;
+  if (!themeService.getAllPalettes().some(p => p.name === theme)) {
+    theme = 'light';
+  }
 
   if (!Number.isFinite(id) || id <= 0 || !isValidEmail(email) || !passwordHash) {
     return null;
@@ -892,7 +899,8 @@ function normalizeStoredUser(
     accountLockedAt,
     updatedAt,
     avatar,
-    createdAt
+    createdAt,
+    theme
   };
 }
 
@@ -914,6 +922,11 @@ function normalizeAuthUser(value: unknown, config: ConfigurationService): AuthUs
   const lastLoginAt = normalizeOptionalDate(value['lastLoginAt']);
   const avatar = normalizeOptional(value['avatar']);
   const createdAt = normalizeDate(value['createdAt']);
+  const themeService = new ThemeService();
+  let theme = String(value['theme'] ?? '').trim() as ThemeName;
+  if (!themeService.getAllPalettes().some(p => p.name === theme)) {
+    theme = 'light';
+  }
 
   if (!Number.isFinite(id) || id <= 0 || !isValidEmail(email)) {
     return null;
@@ -932,7 +945,8 @@ function normalizeAuthUser(value: unknown, config: ConfigurationService): AuthUs
     emailVerified,
     lastLoginAt,
     avatar,
-    createdAt
+    createdAt,
+    theme
   };
 }
 
@@ -1087,6 +1101,11 @@ function base64ToBytes(value: string | undefined): Uint8Array | null {
 }
 
 function toAuthUser(user: StoredUser): AuthUser {
+  const themeService = new ThemeService();
+  let theme = (user.theme ?? 'light') as ThemeName;
+  if (!themeService.getAllPalettes().some(p => p.name === theme)) {
+    theme = 'light';
+  }
   return {
     id: user.id,
     email: user.email,
@@ -1100,7 +1119,8 @@ function toAuthUser(user: StoredUser): AuthUser {
     emailVerified: user.emailVerified,
     lastLoginAt: user.lastLoginAt,
     avatar: user.avatar,
-    createdAt: user.createdAt
+    createdAt: user.createdAt,
+    theme
   };
 }
 

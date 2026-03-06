@@ -5,6 +5,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { ConfigurationService } from '../../../core/services/configuration.service';
@@ -25,14 +26,15 @@ import { RecipeImportService } from '../../../core/services/recipe-import.servic
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
-    MatButtonModule
+    MatButtonModule,
+    MatButtonToggleModule
   ],
   templateUrl: './user-settings.html',
   styleUrl: './user-settings.scss'
 })
 export class UserSettingsComponent implements OnInit {
   private readonly auth = inject(AuthService);
-  private readonly config = inject(ConfigurationService);
+  public readonly config = inject(ConfigurationService);
   private readonly notifications = inject(NotificationService);
   private readonly dialog = inject(MatDialog);
   private readonly localRecipes = inject(LocalRecipeService);
@@ -205,6 +207,37 @@ export class UserSettingsComponent implements OnInit {
   }
   ngOnInit(): void {
     this.updateOwnRecipeCount();
+    // Ensure theme is applied on init (in case user changes)
+    this.applyThemeToDocument(this.theme());
+  }
+
+  // Theme toggle state and message
+  protected readonly theme = signal<'light' | 'blue' | 'green' | 'red' | 'purple' | 'orange' | 'teal' | 'gray'>(this.getInitialTheme());
+  protected readonly themeMessage = signal<string | null>(null);
+
+  private getInitialTheme(): 'light' | 'blue' | 'green' | 'red' | 'purple' | 'orange' | 'teal' | 'gray' {
+    const user = this.auth.currentUser();
+    if (user) {
+      try {
+        const stored = (localStorage.getItem('food-explorer.user-theme-' + user.id) ?? '') as string;
+        if ((['light', 'blue', 'green', 'red', 'purple', 'orange', 'teal', 'gray'] as string[]).includes(stored)) {
+          this.applyThemeToDocument(stored as 'light' | 'blue' | 'green' | 'red' | 'purple' | 'orange' | 'teal' | 'gray');
+          return stored as 'light' | 'blue' | 'green' | 'red' | 'purple' | 'orange' | 'teal' | 'gray';
+        }
+      } catch { /* ignore */ }
+      const userTheme = (user.theme ?? '') as string;
+      if ((['light', 'blue', 'green', 'red', 'purple', 'orange', 'teal', 'gray'] as string[]).includes(userTheme)) {
+        this.applyThemeToDocument(userTheme as 'light' | 'blue' | 'green' | 'red' | 'purple' | 'orange' | 'teal' | 'gray');
+        return userTheme as 'light' | 'blue' | 'green' | 'red' | 'purple' | 'orange' | 'teal' | 'gray';
+      }
+    }
+    this.applyThemeToDocument('light');
+    return 'light';
+  }
+
+  private applyThemeToDocument(theme: 'light' | 'blue' | 'green' | 'red' | 'purple' | 'orange' | 'teal' | 'gray') {
+    document.body.classList.remove('theme-light', 'theme-blue', 'theme-green', 'theme-red', 'theme-purple', 'theme-orange', 'theme-teal', 'theme-gray');
+    document.body.classList.add(`theme-${theme}`);
   }
 
   protected readonly currentPasswordControl = new FormControl('', {
@@ -413,5 +446,33 @@ export class UserSettingsComponent implements OnInit {
     }
 
     return 'Please fix validation errors and try again.';
+  }
+
+  protected async onThemeChange(value: string) {
+    const allowed: string[] = ['light', 'blue', 'green', 'red', 'purple', 'orange', 'teal', 'gray'];
+    if (!allowed.includes(value)) return;
+    const theme = value as 'light' | 'blue' | 'green' | 'red' | 'purple' | 'orange' | 'teal' | 'gray';
+    const user = this.auth.currentUser();
+    if (!user) {
+      this.themeMessage.set('You must be logged in to change theme.');
+      return;
+    }
+    // Update user theme in storage and session, and persist in localStorage (user profile)
+    const users = await this.auth.getAllUsersPublic();
+    const idx = users.findIndex(u => u.id === user.id);
+    if (idx < 0) {
+      this.themeMessage.set('User not found.');
+      return;
+    }
+    users[idx] = { ...users[idx], theme };
+    try {
+      localStorage.setItem('food-explorer.user-theme-' + user.id, theme);
+    } catch { /* ignore */ }
+    // TODO: Replace with public methods if possible in AuthService
+    (this.auth as unknown as { writeUsersCache: (users: import('../../../core/models/auth').StoredUser[]) => void; writeSessionCache: (session: import('../../../core/models/auth').AuthUser | null) => void }).writeUsersCache(users);
+    (this.auth as unknown as { writeUsersCache: (users: import('../../../core/models/auth').StoredUser[]) => void; writeSessionCache: (session: import('../../../core/models/auth').AuthUser | null) => void }).writeSessionCache({ ...user, theme });
+    this.theme.set(theme);
+    this.themeMessage.set(`Theme changed to ${theme.charAt(0).toUpperCase() + theme.slice(1)}.`);
+    this.applyThemeToDocument(theme);
   }
 }

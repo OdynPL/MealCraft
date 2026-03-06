@@ -7,8 +7,15 @@
 
 @include shared.settings-card-shell;
 
+
 .settings-card {
-  max-width: 100%;
+  max-width: 980px;
+  width: 100%;
+  margin-inline: auto;
+  margin-bottom: 1.2rem;
+  box-sizing: border-box;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .settings-card.app-form-shell {

@@ -1,5 +1,86 @@
-
 @use '../shared-settings' as shared;
+
+.own-recipe-count {
+  margin-top: 1.1rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid rgba(0,0,0,0.06);
+}
+body.theme-gray .theme-gradient-bg {
+  background: linear-gradient(135deg, #34373b 0%, #23272b 100%);
+  color: #f4f5f7;
+}
+
+
+.mat-button-toggle-checked .mat-button-toggle-icon,
+.mat-button-toggle-checked .mat-icon {
+  color: #111 !important;
+  fill: #111 !important;
+  opacity: 1 !important;
+}
+.mat-button-toggle-checked.theme-dark-toggle .mat-button-toggle-icon,
+.mat-button-toggle-checked.theme-dark-toggle .mat-icon {
+  color: #fff !important;
+  fill: #fff !important;
+}
+
+
+
+.theme-section {
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: visible;
+}
+
+
+.theme-gradient-bg {
+  border-radius: 1.2rem;
+  padding: 1.2rem 1.5rem 1.5rem 1.5rem;
+  transition: background 0.5s;
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.04);
+  border: 1.5px solid rgba(0,0,0,0.06);
+  position: relative;
+  z-index: 1;
+}
+
+.theme-section .mat-card, .theme-section .settings-card, .theme-section .app-form-shell {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body.theme-light .theme-gradient-bg {
+  background: linear-gradient(135deg, #f8fafc 0%, #e9f1ff 100%);
+}
+body.theme-blue .theme-gradient-bg {
+  background: linear-gradient(135deg, #e3f0ff 0%, #b3d1fa 100%);
+}
+body.theme-green .theme-gradient-bg {
+  background: linear-gradient(135deg, #e6f9ed 0%, #b6f0d4 100%);
+}
+body.theme-red .theme-gradient-bg {
+  background: linear-gradient(135deg, #ffeaea 0%, #ffd6d6 100%);
+}
+body.theme-purple .theme-gradient-bg {
+  background: linear-gradient(135deg, #f3e6ff 0%, #e0c3fc 100%);
+}
+body.theme-orange .theme-gradient-bg {
+  background: linear-gradient(135deg, #fff4e6 0%, #ffe0b2 100%);
+}
+body.theme-teal .theme-gradient-bg {
+  background: linear-gradient(135deg, #e6fcfa 0%, #b2f0e6 100%);
+}
+
+.theme-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.theme-toggle-row label {
+  font-weight: 500;
+  min-width: 60px;
+}
+
 // Stylowanie listy błędnych przepisów importu
 .import-failed-list {
   margin-top: 1em;
@@ -32,10 +113,22 @@
   width: 100%;
 }
 
-@include shared.settings-card-shell;
+
+
+
 
 .settings-card {
-  max-width: 100%;
+  max-width: 980px;
+  width: 100%;
+  margin-inline: auto;
+  margin-bottom: 1.2rem;
+  box-sizing: border-box;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.settings-card:last-child {
+  margin-bottom: 0;
 }
 
 .settings-card.app-form-shell {

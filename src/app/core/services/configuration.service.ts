@@ -1,10 +1,19 @@
 import { Injectable } from '@angular/core';
-
 import { FoodSortBy, SortDirection } from '../models';
 import { StoredUser, UserRole } from '../models/auth';
 
 @Injectable({ providedIn: 'root' })
 export class ConfigurationService {
+  public readonly themeOptions = [
+    { value: 'light', label: 'Light' },
+    { value: 'blue', label: 'Blue' },
+    { value: 'green', label: 'Green' },
+    { value: 'red', label: 'Red' },
+    { value: 'purple', label: 'Purple' },
+    { value: 'orange', label: 'Orange' },
+    { value: 'teal', label: 'Teal' },
+    { value: 'gray', label: 'Gray' }
+  ] as const;
   readonly knownCuisines = [
     'American',
     'Argentinian',
