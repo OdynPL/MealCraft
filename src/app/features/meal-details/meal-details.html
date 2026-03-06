@@ -28,7 +28,7 @@
                 </div>
                 <div class="tags" aria-label="Meal tags">
                   @for (tag of tags(); track tag) {
-                    <span class="tag-pill">{{ tag }}</span>
+                    <button type="button" class="tag-pill" (click)="onTagClick(tag)">{{ tag }}</button>
                   }
                 </div>
                 @if (hasMultipleInstructionSteps()) {

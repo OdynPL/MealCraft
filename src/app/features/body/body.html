@@ -154,7 +154,7 @@
                 <p class="meta">Created: {{ formatDate(food.createdAt) }}</p>
                 <div class="tags" aria-label="Meal tags">
                   @for (tag of tags(food); track tag) {
-                    <span class="tag-pill">{{ tag }}</span>
+                    <span class="tag-pill" tabindex="0" (click)="selectTagFromPill(tag)" (keydown.enter)="selectTagFromPill(tag)">{{ tag }}</span>
                   }
                 </div>
               </mat-card-content>

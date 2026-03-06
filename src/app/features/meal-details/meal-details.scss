@@ -129,6 +129,13 @@ h2 {
   border: 1px solid var(--mat-sys-outline-variant);
   background: var(--mat-sys-surface-container-high);
   color: var(--mat-sys-on-surface-variant);
+  cursor: pointer;
+  transition: transform 120ms ease, border-color 120ms ease;
+}
+
+.tag-pill:hover {
+  border-color: var(--mat-sys-outline);
+  transform: translateY(-1px);
 }
 
 .instructions {

@@ -1,3 +1,22 @@
+
+.tag-pill {
+  display: inline-block;
+  padding: 0.18rem 0.62rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  cursor: pointer;
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface-variant);
+  transition: transform 120ms ease, border-color 120ms ease;
+  margin-right: 0.25rem;
+  margin-bottom: 0.18rem;
+}
+
+.tag-pill:hover {
+  border-color: var(--mat-sys-outline);
+  transform: translateY(-1px);
+}
 .body-wrapper {
   display: flex;
   justify-content: center;

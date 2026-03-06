@@ -1,3 +1,4 @@
+
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -65,6 +66,10 @@ export class MealDetailsComponent {
     return toInstructionSteps(instructions);
   });
   protected readonly hasMultipleInstructionSteps = computed(() => this.instructionSteps().length > 1);
+
+  protected onTagClick(tag: string): void {
+    void this.router.navigate(['/home'], { queryParams: { tag } });
+  }
 
   constructor() {
     this.route.paramMap
