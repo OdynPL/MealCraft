@@ -203,31 +203,33 @@ export class UserSettingsComponent implements OnInit {
   }
 
   // Theme toggle state and message
-  protected readonly theme = signal<'light' | 'blue' | 'green' | 'red' | 'purple' | 'orange' | 'teal' | 'gray'>(this.getInitialTheme());
+  protected readonly theme = signal<ThemeValue>(this.getInitialTheme());
   protected readonly themeMessage = signal<string | null>(null);
 
-  private getInitialTheme(): 'light' | 'blue' | 'green' | 'red' | 'purple' | 'orange' | 'teal' | 'gray' {
+  private getInitialTheme(): ThemeValue {
+    const allowed = this.config.themeOptions.map(o => o.value) as ThemeValue[];
     const user = this.auth.currentUser();
     if (user) {
       try {
         const stored = (localStorage.getItem('food-explorer.user-theme-' + user.id) ?? '') as string;
-        if ((['light', 'blue', 'green', 'red', 'purple', 'orange', 'teal', 'gray'] as string[]).includes(stored)) {
-          this.applyThemeToDocument(stored as 'light' | 'blue' | 'green' | 'red' | 'purple' | 'orange' | 'teal' | 'gray');
-          return stored as 'light' | 'blue' | 'green' | 'red' | 'purple' | 'orange' | 'teal' | 'gray';
+        if (allowed.includes(stored as ThemeValue)) {
+          this.applyThemeToDocument(stored as ThemeValue);
+          return stored as ThemeValue;
         }
       } catch { /* ignore */ }
       const userTheme = (user.theme ?? '') as string;
-      if ((['light', 'blue', 'green', 'red', 'purple', 'orange', 'teal', 'gray'] as string[]).includes(userTheme)) {
-        this.applyThemeToDocument(userTheme as 'light' | 'blue' | 'green' | 'red' | 'purple' | 'orange' | 'teal' | 'gray');
-        return userTheme as 'light' | 'blue' | 'green' | 'red' | 'purple' | 'orange' | 'teal' | 'gray';
+      if (allowed.includes(userTheme as ThemeValue)) {
+        this.applyThemeToDocument(userTheme as ThemeValue);
+        return userTheme as ThemeValue;
       }
     }
     this.applyThemeToDocument('light');
     return 'light';
   }
 
-  private applyThemeToDocument(theme: 'light' | 'blue' | 'green' | 'red' | 'purple' | 'orange' | 'teal' | 'gray') {
-    document.body.classList.remove('theme-light', 'theme-blue', 'theme-green', 'theme-red', 'theme-purple', 'theme-orange', 'theme-teal', 'theme-gray');
+  private applyThemeToDocument(theme: ThemeValue) {
+    const allowed = this.config.themeOptions.map(o => o.value) as ThemeValue[];
+    document.body.classList.remove(...allowed.map(t => `theme-${t}`));
     document.body.classList.add(`theme-${theme}`);
   }
 
@@ -374,9 +376,9 @@ export class UserSettingsComponent implements OnInit {
   }
 
   protected async onThemeChange(value: string) {
-    const allowed: string[] = ['light', 'blue', 'green', 'red', 'purple', 'orange', 'teal', 'gray'];
-    if (!allowed.includes(value)) return;
-    const theme = value as 'light' | 'blue' | 'green' | 'red' | 'purple' | 'orange' | 'teal' | 'gray';
+    const allowed = this.config.themeOptions.map(o => o.value) as ThemeValue[];
+    if (!allowed.includes(value as ThemeValue)) return;
+    const theme = value as ThemeValue;
     const user = this.auth.currentUser();
     if (!user) {
       this.themeMessage.set('You must be logged in to change theme.');
@@ -397,7 +399,11 @@ export class UserSettingsComponent implements OnInit {
     (this.auth as unknown as { writeUsersCache: (users: import('../../../core/models/auth').StoredUser[]) => void; writeSessionCache: (session: import('../../../core/models/auth').AuthUser | null) => void }).writeUsersCache(users);
     (this.auth as unknown as { writeUsersCache: (users: import('../../../core/models/auth').StoredUser[]) => void; writeSessionCache: (session: import('../../../core/models/auth').AuthUser | null) => void }).writeSessionCache({ ...user, theme });
     this.theme.set(theme);
-    this.themeMessage.set(`Theme changed to ${theme.charAt(0).toUpperCase() + theme.slice(1)}.`);
+    const label = this.config.themeOptions.find(o => o.value === theme)?.label ?? theme;
+    this.themeMessage.set(`Theme changed to ${label}.`);
     this.applyThemeToDocument(theme);
   }
 }
+
+// Typ ThemeValue na podstawie themeOptions z config
+type ThemeValue = typeof import('../../../core/services/configuration.service').ConfigurationService.prototype.themeOptions[number]['value'];
