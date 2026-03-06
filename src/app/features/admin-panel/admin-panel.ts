@@ -8,8 +8,9 @@ import { AuthService } from '../../core/services/auth.service';
 import { ActivityLogComponent } from './activity-log/activity-log';
 import { UserManagementComponent } from './user-management/user-management';
 import { EmailNotificationsComponent } from './email-notifications/email-notifications';
+import { SystemErrorsComponent } from './system-errors';
 
-type AdminMenuKey = 'users' | 'activity' | 'email';
+type AdminMenuKey = 'users' | 'activity' | 'email' | 'errors';
 
 @Component({
   selector: 'app-admin-panel',
@@ -20,7 +21,8 @@ type AdminMenuKey = 'users' | 'activity' | 'email';
     MatCardModule,
     MatButtonModule,
     MatIconModule,
-    EmailNotificationsComponent
+    EmailNotificationsComponent,
+    SystemErrorsComponent
   ],
   templateUrl: './admin-panel.html',
   styleUrl: './admin-panel.scss'

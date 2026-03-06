@@ -40,6 +40,16 @@
             <mat-icon aria-hidden="true">mail</mat-icon>
             Email Notifications
           </button>
+          <button
+            mat-stroked-button
+            type="button"
+            class="menu-button"
+            [class.menu-button-active]="activeMenu() === 'errors'"
+            (click)="setActiveMenu('errors')"
+          >
+            <mat-icon aria-hidden="true">error</mat-icon>
+            System Errors
+          </button>
         </nav>
       </mat-card>
 
@@ -55,6 +65,8 @@
           <app-activity-log />
         } @else if (activeMenu() === 'email') {
           <app-email-notifications />
+        } @else if (activeMenu() === 'errors') {
+          <app-system-errors />
         }
         </div>
       </mat-card>

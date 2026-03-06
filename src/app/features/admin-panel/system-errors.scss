@@ -1,0 +1,12 @@
+@use './activity-log/activity-log.scss' as *;
+
+.system-errors-stack-row {
+  background: #fbe9e7;
+  border-top: 1px solid #e57373;
+  padding: 0.2em 0.2em 0.5em 0.2em;
+}
+.system-errors-stack-label {
+  font-weight: bold;
+  color: #d32f2f;
+  margin-bottom: 0.3em;
+}

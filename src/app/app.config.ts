@@ -1,5 +1,6 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { ApplicationConfig } from '@angular/core';
+import { ApplicationConfig, ErrorHandler } from '@angular/core';
+import { GlobalErrorHandler } from './core/services/global-error-handler';
 import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideRouter, withHashLocation, withNavigationErrorHandler } from '@angular/router';
@@ -7,6 +8,7 @@ import { provideRouter, withHashLocation, withNavigationErrorHandler } from '@an
 import { routes } from './app.routes';
 import { httpCacheInterceptor } from './core/http/http-cache.interceptor';
 import { loadingInterceptor } from './core/http/loading.interceptor';
+import { httpErrorInterceptor } from './core/http/http-error.interceptor';
 
 function isLazyChunkLoadError(error: unknown): boolean {
   if (!(error instanceof Error)) {
@@ -43,10 +45,14 @@ export const appConfig: ApplicationConfig = {
         location.reload();
       })
     ),
-    provideHttpClient(withInterceptors([loadingInterceptor, httpCacheInterceptor])),
+    provideHttpClient(withInterceptors([loadingInterceptor, httpCacheInterceptor, httpErrorInterceptor])),
     {
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
       useValue: { floatLabel: 'always' }
+    },
+    {
+      provide: ErrorHandler,
+      useClass: GlobalErrorHandler
     }
   ]
 };

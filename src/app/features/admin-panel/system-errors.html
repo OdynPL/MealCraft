@@ -1,0 +1,58 @@
+<section class="activity-log" aria-label="System errors">
+  <h3>System Errors</h3>
+  <div class="activity-controls" aria-label="System errors filters">
+    <mat-form-field appearance="outline" floatLabel="always" class="activity-control activity-search">
+      <mat-label>Search</mat-label>
+      <input matInput type="text" [value]="searchTerm()" (input)="onSearch($event)" placeholder="Message, context, stack" />
+    </mat-form-field>
+    <div class="activity-actions">
+      <button mat-stroked-button type="button" (click)="clear()" [disabled]="filteredErrors().length === 0">
+        Clear errors
+      </button>
+    </div>
+  </div>
+
+  @if (filteredErrors().length === 0) {
+    <p class="activity-state">No system errors logged.</p>
+  } @else {
+    <div class="activity-table-wrapper">
+      <table class="activity-table">
+        <thead>
+          <tr>
+            <th style="width: 2.5em;"></th>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Http Code</th>
+            <th>Message</th>
+            <th>Context</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (error of filteredErrors(); track $index) {
+            <tr>
+              <td class="expand-cell">
+                <button class="expand-btn" (click)="toggleStack($index); $event.stopPropagation()" [attr.aria-expanded]="expandedStack()[$index]">
+                  @if (!expandedStack()[$index]) { <span>+</span> }
+                  @if (expandedStack()[$index]) { <span>−</span> }
+                </button>
+              </td>
+              <td>{{ error.timestamp | date:'short' }}</td>
+              <td><span class="log-chip log-status-error">Exception</span></td>
+              <td>{{ error['code'] ?? '—' }}</td>
+              <td>{{ error.message }}</td>
+              <td>{{ error.context }}</td>
+            </tr>
+            @if (expandedStack()[$index]) {
+              <tr>
+                <td colspan="6" class="system-errors-stack-row">
+                  <div class="system-errors-stack-label">Stack Trace</div>
+                  <pre class="stack-expanded">{{ error.stack || '-' }}</pre>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
