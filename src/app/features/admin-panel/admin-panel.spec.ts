@@ -44,4 +44,28 @@ describe('AdminPanelComponent', () => {
     (component as any).setActiveMenu('activity');
     expect((component as any).activeMenu()).toBe('activity');
   });
+
+  it('should redirect to login if user is not logged in', () => {
+    const { navigate } = createComponent(null);
+    expect(navigate).toHaveBeenCalledWith(['/home']);
+  });
+
+  it('should allow setting invalid menu value', () => {
+    const { component } = createComponent('admin');
+    (component as any).setActiveMenu('users');
+    (component as any).setActiveMenu('invalid');
+    expect((component as any).activeMenu()).toBe('invalid');
+  });
+
+  it('should keep menu as activity if set twice', () => {
+    const { component } = createComponent('admin');
+    (component as any).setActiveMenu('activity');
+    (component as any).setActiveMenu('activity');
+    expect((component as any).activeMenu()).toBe('activity');
+  });
+
+  it('should default to users menu if no menu set', () => {
+    const { component } = createComponent('admin');
+    expect((component as any).activeMenu()).toBe('users');
+  });
 });

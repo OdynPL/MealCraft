@@ -7,7 +7,7 @@ import { FoodSortBy, SortDirection } from '../../core/models';
 export class BodyStateService {
   private config = inject(ConfigurationService);
 
-  syncControl(control: FormControl<string>, value: string): void {
+  syncControl(control: FormControl<string | null>, value: string): void {
     if (control.value !== value) {
       control.setValue(value, { emitEvent: false });
     }

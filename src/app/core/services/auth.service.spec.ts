@@ -359,4 +359,81 @@ describe('AuthService', () => {
     expect(bannedAfterReload?.isAccountLocked).toBe(true);
     expect(removedAfterReload).toBeUndefined();
   });
+
+  it('should update profile data for logged in user', async () => {
+    const service = TestBed.inject(AuthService);
+    await service.register({
+      email: 'profile.update@example.com',
+      password: 'password123',
+      firstName: 'Old',
+      lastName: 'Name',
+      phone: '+48123456789',
+      age: 22,
+      role: 'user'
+    });
+    const update = await service.updateProfile({
+      firstName: 'New',
+      lastName: 'Name',
+      phone: '+48987654321',
+      age: 23
+    });
+    expect(update.success).toBe(true);
+    expect(service.currentUser()?.firstName).toBe('New');
+    expect(service.currentUser()?.phone).toBe('+48987654321');
+  });
+
+  it('should not update profile if not logged in', async () => {
+    const service = TestBed.inject(AuthService);
+    const update = await service.updateProfile({
+      firstName: 'X',
+      lastName: 'Y',
+      phone: '+48111111111',
+      age: 20
+    });
+    expect(update.success).toBe(false);
+    expect(update.error).toContain('logged in');
+  });
+
+  it('should change password for logged in user', async () => {
+    const service = TestBed.inject(AuthService);
+    await service.register({
+      email: 'change.pass@example.com',
+      password: 'oldpass123',
+      firstName: 'Change',
+      lastName: 'Pass',
+      phone: '+48123456789',
+      age: 22,
+      role: 'user'
+    });
+    const change = await service.changePassword('oldpass123', 'newpass456');
+    expect(change.success).toBe(true);
+    await service.logout();
+    const loginOld = await service.login('change.pass@example.com', 'oldpass123');
+    expect(loginOld.success).toBe(false);
+    const loginNew = await service.login('change.pass@example.com', 'newpass456');
+    expect(loginNew.success).toBe(true);
+  });
+
+  it('should not change password if not logged in', async () => {
+    const service = TestBed.inject(AuthService);
+    const change = await service.changePassword('x', 'y');
+    expect(change.success).toBe(false);
+    expect(change.error).toContain('logged in');
+  });
+
+  it('should not change password if current password is wrong', async () => {
+    const service = TestBed.inject(AuthService);
+    await service.register({
+      email: 'wrong.pass@example.com',
+      password: 'rightpass',
+      firstName: 'Wrong',
+      lastName: 'Pass',
+      phone: '+48123456789',
+      age: 22,
+      role: 'user'
+    });
+    const change = await service.changePassword('badpass', 'newpass');
+    expect(change.success).toBe(false);
+    expect(change.error).toContain('incorrect');
+  });
 });
