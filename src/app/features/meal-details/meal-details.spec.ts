@@ -222,4 +222,23 @@ describe('MealDetailsComponent', () => {
     expect(store.deleteRecipe).toHaveBeenCalledWith(123);
     expect(router.navigate).toHaveBeenCalledWith(['/home']);
   });
+
+  it('should render meal details', async () => {
+    await setup();
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.textContent).toContain('Tomato Pasta');
+    expect(host.textContent).toContain('Dinner');
+    expect(host.textContent).toContain('Italian');
+    expect(host.textContent).toContain('Step one.');
+    expect(host.textContent).toContain('Step two.');
+    const img = host.querySelector('img');
+    expect(img?.src).toContain('https://example.com/meal.jpg');
+  });
+
+  it('should call downvote and show notification', async () => {
+    await setup({ canVote: true });
+    (component as any).downvote();
+    expect(feedback.downvote).toHaveBeenCalledWith(123);
+    expect(notifications.success).toHaveBeenCalled();
+  });
 });
