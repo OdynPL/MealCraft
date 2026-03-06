@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 
 export type ThemeName = 'light' | 'blue' | 'green' | 'red' | 'purple' | 'orange' | 'teal' | 'gray';
 
-export interface ThemePalette {
+interface ThemePalette {
   name: ThemeName;
   background: string;
   foreground: string;
