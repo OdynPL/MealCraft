@@ -1,4 +1,8 @@
 import { MailBoxService, Message } from './mailbox.service';
+import { MockConfigurationService } from './mailbox.service.mock-config';
+import { ConfigurationService } from '../../core/services/configuration.service';
+import { runInInjectionContext, EnvironmentInjector, createEnvironmentInjector } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
 
 describe('MailBoxService', () => {
   let service: MailBoxService;
@@ -17,7 +21,14 @@ describe('MailBoxService', () => {
     });
     // Clear localStorage for isolation
     localStorage.clear();
-    service = new MailBoxService();
+    const parent = TestBed.inject(EnvironmentInjector);
+    const injector = createEnvironmentInjector([
+      { provide: MockConfigurationService, useClass: MockConfigurationService },
+      { provide: ConfigurationService, useClass: MockConfigurationService }
+    ], parent);
+    runInInjectionContext(injector, () => {
+      service = new MailBoxService();
+    });
   });
 
   it('should add and retrieve messages for a user', () => {
@@ -77,7 +88,16 @@ describe('MailBoxService', () => {
     };
     service.addMessage(userId, msg);
     // Re-instantiate service to simulate reload
-    const newService = new MailBoxService();
+    const parent = TestBed.inject(EnvironmentInjector);
+    const injector = createEnvironmentInjector([
+      { provide: MockConfigurationService, useClass: MockConfigurationService },
+      { provide: ConfigurationService, useClass: MockConfigurationService }
+    ], parent);
+    let newService: MailBoxService | undefined;
+    runInInjectionContext(injector, () => {
+      newService = new MailBoxService();
+    });
+    if (!newService) throw new Error('newService not created');
     const messages = newService.getMessagesForUser(userId);
     expect(messages.length).toBe(1);
     expect(messages[0].sender).toBe('persist@ex.com');

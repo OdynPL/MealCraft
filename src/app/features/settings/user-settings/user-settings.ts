@@ -12,6 +12,9 @@ import { ConfigurationService } from '../../../core/services/configuration.servi
 import { NotificationService } from '../../../core/services/notification.service';
 import { LocalRecipeService } from '../../../core/services/local-recipe.service';
 import { ActivityLogService } from '../../../core/services/activity-log.service';
+import { ProfileValidationService } from '../../../core/services/profile-validation.service';
+import { PasswordValidationService } from '../../../core/services/password-validation.service';
+import { AvatarService } from '../../../core/services/avatar.service';
 
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog';
 import { RecipeExportService } from '../../../core/services/recipe-export.service';
@@ -33,6 +36,9 @@ import { RecipeImportService } from '../../../core/services/recipe-import.servic
   styleUrl: './user-settings.scss'
 })
 export class UserSettingsComponent implements OnInit {
+    private readonly profileValidation = inject(ProfileValidationService);
+    private readonly passwordValidation = inject(PasswordValidationService);
+    private readonly avatarService = inject(AvatarService);
   private readonly auth = inject(AuthService);
   public readonly config = inject(ConfigurationService);
   private readonly notifications = inject(NotificationService);
@@ -98,6 +104,7 @@ export class UserSettingsComponent implements OnInit {
       });
       return;
     }
+    // File handling and download logic remains here, as RecipeExportService only returns blob and filename
     const url = URL.createObjectURL(result.blob);
     const a = document.createElement('a');
     a.href = url;
@@ -119,7 +126,7 @@ export class UserSettingsComponent implements OnInit {
     this.updateOwnRecipeCount();
   }
 
-  onImportRecipes(event: Event): void {
+  async onImportRecipes(event: Event): Promise<void> {
     this.importExportMessage.set(null);
     this.importExportError.set(null);
     this.importFailedRecipes.set(null);
@@ -148,57 +155,41 @@ export class UserSettingsComponent implements OnInit {
       input.value = '';
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const text = String(reader.result ?? '').trim();
-      const result = this.recipeImport.validateAndImport(text);
-      if (result.errors.length > 0) {
-        this.importExportError.set(result.errors.join(' '));
-        this.importFailedRecipes.set(result.failedRecipes && result.failedRecipes.length > 0 ? result.failedRecipes : null);
-        this.activityLog.record({
-          area: 'settings',
-          action: 'import-fail',
-          status: 'error',
-          actor: { id: this.auth.currentUser()?.id ?? 0, name: this.auth.fullName() },
-          details: result.errors.join(' ')
-        });
-      } else if (result.imported > 0) {
-        this.importExportMessage.set(`Successfully imported ${result.imported} recipe(s). Skipped: ${result.skipped}.`);
-        this.importFailedRecipes.set(result.failedRecipes && result.failedRecipes.length > 0 ? result.failedRecipes : null);
-        this.activityLog.record({
-          area: 'settings',
-          action: 'import',
-          status: 'success',
-          actor: { id: this.auth.currentUser()?.id ?? 0, name: this.auth.fullName() },
-          details: `Imported ${result.imported} recipes. Skipped: ${result.skipped}`
-        });
-      } else {
-        this.importExportError.set('No valid recipes found in file.');
-        this.importFailedRecipes.set(result.failedRecipes && result.failedRecipes.length > 0 ? result.failedRecipes : null);
-        this.activityLog.record({
-          area: 'settings',
-          action: 'import-fail',
-          status: 'error',
-          actor: { id: this.auth.currentUser()?.id ?? 0, name: this.auth.fullName() },
-          details: 'No valid recipes found in file.'
-        });
-      }
-      this.updateOwnRecipeCount();
-      input.value = '';
-    };
-    reader.onerror = () => {
-      this.importExportError.set('Failed to read file.');
-      this.importFailedRecipes.set(null);
+    const text = await file.text();
+    const result = this.recipeImport.validateAndImport(text);
+    if (result.errors.length > 0) {
+      this.importExportError.set(result.errors.join(' '));
+      this.importFailedRecipes.set(result.failedRecipes && result.failedRecipes.length > 0 ? result.failedRecipes : null);
       this.activityLog.record({
         area: 'settings',
         action: 'import-fail',
         status: 'error',
         actor: { id: this.auth.currentUser()?.id ?? 0, name: this.auth.fullName() },
-        details: 'Failed to read file.'
+        details: result.errors.join(' ')
       });
-      input.value = '';
-    };
-    reader.readAsText(file);
+    } else if (result.imported > 0) {
+      this.importExportMessage.set(`Successfully imported ${result.imported} recipe(s). Skipped: ${result.skipped}.`);
+      this.importFailedRecipes.set(result.failedRecipes && result.failedRecipes.length > 0 ? result.failedRecipes : null);
+      this.activityLog.record({
+        area: 'settings',
+        action: 'import',
+        status: 'success',
+        actor: { id: this.auth.currentUser()?.id ?? 0, name: this.auth.fullName() },
+        details: `Imported ${result.imported} recipes. Skipped: ${result.skipped}`
+      });
+    } else {
+      this.importExportError.set('No valid recipes found in file.');
+      this.importFailedRecipes.set(result.failedRecipes && result.failedRecipes.length > 0 ? result.failedRecipes : null);
+      this.activityLog.record({
+        area: 'settings',
+        action: 'import-fail',
+        status: 'error',
+        actor: { id: this.auth.currentUser()?.id ?? 0, name: this.auth.fullName() },
+        details: 'No valid recipes found in file.'
+      });
+    }
+    this.updateOwnRecipeCount();
+    input.value = '';
   }
 
   triggerImportFile(): void {
@@ -249,55 +240,32 @@ export class UserSettingsComponent implements OnInit {
     validators: [Validators.required, Validators.minLength(this.config.authMinPasswordLength), Validators.maxLength(this.config.authMaxPasswordLength)]
   });
 
-  protected onAvatarSelected(event: Event): void {
+  protected async onAvatarSelected(event: Event): Promise<void> {
     this.avatarError.set(null);
-
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-
     if (!file) {
       this.avatarValue = undefined;
       this.avatarPreview.set(this.config.authDefaultAvatar);
       return;
     }
-
-    if (!file.type.startsWith('image/')) {
+    const error = this.avatarService.validateAvatar(file);
+    if (error) {
       this.avatarValue = undefined;
       this.avatarPreview.set(this.config.authDefaultAvatar);
-      this.avatarError.set('Only image files are allowed.');
+      this.avatarError.set(error);
       input.value = '';
       return;
     }
-
-    if (file.size > this.config.authMaxAvatarSizeBytes) {
-      this.avatarValue = undefined;
-      this.avatarPreview.set(this.config.authDefaultAvatar);
-      this.avatarError.set('Image is too large. Maximum size is 2 MB.');
-      input.value = '';
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = String(reader.result ?? '').trim();
-      if (!result.startsWith('data:image/')) {
-        this.avatarValue = undefined;
-        this.avatarPreview.set(this.config.authDefaultAvatar);
-        this.avatarError.set('Unable to read selected image.');
-        return;
-      }
-
-      this.avatarValue = result;
-      this.avatarPreview.set(result);
-    };
-
-    reader.onerror = () => {
+    const result = await this.avatarService.readAvatarFile(file);
+    if (!result) {
       this.avatarValue = undefined;
       this.avatarPreview.set(this.config.authDefaultAvatar);
       this.avatarError.set('Unable to read selected image.');
-    };
-
-    reader.readAsDataURL(file);
+      return;
+    }
+    this.avatarValue = result;
+    this.avatarPreview.set(result);
   }
 
   protected async removeAvatar(): Promise<void> {
@@ -389,63 +357,20 @@ export class UserSettingsComponent implements OnInit {
   }
 
   private firstProfileValidationError(): string {
-    if (this.firstNameControl.hasError('required')) {
-      return 'First name is required.';
-    }
-    if (this.firstNameControl.hasError('minlength')) {
-      return `First name must be at least ${this.config.authMinNameLength} characters.`;
-    }
-    if (this.firstNameControl.hasError('maxlength')) {
-      return `First name must be at most ${this.config.authMaxNameLength} characters.`;
-    }
-
-    if (this.lastNameControl.hasError('required')) {
-      return 'Last name is required.';
-    }
-    if (this.lastNameControl.hasError('minlength')) {
-      return `Last name must be at least ${this.config.authMinNameLength} characters.`;
-    }
-    if (this.lastNameControl.hasError('maxlength')) {
-      return `Last name must be at most ${this.config.authMaxNameLength} characters.`;
-    }
-
-    if (this.phoneControl.hasError('required') || this.phoneControl.hasError('pattern') || this.phoneControl.hasError('maxlength')) {
-      return 'Enter a valid phone number.';
-    }
-
-    if (this.ageControl.hasError('required') || this.ageControl.hasError('min') || this.ageControl.hasError('max')) {
-      return `Age must be between ${this.config.authMinAge} and ${this.config.authMaxAge}.`;
-    }
-
-    if (this.avatarError()) {
-      return this.avatarError() ?? 'Avatar is invalid.';
-    }
-
-    return 'Please fix validation errors and try again.';
+    return this.profileValidation.firstProfileValidationError(
+      this.firstNameControl,
+      this.lastNameControl,
+      this.phoneControl,
+      this.ageControl,
+      this.avatarError()
+    );
   }
 
   private firstPasswordValidationError(): string {
-    if (this.currentPasswordControl.hasError('required')) {
-      return 'Current password is required.';
-    }
-    if (this.currentPasswordControl.hasError('minlength')) {
-      return `Current password must be at least ${this.config.authMinPasswordLength} characters.`;
-    }
-    if (this.currentPasswordControl.hasError('maxlength')) {
-      return `Current password must be at most ${this.config.authMaxPasswordLength} characters.`;
-    }
-
-    if (this.newPasswordControl.hasError('required')) {
-      return 'New password is required.';
-    }
-    if (this.newPasswordControl.hasError('minlength')) {
-      return `New password must be at least ${this.config.authMinPasswordLength} characters.`;
-    }
-    if (this.newPasswordControl.hasError('maxlength')) {
-      return `New password must be at most ${this.config.authMaxPasswordLength} characters.`;
-    }
-
-    return 'Please fix validation errors and try again.';
+    return this.passwordValidation.firstPasswordValidationError(
+      this.currentPasswordControl,
+      this.newPasswordControl
+    );
   }
 
   protected async onThemeChange(value: string) {

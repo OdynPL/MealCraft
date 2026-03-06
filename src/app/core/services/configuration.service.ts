@@ -4,6 +4,8 @@ import { StoredUser, UserRole } from '../models/auth';
 
 @Injectable({ providedIn: 'root' })
 export class ConfigurationService {
+  readonly mailboxStorageKey = 'mealcraft-mailbox';
+  readonly tagsCollapsedLimit = 12;
   public readonly themeOptions = [
     { value: 'light', label: 'Light' },
     { value: 'blue', label: 'Blue' },

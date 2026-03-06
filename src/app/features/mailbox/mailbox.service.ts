@@ -7,16 +7,17 @@ export interface Message {
   sender?: string;
 }
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { ConfigurationService } from '../../core/services/configuration.service';
 
 @Injectable({ providedIn: 'root' })
 export class MailBoxService {
-  private static readonly STORAGE_KEY = 'mealcraft-mailbox';
+  private readonly config = inject(ConfigurationService);
   private messages: Record<string, Message[]> = this.readAll();
 
   private readAll(): Record<string, Message[]> {
     if (typeof localStorage === 'undefined') return {};
-    const raw = localStorage.getItem(MailBoxService.STORAGE_KEY);
+    const raw = localStorage.getItem(this.config.mailboxStorageKey);
     if (!raw) return {};
     try {
       const parsed = JSON.parse(raw);
@@ -30,7 +31,7 @@ export class MailBoxService {
   private writeAll() {
     if (typeof localStorage === 'undefined') return;
     try {
-      localStorage.setItem(MailBoxService.STORAGE_KEY, JSON.stringify(this.messages));
+      localStorage.setItem(this.config.mailboxStorageKey, JSON.stringify(this.messages));
     } catch {
       // ignore write errors
     }
@@ -67,4 +68,5 @@ export class MailBoxService {
     this.messages[userId] = msgs.filter(m => m.id !== messageId);
     this.writeAll();
   }
+
 }

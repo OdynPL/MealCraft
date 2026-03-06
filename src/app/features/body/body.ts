@@ -20,6 +20,7 @@ import { NotificationService } from '../../core/services/notification.service';
 import { RecipeFeedbackService } from '../../core/services/recipe-feedback.service';
 import { FoodStore } from '../../core/stores/food.store';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog';
+import { BodyStateService } from './body-state.service';
 
 @Component({
   selector: 'app-body',
@@ -40,7 +41,8 @@ import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dial
   styleUrl: './body.scss',
 })
 export class BodyComponent {
-  private static readonly TAGS_COLLAPSED_LIMIT = 12;
+    private readonly state = inject(BodyStateService);
+
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly dialog = inject(MatDialog);
@@ -79,9 +81,9 @@ export class BodyComponent {
       return allTags;
     }
 
-    return allTags.slice(0, BodyComponent.TAGS_COLLAPSED_LIMIT);
+    return allTags.slice(0, this.config.tagsCollapsedLimit);
   });
-  protected readonly hasTagToggle = computed(() => this.tagCounts().length > BodyComponent.TAGS_COLLAPSED_LIMIT);
+  protected readonly hasTagToggle = computed(() => this.tagCounts().length > this.config.tagsCollapsedLimit);
   protected readonly tagToggleLabel = computed(() => this.tagsExpanded() ? 'See less' : 'See more');
   protected readonly mineOnly = computed(() => this.store.mineOnly());
   protected readonly selectedTag = computed(() => this.store.tag());
@@ -109,7 +111,7 @@ export class BodyComponent {
     fromEvent(globalThis, 'resize')
       .pipe(
         startWith(null),
-        map(() => recommendedPageSizeForWidth(globalThis.innerWidth, this.config)),
+        map(() => this.state.recommendedPageSizeForWidth(globalThis.innerWidth)),
         distinctUntilChanged(),
         takeUntilDestroyed(this.destroyRef)
       )
@@ -152,10 +154,10 @@ export class BodyComponent {
     });
 
     effect(() => {
-      syncControl(this.searchControl, this.store.query());
-      syncControl(this.cuisineControl, this.store.cuisine());
-      syncControl(this.categoryControl, this.store.category());
-      syncControl(this.sortControl, `${this.store.sortBy()}:${this.store.sortDirection()}`);
+      this.state.syncControl(this.searchControl, this.store.query());
+      this.state.syncControl(this.cuisineControl, this.store.cuisine());
+      this.state.syncControl(this.categoryControl, this.store.category());
+      this.state.syncControl(this.sortControl, `${this.store.sortBy()}:${this.store.sortDirection()}`);
 
       if (this.isApplyingUrlState) {
         return;
@@ -307,11 +309,11 @@ export class BodyComponent {
     const cuisine = queryParamMap.get('cuisine') ?? '';
     const category = queryParamMap.get('category') ?? '';
     const tag = queryParamMap.get('tag') ?? '';
-    const mineOnly = parseBoolean(queryParamMap.get('mine'));
-    const sortBy = parseSortBy(queryParamMap.get('sortBy'));
-    const sortDirection = parseSortDirection(queryParamMap.get('sortDir'));
-    const page = parseNumber(queryParamMap.get('page'), 0);
-    const pageSize = parseNumber(queryParamMap.get('pageSize'), this.store.pageSize());
+    const mineOnly = this.state.parseBoolean(queryParamMap.get('mine'));
+    const sortBy = this.state.parseSortBy(queryParamMap.get('sortBy'));
+    const sortDirection = this.state.parseSortDirection(queryParamMap.get('sortDir'));
+    const page = this.state.parseNumber(queryParamMap.get('page'), 0);
+    const pageSize = this.state.parseNumber(queryParamMap.get('pageSize'), this.store.pageSize());
 
     this.isApplyingUrlState = true;
 
@@ -383,45 +385,4 @@ export class BodyComponent {
 
 }
 
-function syncControl(control: FormControl<string>, value: string): void {
-  if (control.value !== value) {
-    control.setValue(value, { emitEvent: false });
-  }
-}
 
-function parseSortBy(value: string | null): FoodSortBy {
-  if (value === 'name' || value === 'tags' || value === 'votes') {
-    return value;
-  }
-
-  return 'id';
-}
-
-function parseSortDirection(value: string | null): SortDirection {
-  return value === 'asc' ? 'asc' : 'desc';
-}
-
-function parseNumber(value: string | null, fallback: number): number {
-  if (value === null) {
-    return fallback;
-  }
-
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : fallback;
-}
-
-function parseBoolean(value: string | null): boolean {
-  return value === '1' || value === 'true';
-}
-
-function recommendedPageSizeForWidth(width: number, config: ConfigurationService): number {
-  if (width <= config.uiSmallViewportMaxWidth) {
-    return config.uiSmallViewportPageSize;
-  }
-
-  if (width <= config.uiMediumViewportMaxWidth) {
-    return config.uiMediumViewportPageSize;
-  }
-
-  return config.uiLargeViewportPageSize;
-}
