@@ -36,13 +36,5 @@ export class BodyStateService {
     return value === '1' || value === 'true';
   }
 
-  recommendedPageSizeForWidth(width: number): number {
-    if (width <= this.config.uiSmallViewportMaxWidth) {
-      return this.config.uiSmallViewportPageSize;
-    }
-    if (width <= this.config.uiMediumViewportMaxWidth) {
-      return this.config.uiMediumViewportPageSize;
-    }
-    return this.config.uiLargeViewportPageSize;
-  }
+  // ...pozostałe metody bez paginacji...
 }

@@ -7,6 +7,7 @@ import { HttpCacheService } from '../http/http-cache.service';
 import { FoodPage, FoodQuery, FoodSortBy, SortDirection } from '../models';
 import { FoodService } from '../services/food.service';
 import { ConfigurationService } from '../services/configuration.service';
+import { PaginationService } from '../services/pagination.service';
 import { LocalRecipeService } from '../services/local-recipe.service';
 import { FoodState } from './models/food-state';
 
@@ -16,6 +17,7 @@ export class FoodStore {
   private readonly destroyRef = inject(DestroyRef);
   private readonly cache = inject(HttpCacheService);
   private readonly config = inject(ConfigurationService);
+  private readonly pagination = inject(PaginationService);
   private readonly localRecipes = inject(LocalRecipeService);
 
   private readonly initialState: FoodState = {
@@ -29,7 +31,7 @@ export class FoodStore {
     sortBy: this.config.defaultSortBy,
     sortDirection: this.config.defaultSortDirection,
     pageIndex: 0,
-    pageSize: this.config.defaultPageSize,
+    pageSize: this.pagination.getDefaultPageSize(),
     refreshTick: 0,
     items: [],
     categoryCounts: [],
@@ -53,6 +55,9 @@ export class FoodStore {
   readonly sortDirection = computed(() => this.state().sortDirection);
   readonly pageIndex = computed(() => this.state().pageIndex);
   readonly pageSize = computed(() => this.state().pageSize);
+  readonly pageSizeOptions = computed(() => this.pagination.getPageSizeOptions());
+  readonly minPageSize = computed(() => this.pagination.getMinPageSize());
+  readonly maxPageSize = computed(() => this.pagination.getMaxPageSize());
   readonly refreshTick = computed(() => this.state().refreshTick);
   readonly items = computed(() => this.state().items);
   readonly categoryCounts = computed(() => this.state().categoryCounts);

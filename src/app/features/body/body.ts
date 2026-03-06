@@ -21,6 +21,7 @@ import { RecipeFeedbackService } from '../../core/services/recipe-feedback.servi
 import { FoodStore } from '../../core/stores/food.store';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog';
 import { BodyStateService } from './body-state.service';
+import { PaginationService } from '../../core/services/pagination.service';
 
 @Component({
   selector: 'app-body',
@@ -42,6 +43,7 @@ import { BodyStateService } from './body-state.service';
 })
 export class BodyComponent {
     private readonly state = inject(BodyStateService);
+    private readonly pagination = inject(PaginationService);
 
 
   private readonly destroyRef = inject(DestroyRef);
@@ -70,7 +72,7 @@ export class BodyComponent {
     { nonNullable: true }
   );
 
-  protected readonly pageSizeOptions = [...this.config.uiPageSizeOptions];
+  protected readonly pageSizeOptions = this.pagination.getPageSizeOptions();
   protected readonly isLoggedIn = computed(() => this.auth.isLoggedIn());
   protected readonly cuisines = computed(() => this.store.cuisines());
   protected readonly categories = computed(() => this.store.categories());
@@ -111,7 +113,7 @@ export class BodyComponent {
     fromEvent(globalThis, 'resize')
       .pipe(
         startWith(null),
-        map(() => this.state.recommendedPageSizeForWidth(globalThis.innerWidth)),
+        map(() => this.pagination.recommendedPageSizeForWidth(globalThis.innerWidth)),
         distinctUntilChanged(),
         takeUntilDestroyed(this.destroyRef)
       )
