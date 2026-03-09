@@ -50,6 +50,16 @@
             <mat-icon aria-hidden="true">error</mat-icon>
             System Errors
           </button>
+           <button
+              mat-stroked-button
+              type="button"
+              class="menu-button"
+              [class.menu-button-active]="activeMenu() === 'statistics'"
+              (click)="setActiveMenu('statistics')"
+            >
+              <mat-icon aria-hidden="true">pie_chart</mat-icon>
+              Statistics
+            </button>
         </nav>
       </mat-card>
 
@@ -67,6 +77,8 @@
           <app-email-notifications />
         } @else if (activeMenu() === 'errors') {
           <app-system-errors />
+        } @else if (activeMenu() === 'statistics') {
+          <app-statistic />
         }
         </div>
       </mat-card>

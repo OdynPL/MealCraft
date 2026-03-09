@@ -1,0 +1,45 @@
+/* Zmniejsz rozmiar wykresów pie chart */
+.statistics-charts .chart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.statistics-charts canvas {
+  max-width: 260px;
+  max-height: 260px;
+  width: 100%;
+  height: auto;
+}
+.statistics-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 2rem 0;
+}
+
+.statistics-panel {
+  width: 100%;
+  max-width: 1200px;
+  padding: 2rem;
+}
+
+.statistics-header {
+  margin-bottom: 2rem;
+}
+
+.statistics-charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.chart {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}

@@ -1,4 +1,5 @@
 import { inject, Injectable } from '@angular/core';
+import { RecipeFeedbackService } from './recipe-feedback.service';
 import { forkJoin, map, Observable, of, switchMap } from 'rxjs';
 
 import { AuthUser, Food, FoodCategoryCount, FoodDetail, FoodFacets, FoodPage, FoodQuery, FoodSortBy, FoodTagCount, SortDirection } from '../models';
@@ -8,7 +9,6 @@ import { ConfigurationService } from './configuration.service';
 import { FoodDummyDataService } from './food-dummy-data.service';
 import { FoodRemoteApiService } from './food-remote-api.service';
 import { LocalRecipeService } from './local-recipe.service';
-import { RecipeFeedbackService } from './recipe-feedback.service';
 
 const ALLOWED_SORTS: readonly FoodSortBy[] = ['name', 'id', 'tags', 'votes'];
 const ALLOWED_DIRECTIONS: readonly SortDirection[] = ['asc', 'desc'];
@@ -239,7 +239,8 @@ export class FoodService {
     };
   }
 
-  private normalizeText(value: string): string | undefined {
+  private normalizeText(value: string | undefined | null): string | undefined {
+    if (typeof value !== 'string') return undefined;
     const normalized = value.trim().slice(0, this.config.queryLimit);
     return normalized.length > 0 ? normalized : undefined;
   }
@@ -387,3 +388,5 @@ function uniqueSortedValues(items: string[]): string[] {
 
   return [...new Set(values)].sort((a, b) => a.localeCompare(b));
 }
+
+

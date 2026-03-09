@@ -9,8 +9,9 @@ import { ActivityLogComponent } from './activity-log/activity-log';
 import { UserManagementComponent } from './user-management/user-management';
 import { EmailNotificationsComponent } from './email-notifications/email-notifications';
 import { SystemErrorsComponent } from './system-errors';
+import { StatisticComponent } from './statistics/statistic';
 
-type AdminMenuKey = 'users' | 'activity' | 'email' | 'errors';
+type AdminMenuKey = 'users' | 'activity' | 'email' | 'errors' | 'statistics';
 
 @Component({
   selector: 'app-admin-panel',
@@ -22,7 +23,8 @@ type AdminMenuKey = 'users' | 'activity' | 'email' | 'errors';
     MatButtonModule,
     MatIconModule,
     EmailNotificationsComponent,
-    SystemErrorsComponent
+    SystemErrorsComponent,
+    StatisticComponent
   ],
   templateUrl: './admin-panel.html',
   styleUrl: './admin-panel.scss'

@@ -1,0 +1,44 @@
+<section class="statistics-wrapper app-page-shell" aria-label="Statistics">
+  <mat-card class="statistics-panel" appearance="outlined">
+    <header class="statistics-header">
+      <h2>Statistics</h2>
+      <p>Visual summary of recipes data.</p>
+      <div class="total-recipes">Total recipes: {{ totalRecipes() }}</div>
+    </header>
+    <div class="statistics-charts">
+      <!-- Pie charts will be added here -->
+      <div class="chart" aria-label="Recipes by Tags">
+        <h3>Recipes vs Tags</h3>
+        <canvas baseChart
+          [data]="{ labels: tagsChartLabels().slice(0, 3), datasets: [{ data: tagsChartData().slice(0, 3), backgroundColor: ['#42A5F5', '#66BB6A', '#FFA726'] }] }"
+          [type]="'pie'"
+          [options]="{ responsive: true, plugins: { legend: { position: 'bottom' } } }"
+        ></canvas>
+      </div>
+      <div class="chart" aria-label="Recipes by Cuisine">
+        <h3>Recipes vs Cuisine</h3>
+        <canvas baseChart
+          [data]="{ labels: cuisineChartLabels().slice(0, 3), datasets: [{ data: cuisineChartData().slice(0, 3), backgroundColor: ['#42A5F5', '#66BB6A', '#FFA726'] }] }"
+          [type]="'pie'"
+          [options]="{ responsive: true, plugins: { legend: { position: 'bottom' } } }"
+        ></canvas>
+      </div>
+      <div class="chart" aria-label="Recipes by Category">
+        <h3>Recipes vs Category</h3>
+        <canvas baseChart
+          [data]="{ labels: categoryChartLabels().slice(0, 3), datasets: [{ data: categoryChartData().slice(0, 3), backgroundColor: ['#42A5F5', '#66BB6A', '#FFA726'] }] }"
+          [type]="'pie'"
+          [options]="{ responsive: true, plugins: { legend: { position: 'bottom' } } }"
+        ></canvas>
+      </div>
+      <div class="chart" aria-label="Recipes by Votes">
+        <h3>Recipes vs Votes</h3>
+        <canvas baseChart
+          [data]="{ labels: votesChartLabels().slice(0, 3), datasets: [{ data: votesChartData().slice(0, 3), backgroundColor: ['#42A5F5', '#66BB6A', '#FFA726'] }] }"
+          [type]="'pie'"
+          [options]="{ responsive: true, plugins: { legend: { position: 'bottom' } } }"
+        ></canvas>
+      </div>
+    </div>
+  </mat-card>
+</section>
