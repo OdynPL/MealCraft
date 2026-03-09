@@ -140,15 +140,26 @@
   color: var(--mat-sys-on-tertiary) !important;
 }
 
+
 .role-label {
   display: inline-flex;
   align-items: center;
   padding: 0.1rem 0.5rem;
   border-radius: 999px;
-  background: var(--mat-sys-secondary-container);
-  color: var(--mat-sys-on-secondary-container);
   font-weight: 600;
   font-size: 0.78rem;
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.role-label.role-admin {
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+}
+
+.role-label.role-user {
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
 }
 
 .yes-no-yes {
